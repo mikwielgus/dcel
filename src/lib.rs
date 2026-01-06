@@ -2,6 +2,14 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+mod walkers;
+
+pub use walkers::{
+    CcwEdgesIter, CcwEdgesWalker, CcwHalfEdgesIter, CcwHalfEdgesWalker, CwEdgesIter, CwEdgesWalker,
+    CwHalfEdgesIter, CwHalfEdgesWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
+    FaceHalfEdgesWalker,
+};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VertexId(usize);
 
@@ -382,121 +390,6 @@ impl<VW, HEW, FW, VC, HEC, FC: maplike::Push<usize, Item = Face<FW>>>
     }
 }
 
-pub struct FaceHalfEdgesWalker {
-    initial_half_edge: HalfEdgeId,
-    curr_half_edge: HalfEdgeId,
-}
-
-impl FaceHalfEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.next_half_edge(self.curr_half_edge);
-
-        (next_half_edge != self.initial_half_edge).then(|| {
-            self.curr_half_edge = next_half_edge;
-            self.curr_half_edge
-        })
-    }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> FaceHalfEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        FaceHalfEdgesWalkerIter { walker: self, dcel }
-    }
-}
-
-pub struct FaceHalfEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: FaceHalfEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for FaceHalfEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = HalfEdgeId;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker.next(self.dcel)
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
-        let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
-
-        FaceHalfEdgesWalker {
-            initial_half_edge,
-            curr_half_edge: initial_half_edge,
-        }
-    }
-}
-
-pub struct FaceEdgesWalker {
-    initial_edge: EdgeId,
-    curr_edge: EdgeId,
-}
-
-impl FaceEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<EdgeId> {
-        let next_edge = dcel.next_edge(self.curr_edge);
-
-        (next_edge != self.initial_edge).then(|| {
-            self.curr_edge = next_edge;
-            self.curr_edge
-        })
-    }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> FaceEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        FaceEdgesWalkerIter { walker: self, dcel }
-    }
-}
-
-pub struct FaceEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: FaceEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for FaceEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = EdgeId;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker.next(self.dcel)
-    }
-}
-
-impl<
-    VW,
-    HEW,
-    FW,
-    VC,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC: maplike::Get<usize, Item = Face<FW>>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
-        let initial_edge =
-            self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
-
-        FaceEdgesWalker {
-            initial_edge,
-            curr_edge: initial_edge,
-        }
-    }
-}
-
 impl<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
@@ -536,5 +429,21 @@ impl<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>
         let next_twin_half_edge = self.half_edges.get(&next_half_edge.0).unwrap().twin;
 
         EdgeId(next_half_edge, next_twin_half_edge)
+    }
+
+    fn cw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.twin(self.prev_half_edge(half_edge))
+    }
+
+    fn ccw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.next_half_edge(self.twin(half_edge))
+    }
+
+    fn cw_edge(&self, edge: EdgeId) -> EdgeId {
+        self.full_edge(self.cw_half_edge(edge.0))
+    }
+
+    fn ccw_edge(&self, edge: EdgeId) -> EdgeId {
+        self.full_edge(self.ccw_half_edge(edge.0))
     }
 }
