@@ -390,6 +390,32 @@ impl<VW, HEW, FW, VC, HEC, FC: maplike::Push<usize, Item = Face<FW>>>
     }
 }
 
+impl<VW, HEW, FW, VC: maplike::Get<usize, Item = Vertex<VW>>, HEC, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn outward_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.vertexes.get(&vertex.0).unwrap().outward_half_edge
+    }
+}
+
+impl<
+    VW,
+    HEW,
+    FW,
+    VC: maplike::Get<usize, Item = Vertex<VW>>,
+    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
+    FC,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn prev_vertex(&self, vertex: VertexId) -> VertexId {
+        self.origin(self.prev_half_edge(self.outward_half_edge(vertex)))
+    }
+
+    fn next_vertex(&self, vertex: VertexId) -> VertexId {
+        self.origin(self.next_half_edge(self.outward_half_edge(vertex)))
+    }
+}
+
 impl<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {

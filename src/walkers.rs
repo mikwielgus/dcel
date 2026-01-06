@@ -2,7 +2,80 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId};
+use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
+
+pub struct FaceVertexesWalker {
+    initial_vertex: VertexId,
+    curr_vertex: VertexId,
+}
+
+impl FaceVertexesWalker {
+    pub fn next<
+        VW,
+        HEW,
+        FW,
+        VC: maplike::Get<usize, Item = Vertex<VW>>,
+        HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
+        FC,
+    >(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<VertexId> {
+        let next_vertex = dcel.next_vertex(self.curr_vertex);
+
+        (next_vertex != self.initial_vertex)
+            .then(|| std::mem::replace(&mut self.curr_vertex, next_vertex))
+    }
+
+    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
+        self,
+        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC> {
+        FaceVertexesIter { walker: self, dcel }
+    }
+}
+
+pub struct FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC> {
+    walker: FaceVertexesWalker,
+    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+}
+
+impl<
+    'a,
+    VW,
+    HEW,
+    FW,
+    VC: maplike::Get<usize, Item = Vertex<VW>>,
+    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
+    FC,
+> Iterator for FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = VertexId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+impl<
+    VW,
+    HEW,
+    FW,
+    VC: maplike::Get<usize, Item = Vertex<VW>>,
+    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
+    FC: maplike::Get<usize, Item = Face<FW>>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesWalker {
+        let initial_vertex =
+            self.origin(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
+
+        FaceVertexesWalker {
+            initial_vertex,
+            curr_vertex: initial_vertex,
+        }
+    }
+}
 
 pub struct FaceHalfEdgesWalker {
     initial_half_edge: HalfEdgeId,
@@ -46,7 +119,7 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
 impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub(crate) fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
+    pub fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
         let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
 
         FaceHalfEdgesWalker {
@@ -103,7 +176,7 @@ impl<
     FC: maplike::Get<usize, Item = Face<FW>>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub(crate) fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
+    pub fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
         let initial_edge =
             self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
 
@@ -156,7 +229,7 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
 impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub(crate) fn cw_half_edges(&self, face: FaceId) -> CwHalfEdgesWalker {
+    pub fn cw_half_edges(&self, face: FaceId) -> CwHalfEdgesWalker {
         let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
 
         CwHalfEdgesWalker {
@@ -208,7 +281,7 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
 impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub(crate) fn ccw_half_edges(&self, face: FaceId) -> CcwHalfEdgesWalker {
+    pub fn ccw_half_edges(&self, face: FaceId) -> CcwHalfEdgesWalker {
         let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
 
         CcwHalfEdgesWalker {
@@ -265,7 +338,7 @@ impl<
     FC: maplike::Get<usize, Item = Face<FW>>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub(crate) fn cw_edges(&self, face: FaceId) -> CwEdgesWalker {
+    pub fn cw_edges(&self, face: FaceId) -> CwEdgesWalker {
         let initial_edge =
             self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
 
@@ -323,7 +396,7 @@ impl<
     FC: maplike::Get<usize, Item = Face<FW>>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub(crate) fn ccw_edges(&self, face: FaceId) -> CcwEdgesWalker {
+    pub fn ccw_edges(&self, face: FaceId) -> CcwEdgesWalker {
         let initial_edge =
             self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
 
