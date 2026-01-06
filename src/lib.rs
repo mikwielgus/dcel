@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VertexId(usize);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HalfEdgeId(usize);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FaceId(usize);
 
 #[derive(Clone, Debug)]
@@ -209,75 +209,6 @@ impl<
     }
 }
 
-/*impl<
-    VW,
-    HEW: Clone,
-    FW: maplike::Get<usize>,
-    VC: maplike::Get<usize, Item = Vertex<VW>> + maplike::Push<usize>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>> + maplike::Insert<usize> + maplike::Push<usize>,
-    FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize> + maplike::Push<usize>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    /// Partition a face into triangles by inserting a vertex inside and then
-    /// adding edges between it and the original face's vertexes.
-    ///
-    /// The original face is reused for the first triangle. New faces are
-    /// created for all the other triangles.
-    ///
-    /// Returns the new vertex id together with the face ids of all the
-    /// triangles.
-    pub fn triangulate_around_vertex_with_all_weights(
-        &mut self,
-        perimeter_face: FaceId,
-        inner_vertex_weight: VW,
-        inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
-        triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) {
-        let inner_vertex = self.add_unwired_vertex(inner_vertex_weight);
-        let triangle_faces = self.add_unwired_triangulation_faces(perimeter_face, triangle_face_weights);
-        let inner_edges = self.add_unwired_triangulation_edges(inner_edge_weights);
-        self.wire_triangulation_faces_edges_vertexes(triangle_faces);
-    }
-
-    fn add_unwired_triangulation_faces(
-        &mut self,
-        first_face: FaceId,
-        triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) -> Vec<FaceId> {
-        let mut triangle_faces = vec![];
-
-        let mut face_weights_iter = triangle_face_weights.into_iter();
-        self.faces.insert(
-            first_face.0,
-            Face {
-                incident_half_edge: self.faces.get(&first_face.0).unwrap().incident_half_edge,
-                weight: face_weights_iter.next().unwrap(),
-            },
-        );
-        triangle_faces.push(first_face);
-
-        for face_weight in face_weights_iter {
-            triangle_faces.push(self.add_unwired_face(face_weight));
-        }
-
-        triangle_faces
-    }
-
-    fn wire_triangulation_faces_edges_vertexes(
-        &mut self,
-        triangle_faces: &[FaceId],
-        inner_edges: &[EdgeId],
-    ) {
-        for triangle_face in triangle_faces {
-            let triangle_edges = [
-
-            ]
-
-            self.wire_face_edges_vertexes(triangle_face, &triangle_edges);
-        }
-    }
-}*/
-
 impl<
     VW: Clone,
     HEW: Clone,
@@ -426,6 +357,146 @@ impl<
     }
 }
 
+impl<VW, HEW, FW: Clone, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn wire_face(&mut self, face: FaceId, incident_half_edge: HalfEdgeId) {
+        self.faces.insert(
+            face.0,
+            Face {
+                incident_half_edge: Some(incident_half_edge),
+                weight: self.faces.get(&face.0).unwrap().weight.clone(),
+            },
+        );
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC: maplike::Push<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn add_unwired_face(&mut self, weight: FW) -> FaceId {
+        FaceId(self.faces.push(Face {
+            incident_half_edge: None,
+            weight,
+        }))
+    }
+}
+
+pub struct FaceHalfEdgesWalker {
+    initial_half_edge: HalfEdgeId,
+    curr_half_edge: HalfEdgeId,
+}
+
+impl FaceHalfEdgesWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let next_half_edge = dcel.next_half_edge(self.curr_half_edge);
+
+        (next_half_edge != self.initial_half_edge).then(|| {
+            self.curr_half_edge = next_half_edge;
+            self.curr_half_edge
+        })
+    }
+
+    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
+        self,
+        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> FaceHalfEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
+        FaceHalfEdgesWalkerIter { walker: self, dcel }
+    }
+}
+
+pub struct FaceHalfEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
+    walker: FaceHalfEdgesWalker,
+    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for FaceHalfEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
+        let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
+
+        FaceHalfEdgesWalker {
+            initial_half_edge,
+            curr_half_edge: initial_half_edge,
+        }
+    }
+}
+
+pub struct FaceEdgesWalker {
+    initial_edge: EdgeId,
+    curr_edge: EdgeId,
+}
+
+impl FaceEdgesWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        let next_edge = dcel.next_edge(self.curr_edge);
+
+        (next_edge != self.initial_edge).then(|| {
+            self.curr_edge = next_edge;
+            self.curr_edge
+        })
+    }
+
+    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
+        self,
+        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> FaceEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
+        FaceEdgesWalkerIter { walker: self, dcel }
+    }
+}
+
+pub struct FaceEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC> {
+    walker: FaceEdgesWalker,
+    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for FaceEdgesWalkerIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+impl<
+    VW,
+    HEW,
+    FW,
+    VC,
+    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
+    FC: maplike::Get<usize, Item = Face<FW>>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
+        let initial_edge =
+            self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
+
+        FaceEdgesWalker {
+            initial_edge,
+            curr_edge: initial_edge,
+        }
+    }
+}
+
 impl<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
@@ -467,67 +538,3 @@ impl<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>
         EdgeId(next_half_edge, next_twin_half_edge)
     }
 }
-
-impl<VW, HEW, FW: Clone, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    fn wire_face(&mut self, face: FaceId, incident_half_edge: HalfEdgeId) {
-        self.faces.insert(
-            face.0,
-            Face {
-                incident_half_edge: Some(incident_half_edge),
-                weight: self.faces.get(&face.0).unwrap().weight.clone(),
-            },
-        );
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Push<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    fn add_unwired_face(&mut self, weight: FW) -> FaceId {
-        FaceId(self.faces.push(Face {
-            incident_half_edge: None,
-            weight,
-        }))
-    }
-}
-
-/*pub struct FaceHalfEdgesWalker {
-    last_half_edge: HalfEdgeId,
-    next_half_edge: HalfEdgeId,
-}
-
-impl FaceHalfEdgesWalker {
-    pub fn walk_next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(&mut self, dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>) -> Option<HalfEdgeId> {
-        //Some(std::mem::replace(&mut self.next_half_edge, dcel.half_edges.get(&self.next_half_edge.0).unwrap().next))))
-
-        //self.next_half_edge.map(|next_half_edge| {
-        //})
-        self.next_half_edge = dcel.half_edges.get(&self.next_half_edge.0).unwrap().next;
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    fn walk_face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
-        FaceHalfEdgesWalker {
-            next_half_edge: self.faces.get(&face.0).unwrap().incident_half_edge.unwrap(),
-        }
-    }
-}*/
-
-/*pub struct FaceEdgesIter<'a> {
-    curr_half_edge: HalfEdgeId,
-}
-
-impl<'a> Iterator for FaceEdgesIter<'a> ...
-
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    fn face_edges(&self, face: FaceId) -> FaceEdgesIter {
-        FaceEdgesIter {
-            curr_half_edge: self.faces.get(&face.0).unwrap().incident_half_edge.unwrap(),
-        }
-    }
-}*/
