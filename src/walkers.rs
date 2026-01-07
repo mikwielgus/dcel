@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use maplike::Get;
+
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
 
 macro_rules! create_walker_and_iter {
@@ -39,8 +41,8 @@ impl FaceVertexesWalker {
         VW,
         HEW,
         FW,
-        VC: maplike::Get<usize, Item = Vertex<VW>>,
-        HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
+        VC: Get<usize, Item = Vertex<VW>>,
+        HEC: Get<usize, Item = HalfEdge<HEW>>,
         FC,
     >(
         &mut self,
@@ -53,15 +55,8 @@ impl FaceVertexesWalker {
     }
 }
 
-impl<
-    'a,
-    VW,
-    HEW,
-    FW,
-    VC: maplike::Get<usize, Item = Vertex<VW>>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC,
-> Iterator for FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC>
+impl<'a, VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Iterator for FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
 
@@ -74,9 +69,9 @@ impl<
     VW,
     HEW,
     FW,
-    VC: maplike::Get<usize, Item = Vertex<VW>>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC: maplike::Get<usize, Item = Face<FW>>,
+    VC: Get<usize, Item = Vertex<VW>>,
+    HEC: Get<usize, Item = HalfEdge<HEW>>,
+    FC: Get<usize, Item = Face<FW>>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesWalker {
@@ -99,7 +94,7 @@ create_walker_and_iter!(
 );
 
 impl FaceHalfEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -110,7 +105,7 @@ impl FaceHalfEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for FaceHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -120,9 +115,7 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
     }
 }
 
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
+impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     pub fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
         let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
 
@@ -142,7 +135,7 @@ create_walker_and_iter!(
 );
 
 impl FaceEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -152,7 +145,7 @@ impl FaceEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for FaceEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -162,14 +155,8 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
     }
 }
 
-impl<
-    VW,
-    HEW,
-    FW,
-    VC,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC: maplike::Get<usize, Item = Face<FW>>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
         let initial_edge =
@@ -191,7 +178,7 @@ create_walker_and_iter!(
 );
 
 impl CwHalfEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -202,7 +189,7 @@ impl CwHalfEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for CwHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -212,12 +199,8 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
     }
 }
 
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    pub fn cw_half_edges(&self, face: FaceId) -> CwHalfEdgesWalker {
-        let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
-
+impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    pub fn cw_half_edges(&self, initial_half_edge: HalfEdgeId) -> CwHalfEdgesWalker {
         CwHalfEdgesWalker {
             initial_half_edge,
             curr_half_edge: initial_half_edge,
@@ -234,7 +217,7 @@ create_walker_and_iter!(
 );
 
 impl CcwHalfEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -245,7 +228,7 @@ impl CcwHalfEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for CcwHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -255,12 +238,8 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
     }
 }
 
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    pub fn ccw_half_edges(&self, face: FaceId) -> CcwHalfEdgesWalker {
-        let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
-
+impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    pub fn ccw_half_edges(&self, initial_half_edge: HalfEdgeId) -> CcwHalfEdgesWalker {
         CcwHalfEdgesWalker {
             initial_half_edge,
             curr_half_edge: initial_half_edge,
@@ -277,7 +256,7 @@ create_walker_and_iter!(
 );
 
 impl CwEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -287,7 +266,7 @@ impl CwEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for CwEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -297,19 +276,10 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
     }
 }
 
-impl<
-    VW,
-    HEW,
-    FW,
-    VC,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC: maplike::Get<usize, Item = Face<FW>>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn cw_edges(&self, face: FaceId) -> CwEdgesWalker {
-        let initial_edge =
-            self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
-
+    pub fn cw_edges(&self, initial_edge: EdgeId) -> CwEdgesWalker {
         CwEdgesWalker {
             initial_edge,
             curr_edge: initial_edge,
@@ -326,7 +296,7 @@ create_walker_and_iter!(
 );
 
 impl CcwEdgesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -336,7 +306,7 @@ impl CcwEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for CcwEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -346,19 +316,10 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
     }
 }
 
-impl<
-    VW,
-    HEW,
-    FW,
-    VC,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC: maplike::Get<usize, Item = Face<FW>>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn ccw_edges(&self, face: FaceId) -> CcwEdgesWalker {
-        let initial_edge =
-            self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
-
+    pub fn ccw_edges(&self, initial_edge: EdgeId) -> CcwEdgesWalker {
         CcwEdgesWalker {
             initial_edge,
             curr_edge: initial_edge,
@@ -376,7 +337,7 @@ create_walker_and_iter!(
 );
 
 impl EdgesWithExcludesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -392,7 +353,7 @@ impl EdgesWithExcludesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for EdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -402,23 +363,14 @@ impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> It
     }
 }
 
-impl<
-    VW,
-    HEW,
-    FW,
-    VC,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC: maplike::Get<usize, Item = Face<FW>>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn edges_with_excludes(
         &self,
-        face: FaceId,
+        initial_edge: EdgeId,
         excluded_edges: impl IntoIterator<Item = EdgeId>,
     ) -> EdgesWithExcludesWalker {
-        let initial_edge =
-            self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
-
         EdgesWithExcludesWalker {
             initial_edge,
             curr_edge: initial_edge,

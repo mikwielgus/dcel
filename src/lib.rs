@@ -4,6 +4,7 @@
 
 mod walkers;
 
+use maplike::{Get, Insert, Push, Remove};
 pub use walkers::{
     CcwEdgesIter, CcwEdgesWalker, CcwHalfEdgesIter, CcwHalfEdgesWalker, CwEdgesIter, CwEdgesWalker,
     CwHalfEdgesIter, CwHalfEdgesWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
@@ -61,7 +62,7 @@ pub struct Dcel<
     face_weight_marker: std::marker::PhantomData<FW>,
 }
 
-impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + maplike::Push<usize, Item = FW>>
+impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = FW>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline(always)]
@@ -82,8 +83,8 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + maplike::Pus
     }
 }
 
-impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + maplike::Push<usize, Item = FW>>
-    Default for Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = FW>> Default
+    for Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline(always)]
     fn default() -> Self {
@@ -131,9 +132,9 @@ impl<
     VW: Clone,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: maplike::Get<usize, Item = Vertex<VW>> + maplike::Insert<usize> + maplike::Push<usize>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>> + maplike::Insert<usize> + maplike::Push<usize>,
-    FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize> + maplike::Push<usize>,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn insert_polygon_in_face(
@@ -154,9 +155,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: maplike::Get<usize, Item = Vertex<VW>> + maplike::Insert<usize> + maplike::Push<usize>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>> + maplike::Insert<usize> + maplike::Push<usize>,
-    FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize> + maplike::Push<usize>,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn insert_polygon_in_face_with_all_weights(
@@ -177,7 +178,7 @@ impl<
         &mut self,
         vertex_weights: impl IntoIterator<Item = VW>,
     ) -> Vec<VertexId> {
-        let vertexes: Vec<_> = vertex_weights
+        let vertexes: Vec<VertexId> = vertex_weights
             .into_iter()
             .map(|vertex_weight| self.add_unwired_vertex(vertex_weight))
             .collect();
@@ -197,7 +198,7 @@ impl<
             .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
 
         let mut edges = vec![];
-        let edge_weights: Vec<_> = edge_weights.into_iter().collect();
+        let edge_weights: Vec<(HEW, HEW)> = edge_weights.into_iter().collect();
 
         for ((from_vertex, to_vertex), (half_edge_weight, twin_half_edge_weight)) in
             vertexes_circular_pair_windows.zip(edge_weights.clone().into_iter())
@@ -220,10 +221,10 @@ impl<
 impl<
     VW: Clone,
     HEW: Clone,
-    FW: Clone + maplike::Get<usize>,
-    VC: maplike::Get<usize, Item = Vertex<VW>> + maplike::Insert<usize> + maplike::Push<usize>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>> + maplike::Insert<usize> + maplike::Push<usize>,
-    FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize> + maplike::Push<usize>,
+    FW: Clone + Get<usize>,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Partition a face into triangles by inserting a vertex inside and then
@@ -337,9 +338,47 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: maplike::Get<usize, Item = Vertex<VW>> + maplike::Insert<usize>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>> + maplike::Insert<usize>,
-    FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize>,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Remove<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Remove<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn merge_faces_over_edges_and_vertexes(
+        &mut self,
+        faces: impl IntoIterator<Item = FaceId>,
+        edges: impl IntoIterator<Item = EdgeId>,
+        vertexes: impl IntoIterator<Item = VertexId>,
+    ) {
+        let faces: Vec<FaceId> = faces.into_iter().collect();
+        let edges: Vec<EdgeId> = edges.into_iter().collect();
+        let perimeter_edges: Vec<EdgeId> = self
+            .edges_with_excludes(
+                self.full_edge(
+                    self.faces
+                        .get(&faces[0].0)
+                        .unwrap()
+                        .incident_half_edge
+                        .unwrap(),
+                ),
+                edges.clone(),
+            )
+            .iter(self)
+            .collect();
+
+        self.remove_edges(edges);
+        self.remove_vertexes(vertexes);
+
+        self.wire_face_edges_vertexes(faces[0], &perimeter_edges);
+    }
+}
+
+impl<
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_face_edges_vertexes(&mut self, face: FaceId, edges: &[EdgeId]) {
@@ -356,9 +395,7 @@ impl<
     }
 }
 
-impl<VW, HEW, FW, VC: maplike::Push<usize, Item = Vertex<VW>>, HEC, FC>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
+impl<VW, HEW, FW, VC: Push<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn add_unwired_vertex(&mut self, weight: VW) -> VertexId {
         VertexId(self.vertexes.push(Vertex {
             // Since we do not use optionals, we cannot use `None` as the uninitialized value.
@@ -371,14 +408,20 @@ impl<VW, HEW, FW, VC: maplike::Push<usize, Item = Vertex<VW>>, HEC, FC>
     }
 }
 
-impl<
-    VW: Clone,
-    HEW,
-    FW,
-    VC: maplike::Get<usize, Item = Vertex<VW>> + maplike::Insert<usize>,
-    HEC,
-    FC,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW, VC: Remove<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    fn remove_vertexes(&mut self, vertexes: impl IntoIterator<Item = VertexId>) {
+        for vertex in vertexes.into_iter() {
+            self.remove_vertex(vertex);
+        }
+    }
+
+    fn remove_vertex(&mut self, vertex: VertexId) {
+        self.vertexes.remove(&vertex.0);
+    }
+}
+
+impl<VW: Clone, HEW, FW, VC: Get<usize, Item = Vertex<VW>> + Insert<usize>, HEC, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_vertex(&mut self, vertex: VertexId, outward_half_edge: HalfEdgeId) {
         self.vertexes.insert(
@@ -391,14 +434,8 @@ impl<
     }
 }
 
-impl<
-    VW,
-    HEW: Clone,
-    FW,
-    VC,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>> + maplike::Insert<usize>,
-    FC,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_edge(&mut self, edge: EdgeId, next_edge: EdgeId) {
         self.half_edges.insert(
@@ -418,14 +455,8 @@ impl<
     }
 }
 
-impl<
-    VW,
-    HEW: Clone,
-    FW,
-    VC,
-    HEC: maplike::Insert<usize, Item = HalfEdge<HEW>> + maplike::Push<usize>,
-    FC,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Item = HalfEdge<HEW>> + Push<usize>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn add_unwired_edge(
         &mut self,
@@ -481,7 +512,20 @@ impl<
     }
 }
 
-impl<VW, HEW, FW: Clone, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>> + maplike::Insert<usize>>
+impl<VW, HEW, FW, VC, HEC: Remove<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    fn remove_edges(&mut self, edges: impl IntoIterator<Item = EdgeId>) {
+        for edge in edges.into_iter() {
+            self.remove_edge(edge);
+        }
+    }
+
+    fn remove_edge(&mut self, edge: EdgeId) {
+        self.half_edges.remove(&edge.0.0);
+        self.half_edges.remove(&edge.1.0);
+    }
+}
+
+impl<VW, HEW, FW: Clone, VC, HEC, FC: Get<usize, Item = Face<FW>> + Insert<usize>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_face(&mut self, face: FaceId, incident_half_edge: HalfEdgeId) {
@@ -495,9 +539,7 @@ impl<VW, HEW, FW: Clone, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>> + map
     }
 }
 
-impl<VW, HEW, FW, VC, HEC, FC: maplike::Push<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
+impl<VW, HEW, FW, VC, HEC, FC: Push<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn add_unwired_face(&mut self, weight: FW) -> FaceId {
         FaceId(self.faces.push(Face {
             incident_half_edge: None,
@@ -506,22 +548,14 @@ impl<VW, HEW, FW, VC, HEC, FC: maplike::Push<usize, Item = Face<FW>>>
     }
 }
 
-impl<VW, HEW, FW, VC: maplike::Get<usize, Item = Vertex<VW>>, HEC, FC>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn outward_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.vertexes.get(&vertex.0).unwrap().outward_half_edge
     }
 }
 
-impl<
-    VW,
-    HEW,
-    FW,
-    VC: maplike::Get<usize, Item = Vertex<VW>>,
-    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
-    FC,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn prev_vertex(&self, vertex: VertexId) -> VertexId {
         self.origin(self.prev_half_edge(self.outward_half_edge(vertex)))
@@ -532,9 +566,7 @@ impl<
     }
 }
 
-impl<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn origin(&self, half_edge: HalfEdgeId) -> VertexId {
         self.half_edges.get(&half_edge.0).unwrap().origin
     }
