@@ -406,3 +406,73 @@ impl<
         }
     }
 }
+
+pub struct EdgesWithExcludesWalker {
+    initial_edge: EdgeId,
+    curr_edge: EdgeId,
+    excluded_edges: Vec<EdgeId>,
+}
+
+impl EdgesWithExcludesWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        let mut candidate_next_edge = dcel.next_edge(self.curr_edge);
+
+        while self.excluded_edges.contains(&candidate_next_edge) {
+            candidate_next_edge = dcel.ccw_edge(candidate_next_edge);
+        }
+
+        let next_edge = candidate_next_edge;
+
+        (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
+    }
+
+    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
+        self,
+        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> EdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC> {
+        EdgesWithExcludesIter { walker: self, dcel }
+    }
+}
+
+pub struct EdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC> {
+    walker: EdgesWithExcludesWalker,
+    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for EdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+impl<
+    VW,
+    HEW,
+    FW,
+    VC,
+    HEC: maplike::Get<usize, Item = HalfEdge<HEW>>,
+    FC: maplike::Get<usize, Item = Face<FW>>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn edges_with_excludes(
+        &self,
+        face: FaceId,
+        excluded_edges: impl IntoIterator<Item = EdgeId>,
+    ) -> EdgesWithExcludesWalker {
+        let initial_edge =
+            self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
+
+        EdgesWithExcludesWalker {
+            initial_edge,
+            curr_edge: initial_edge,
+            excluded_edges: excluded_edges.into_iter().collect(),
+        }
+    }
+}
