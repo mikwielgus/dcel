@@ -4,10 +4,35 @@
 
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
 
-pub struct FaceVertexesWalker {
-    initial_vertex: VertexId,
-    curr_vertex: VertexId,
+macro_rules! create_walker_and_iter {
+    ($walker:ident { $($field:ident: $type:ty),* $(,)? }, $iter:ident) => {
+        pub struct $walker {
+            $(pub $field: $type,)*
+        }
+
+        impl $walker {
+            pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
+                self,
+                dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+            ) -> $iter<'a, VW, HEW, FW, VC, HEC, FC> {
+                $iter { walker: self, dcel }
+            }
+        }
+
+        pub struct $iter<'a, VW, HEW, FW, VC, HEC, FC> {
+            walker: $walker,
+            dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
+        }
+    };
 }
+
+create_walker_and_iter!(
+    FaceVertexesWalker {
+        initial_vertex: VertexId,
+        curr_vertex: VertexId,
+    },
+    FaceVertexesIter
+);
 
 impl FaceVertexesWalker {
     pub fn next<
@@ -26,18 +51,6 @@ impl FaceVertexesWalker {
         (next_vertex != self.initial_vertex)
             .then(|| std::mem::replace(&mut self.curr_vertex, next_vertex))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        FaceVertexesIter { walker: self, dcel }
-    }
-}
-
-pub struct FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: FaceVertexesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<
@@ -77,10 +90,13 @@ impl<
     }
 }
 
-pub struct FaceHalfEdgesWalker {
-    initial_half_edge: HalfEdgeId,
-    curr_half_edge: HalfEdgeId,
-}
+create_walker_and_iter!(
+    FaceHalfEdgesWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: HalfEdgeId,
+    },
+    FaceHalfEdgesIter
+);
 
 impl FaceHalfEdgesWalker {
     pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
@@ -92,18 +108,6 @@ impl FaceHalfEdgesWalker {
         (next_half_edge != self.initial_half_edge)
             .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> FaceHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        FaceHalfEdgesIter { walker: self, dcel }
-    }
-}
-
-pub struct FaceHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: FaceHalfEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
@@ -129,10 +133,13 @@ impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
     }
 }
 
-pub struct FaceEdgesWalker {
-    initial_edge: EdgeId,
-    curr_edge: EdgeId,
-}
+create_walker_and_iter!(
+    FaceEdgesWalker {
+        initial_edge: EdgeId,
+        curr_edge: EdgeId,
+    },
+    FaceEdgesIter
+);
 
 impl FaceEdgesWalker {
     pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
@@ -143,18 +150,6 @@ impl FaceEdgesWalker {
 
         (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> FaceEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        FaceEdgesIter { walker: self, dcel }
-    }
-}
-
-pub struct FaceEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: FaceEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
@@ -187,10 +182,13 @@ impl<
     }
 }
 
-pub struct CwHalfEdgesWalker {
-    initial_half_edge: HalfEdgeId,
-    curr_half_edge: HalfEdgeId,
-}
+create_walker_and_iter!(
+    CwHalfEdgesWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: HalfEdgeId,
+    },
+    CwHalfEdgesIter
+);
 
 impl CwHalfEdgesWalker {
     pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
@@ -202,18 +200,6 @@ impl CwHalfEdgesWalker {
         (next_half_edge != self.initial_half_edge)
             .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> CwHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        CwHalfEdgesIter { walker: self, dcel }
-    }
-}
-
-pub struct CwHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: CwHalfEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
@@ -239,10 +225,13 @@ impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
     }
 }
 
-pub struct CcwHalfEdgesWalker {
-    initial_half_edge: HalfEdgeId,
-    curr_half_edge: HalfEdgeId,
-}
+create_walker_and_iter!(
+    CcwHalfEdgesWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: HalfEdgeId,
+    },
+    CcwHalfEdgesIter
+);
 
 impl CcwHalfEdgesWalker {
     pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
@@ -254,18 +243,6 @@ impl CcwHalfEdgesWalker {
         (next_half_edge != self.initial_half_edge)
             .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> CcwHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        CcwHalfEdgesIter { walker: self, dcel }
-    }
-}
-
-pub struct CcwHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: CcwHalfEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
@@ -291,10 +268,13 @@ impl<VW, HEW, FW, VC, HEC, FC: maplike::Get<usize, Item = Face<FW>>>
     }
 }
 
-pub struct CwEdgesWalker {
-    initial_edge: EdgeId,
-    curr_edge: EdgeId,
-}
+create_walker_and_iter!(
+    CwEdgesWalker {
+        initial_edge: EdgeId,
+        curr_edge: EdgeId,
+    },
+    CwEdgesIter
+);
 
 impl CwEdgesWalker {
     pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
@@ -305,18 +285,6 @@ impl CwEdgesWalker {
 
         (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> CwEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        CwEdgesIter { walker: self, dcel }
-    }
-}
-
-pub struct CwEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: CwEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
@@ -349,10 +317,13 @@ impl<
     }
 }
 
-pub struct CcwEdgesWalker {
-    initial_edge: EdgeId,
-    curr_edge: EdgeId,
-}
+create_walker_and_iter!(
+    CcwEdgesWalker {
+        initial_edge: EdgeId,
+        curr_edge: EdgeId,
+    },
+    CcwEdgesIter
+);
 
 impl CcwEdgesWalker {
     pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
@@ -363,18 +334,6 @@ impl CcwEdgesWalker {
 
         (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> CcwEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        CcwEdgesIter { walker: self, dcel }
-    }
-}
-
-pub struct CcwEdgesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: CcwEdgesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
@@ -407,11 +366,14 @@ impl<
     }
 }
 
-pub struct EdgesWithExcludesWalker {
-    initial_edge: EdgeId,
-    curr_edge: EdgeId,
-    excluded_edges: Vec<EdgeId>,
-}
+create_walker_and_iter!(
+    EdgesWithExcludesWalker {
+        initial_edge: EdgeId,
+        curr_edge: EdgeId,
+        excluded_edges: Vec<EdgeId>,
+    },
+    EdgesWithExcludesIter
+);
 
 impl EdgesWithExcludesWalker {
     pub fn next<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>(
@@ -428,18 +390,6 @@ impl EdgesWithExcludesWalker {
 
         (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
     }
-
-    pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
-        self,
-        dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> EdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-        EdgesWithExcludesIter { walker: self, dcel }
-    }
-}
-
-pub struct EdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC> {
-    walker: EdgesWithExcludesWalker,
-    dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
