@@ -551,6 +551,18 @@ impl<VW, HEW, FW, VC, HEC: maplike::Get<usize, Item = HalfEdge<HEW>>, FC>
         EdgeId(half_edge, self.twin(half_edge))
     }
 
+    fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
+        self.half_edges.get(&half_edge.0).unwrap().face
+    }
+
+    fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
+        self.face_in_front(self.twin(half_edge))
+    }
+
+    fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
+        (self.face_in_front(edge.0), self.face_behind(edge.1))
+    }
+
     fn prev_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.0).unwrap().prev
     }
