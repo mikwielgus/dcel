@@ -340,7 +340,7 @@ impl<
     FW: Clone,
     VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Remove<usize>,
     HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Remove<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Remove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces_over_edges_and_vertexes(
@@ -349,13 +349,25 @@ impl<
         edges: impl IntoIterator<Item = EdgeId>,
         vertexes: impl IntoIterator<Item = VertexId>,
     ) {
-        let faces: Vec<FaceId> = faces.into_iter().collect();
+        let mut faces = faces.into_iter();
+        let absorbing_face = faces.next().unwrap();
+
+        self.absorb_faces_over_edges_and_vertexes(absorbing_face, faces, edges, vertexes)
+    }
+
+    pub fn absorb_faces_over_edges_and_vertexes(
+        &mut self,
+        absorbing_face: FaceId,
+        faces: impl IntoIterator<Item = FaceId>,
+        edges: impl IntoIterator<Item = EdgeId>,
+        vertexes: impl IntoIterator<Item = VertexId>,
+    ) {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
         let perimeter_edges: Vec<EdgeId> = self
             .edges_with_excludes(
                 self.full_edge(
                     self.faces
-                        .get(&faces[0].0)
+                        .get(&absorbing_face.0)
                         .unwrap()
                         .incident_half_edge
                         .unwrap(),
@@ -365,10 +377,11 @@ impl<
             .iter(self)
             .collect();
 
+        self.remove_faces(faces);
         self.remove_edges(edges);
         self.remove_vertexes(vertexes);
 
-        self.wire_face_edges_vertexes(faces[0], &perimeter_edges);
+        self.wire_face_edges_vertexes(absorbing_face, &perimeter_edges);
     }
 }
 
@@ -431,27 +444,6 @@ impl<VW: Clone, HEW, FW, VC: Get<usize, Item = Vertex<VW>> + Insert<usize>, HEC,
                 weight: self.vertexes.get(&vertex.0).unwrap().weight.clone(),
             },
         )
-    }
-}
-
-impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>, FC>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    fn wire_edge(&mut self, edge: EdgeId, next_edge: EdgeId) {
-        self.half_edges.insert(
-            edge.0.0,
-            HalfEdge {
-                next: next_edge.0,
-                ..self.half_edges.get(&edge.0.0).unwrap().clone()
-            },
-        );
-        self.half_edges.insert(
-            next_edge.1.0,
-            HalfEdge {
-                next: edge.1,
-                ..self.half_edges.get(&edge.0.0).unwrap().clone()
-            },
-        );
     }
 }
 
@@ -525,15 +517,22 @@ impl<VW, HEW, FW, VC, HEC: Remove<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW
     }
 }
 
-impl<VW, HEW, FW: Clone, VC, HEC, FC: Get<usize, Item = Face<FW>> + Insert<usize>>
+impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn wire_face(&mut self, face: FaceId, incident_half_edge: HalfEdgeId) {
-        self.faces.insert(
-            face.0,
-            Face {
-                incident_half_edge: Some(incident_half_edge),
-                weight: self.faces.get(&face.0).unwrap().weight.clone(),
+    fn wire_edge(&mut self, edge: EdgeId, next_edge: EdgeId) {
+        self.half_edges.insert(
+            edge.0.0,
+            HalfEdge {
+                next: next_edge.0,
+                ..self.half_edges.get(&edge.0.0).unwrap().clone()
+            },
+        );
+        self.half_edges.insert(
+            next_edge.1.0,
+            HalfEdge {
+                next: edge.1,
+                ..self.half_edges.get(&edge.0.0).unwrap().clone()
             },
         );
     }
@@ -545,6 +544,32 @@ impl<VW, HEW, FW, VC, HEC, FC: Push<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, V
             incident_half_edge: None,
             weight,
         }))
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC: Remove<usize>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    fn remove_faces(&mut self, faces: impl IntoIterator<Item = FaceId>) {
+        for face in faces.into_iter() {
+            self.remove_face(face);
+        }
+    }
+
+    fn remove_face(&mut self, face: FaceId) {
+        self.faces.remove(&face.0);
+    }
+}
+
+impl<VW, HEW, FW: Clone, VC, HEC, FC: Get<usize, Item = Face<FW>> + Insert<usize>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn wire_face(&mut self, face: FaceId, incident_half_edge: HalfEdgeId) {
+        self.faces.insert(
+            face.0,
+            Face {
+                incident_half_edge: Some(incident_half_edge),
+                weight: self.faces.get(&face.0).unwrap().weight.clone(),
+            },
+        );
     }
 }
 
