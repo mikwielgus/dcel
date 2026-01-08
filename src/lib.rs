@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-mod walkers;
+mod iter;
 
-use maplike::{Get, Insert, Push, Remove};
-pub use walkers::{
+pub use iter::{
     CcwEdgesIter, CcwEdgesWalker, CcwHalfEdgesIter, CcwHalfEdgesWalker, CwEdgesIter, CwEdgesWalker,
     CwHalfEdgesIter, CwHalfEdgesWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
     FaceHalfEdgesWalker,
 };
+use maplike::{Get, Insert, Push, Remove};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VertexId(usize);
