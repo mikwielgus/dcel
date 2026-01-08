@@ -75,8 +75,13 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesWalker {
-        let initial_vertex =
-            self.origin(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
+        let initial_vertex = self.origin(
+            self.faces
+                .get(&face.id())
+                .unwrap()
+                .incident_half_edge
+                .unwrap(),
+        );
 
         FaceVertexesWalker {
             initial_vertex,
@@ -117,7 +122,12 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     pub fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
-        let initial_half_edge = self.faces.get(&face.0).unwrap().incident_half_edge.unwrap();
+        let initial_half_edge = self
+            .faces
+            .get(&face.id())
+            .unwrap()
+            .incident_half_edge
+            .unwrap();
 
         FaceHalfEdgesWalker {
             initial_half_edge,
@@ -159,8 +169,13 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
-        let initial_edge =
-            self.full_edge(self.faces.get(&face.0).unwrap().incident_half_edge.unwrap());
+        let initial_edge = self.full_edge(
+            self.faces
+                .get(&face.id())
+                .unwrap()
+                .incident_half_edge
+                .unwrap(),
+        );
 
         FaceEdgesWalker {
             initial_edge,
@@ -417,7 +432,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     pub fn cw_faces(&self, initial_face: FaceId) -> CwFacesWalker {
         let initial_half_edge = self
             .faces
-            .get(&initial_face.0)
+            .get(&initial_face.id())
             .unwrap()
             .incident_half_edge
             .unwrap();
@@ -467,7 +482,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     pub fn ccw_faces(&self, initial_face: FaceId) -> CcwFacesWalker {
         let initial_half_edge = self
             .faces
-            .get(&initial_face.0)
+            .get(&initial_face.id())
             .unwrap()
             .incident_half_edge
             .unwrap();
