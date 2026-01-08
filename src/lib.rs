@@ -656,6 +656,12 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, 
     }
 }
 
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    fn vertex_weight(&self, vertex: VertexId) -> &VW {
+        &self.vertexes.get(&vertex.0).unwrap().weight
+    }
+}
+
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
@@ -733,5 +739,19 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
 
     pub fn ccw_edge(&self, edge: EdgeId) -> EdgeId {
         self.full_edge(self.ccw_half_edge(edge.0))
+    }
+
+    pub fn half_edge_weight(&self, half_edge: HalfEdgeId) -> &HEW {
+        &self.half_edges.get(&half_edge.0).unwrap().weight
+    }
+
+    pub fn edge_weights(&self, edge: EdgeId) -> (&HEW, &HEW) {
+        (self.half_edge_weight(edge.0), self.half_edge_weight(edge.1))
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    fn face_weight(&self, face: FaceId) -> &FW {
+        &self.faces.get(&face.0).unwrap().weight
     }
 }
