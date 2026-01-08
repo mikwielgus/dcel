@@ -343,6 +343,55 @@ impl<
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Remove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
+        let absorbing_face = self.face_in_front(
+            self.vertexes
+                .get(&inner_vertex.0)
+                .unwrap()
+                .outward_half_edge,
+        );
+        self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
+    }
+
+    pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
+        let initial_half_edge = self
+            .vertexes
+            .get(&inner_vertex.0)
+            .unwrap()
+            .outward_half_edge;
+        let initial_edge = self.full_edge(
+            self.vertexes
+                .get(&inner_vertex.0)
+                .unwrap()
+                .outward_half_edge,
+        );
+        let inner_edges: Vec<EdgeId> = self.cw_edges(initial_edge).iter(self).collect();
+        let perimeter_edges: Vec<EdgeId> = self
+            .edges_with_excludes(initial_edge, inner_edges.clone())
+            .iter(self)
+            .collect();
+
+        self.remove_faces(
+            self.cw_faces(self.face_in_front(initial_half_edge))
+                .iter(self)
+                .collect::<Vec<FaceId>>(),
+        );
+        self.remove_edges(inner_edges);
+        self.remove_vertex(inner_vertex);
+
+        self.wire_face_edges_vertexes(absorbing_face, &perimeter_edges);
+    }
+}
+
+impl<
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Remove<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Remove<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Remove<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
     pub fn merge_faces_over_edges_and_vertexes(
         &mut self,
         faces: impl IntoIterator<Item = FaceId>,
