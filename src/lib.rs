@@ -271,8 +271,8 @@ impl<
 
 impl<
     VW: Clone,
-    HEW: Clone,
-    FW: Clone + Get<usize>,
+    HEW: Clone + Default,
+    FW: Clone + Default + Get<usize>,
     VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
@@ -286,6 +286,31 @@ impl<
     ///
     /// Returns the new vertex id together with the face ids of all the new
     /// triangles.
+    pub fn triangulate_face_around_vertex(
+        &mut self,
+        perimeter_face: FaceId,
+        inner_vertex_weight: VW,
+    ) {
+        let perimeter_vertex_count = self.face_vertexes(perimeter_face).count();
+
+        self.triangulate_face_around_vertex_with_all_weights(
+            perimeter_face,
+            inner_vertex_weight,
+            std::iter::repeat_n(Default::default(), perimeter_vertex_count),
+            std::iter::repeat_n(Default::default(), perimeter_vertex_count),
+        )
+    }
+}
+
+impl<
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone + Get<usize>,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
     pub fn triangulate_face_around_vertex_with_all_weights(
         &mut self,
         perimeter_face: FaceId,
