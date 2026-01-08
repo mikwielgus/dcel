@@ -15,6 +15,7 @@ pub use walkers::{
 pub struct VertexId(usize);
 
 impl VertexId {
+    #[inline]
     pub fn id(self) -> usize {
         self.0
     }
@@ -24,6 +25,7 @@ impl VertexId {
 pub struct HalfEdgeId(usize);
 
 impl HalfEdgeId {
+    #[inline]
     pub fn id(self) -> usize {
         self.0
     }
@@ -33,10 +35,12 @@ impl HalfEdgeId {
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
 impl EdgeId {
+    #[inline]
     pub fn forward(self) -> HalfEdgeId {
         self.0
     }
 
+    #[inline]
     pub fn backward(self) -> HalfEdgeId {
         self.1
     }
@@ -46,6 +50,7 @@ impl EdgeId {
 pub struct FaceId(usize);
 
 impl FaceId {
+    #[inline]
     pub fn id(self) -> usize {
         self.0
     }
@@ -93,7 +98,7 @@ pub struct Dcel<
 impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = FW>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    #[inline(always)]
+    #[inline]
     pub fn new() -> Self {
         let mut faces = FC::default();
 
@@ -114,14 +119,14 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
 impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = FW>> Default
     for Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    #[inline(always)]
+    #[inline]
     fn default() -> Self {
         Self::new()
     }
 }
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    #[inline(always)]
+    #[inline]
     pub fn from_parts(vertexes: VC, half_edges: HEC, faces: FC) -> Self {
         Self {
             vertexes,
@@ -135,22 +140,22 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
 }
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    #[inline(always)]
+    #[inline]
     pub fn vertexes(&self) -> &VC {
         &self.vertexes
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn half_edges(&self) -> &HEC {
         &self.half_edges
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn faces(&self) -> &FC {
         &self.faces
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn dissolve(self) -> (VC, HEC, FC) {
         (self.vertexes, self.half_edges, self.faces)
     }
@@ -263,7 +268,7 @@ impl<
     ///
     /// Returns the new vertex id together with the face ids of all the new
     /// triangles.
-    pub fn triangulate_around_vertex_with_all_weights(
+    pub fn triangulate_face_around_vertex_with_all_weights(
         &mut self,
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
@@ -651,12 +656,14 @@ impl<VW, HEW, FW: Clone, VC, HEC, FC: Get<usize, Item = Face<FW>> + Insert<usize
 }
 
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
     fn outward_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.vertexes.get(&vertex.id()).unwrap().outward_half_edge
     }
 }
 
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
     fn vertex_weight(&self, vertex: VertexId) -> &VW {
         &self.vertexes.get(&vertex.id()).unwrap().weight
     }
@@ -665,40 +672,49 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, 
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
     fn prev_vertex(&self, vertex: VertexId) -> VertexId {
         self.origin(self.prev_half_edge(self.outward_half_edge(vertex)))
     }
 
+    #[inline]
     fn next_vertex(&self, vertex: VertexId) -> VertexId {
         self.origin(self.next_half_edge(self.outward_half_edge(vertex)))
     }
 }
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
     pub fn origin(&self, half_edge: HalfEdgeId) -> VertexId {
         self.half_edges.get(&half_edge.id()).unwrap().origin
     }
 
+    #[inline]
     pub fn endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
         (self.origin(edge.forward()), self.origin(edge.backward()))
     }
 
+    #[inline]
     pub fn twin(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().twin
     }
 
+    #[inline]
     pub fn full_edge(&self, half_edge: HalfEdgeId) -> EdgeId {
         EdgeId(half_edge, self.twin(half_edge))
     }
 
+    #[inline]
     pub fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
         self.half_edges.get(&half_edge.id()).unwrap().face
     }
 
+    #[inline]
     pub fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
         self.face_in_front(self.twin(half_edge))
     }
 
+    #[inline]
     pub fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
         (
             self.face_in_front(edge.forward()),
@@ -706,14 +722,17 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
         )
     }
 
+    #[inline]
     pub fn prev_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().prev
     }
 
+    #[inline]
     pub fn next_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().next
     }
 
+    #[inline]
     pub fn prev_edge(&self, edge: EdgeId) -> EdgeId {
         let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().prev;
         let next_backward_half_edge = self
@@ -725,6 +744,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
         EdgeId(next_forward_half_edge, next_backward_half_edge)
     }
 
+    #[inline]
     pub fn next_edge(&self, edge: EdgeId) -> EdgeId {
         let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().next;
         let next_backward_half_edge = self
@@ -736,26 +756,32 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
         EdgeId(next_forward_half_edge, next_backward_half_edge)
     }
 
+    #[inline]
     pub fn cw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.twin(self.prev_half_edge(half_edge))
     }
 
+    #[inline]
     pub fn ccw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.next_half_edge(self.twin(half_edge))
     }
 
+    #[inline]
     pub fn cw_edge(&self, edge: EdgeId) -> EdgeId {
         self.full_edge(self.cw_half_edge(edge.forward()))
     }
 
+    #[inline]
     pub fn ccw_edge(&self, edge: EdgeId) -> EdgeId {
         self.full_edge(self.ccw_half_edge(edge.forward()))
     }
 
+    #[inline]
     pub fn half_edge_weight(&self, half_edge: HalfEdgeId) -> &HEW {
         &self.half_edges.get(&half_edge.id()).unwrap().weight
     }
 
+    #[inline]
     pub fn edge_weights(&self, edge: EdgeId) -> (&HEW, &HEW) {
         (
             self.half_edge_weight(edge.forward()),
@@ -765,6 +791,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
     fn face_weight(&self, face: FaceId) -> &FW {
         &self.faces.get(&face.id()).unwrap().weight
     }

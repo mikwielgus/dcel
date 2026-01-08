@@ -37,6 +37,7 @@ create_walker_and_iter!(
 );
 
 impl FaceVertexesWalker {
+    #[inline]
     pub fn next<
         VW,
         HEW,
@@ -60,6 +61,7 @@ impl<'a, VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = 
 {
     type Item = VertexId;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.walker.next(self.dcel)
     }
@@ -74,6 +76,7 @@ impl<
     FC: Get<usize, Item = Face<FW>>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
     pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesWalker {
         let initial_vertex = self.origin(
             self.faces
@@ -99,6 +102,7 @@ create_walker_and_iter!(
 );
 
 impl FaceHalfEdgesWalker {
+    #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -115,12 +119,14 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 {
     type Item = HalfEdgeId;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.walker.next(self.dcel)
     }
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
     pub fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
         let initial_half_edge = self
             .faces
@@ -145,6 +151,7 @@ create_walker_and_iter!(
 );
 
 impl FaceEdgesWalker {
+    #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -160,6 +167,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 {
     type Item = EdgeId;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.walker.next(self.dcel)
     }
@@ -168,6 +176,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
     pub fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
         let initial_edge = self.full_edge(
             self.faces
@@ -193,6 +202,7 @@ create_walker_and_iter!(
 );
 
 impl CwHalfEdgesWalker {
+    #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -209,12 +219,14 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 {
     type Item = HalfEdgeId;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.walker.next(self.dcel)
     }
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
     pub fn cw_half_edges(&self, initial_half_edge: HalfEdgeId) -> CwHalfEdgesWalker {
         CwHalfEdgesWalker {
             initial_half_edge,
@@ -232,6 +244,7 @@ create_walker_and_iter!(
 );
 
 impl CcwHalfEdgesWalker {
+    #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -248,12 +261,14 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 {
     type Item = HalfEdgeId;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.walker.next(self.dcel)
     }
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
     pub fn ccw_half_edges(&self, initial_half_edge: HalfEdgeId) -> CcwHalfEdgesWalker {
         CcwHalfEdgesWalker {
             initial_half_edge,
@@ -271,6 +286,7 @@ create_walker_and_iter!(
 );
 
 impl CwEdgesWalker {
+    #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -286,6 +302,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 {
     type Item = EdgeId;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.walker.next(self.dcel)
     }
@@ -294,6 +311,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
     pub fn cw_edges(&self, initial_edge: EdgeId) -> CwEdgesWalker {
         CwEdgesWalker {
             initial_edge,
