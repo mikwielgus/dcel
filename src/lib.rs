@@ -806,16 +806,23 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub fn incident_half_edge(&self, face: FaceId) -> Option<HalfEdgeId> {
+        self.faces.get(&face.id()).unwrap().incident_half_edge
+    }
+
+    #[inline]
+    pub fn face_weight(&self, face: FaceId) -> &FW {
+        &self.faces.get(&face.id()).unwrap().weight
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     /// Returns the id of the unbounded face.
     ///
     /// The unbounded face is always the first element of the face list.
     #[inline]
     pub fn unbounded_face(&self) -> FaceId {
         FaceId(0)
-    }
-
-    #[inline]
-    pub fn face_weight(&self, face: FaceId) -> &FW {
-        &self.faces.get(&face.id()).unwrap().weight
     }
 }
