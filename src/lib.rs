@@ -319,7 +319,7 @@ impl<
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
     ) -> Vec<EdgeId> {
         let mut inner_edge_weights = inner_edge_weights.into_iter();
-        let mut face_vertexes_walker = self.face_vertexes(perimeter_face);
+        let mut face_vertexes_walker = self.face_vertexes(perimeter_face).walker();
         let mut edges = vec![];
 
         let mut i: usize = 0;
@@ -350,7 +350,7 @@ impl<
         let inner_edges_circular_pair_windows = inner_edges
             .iter()
             .zip(inner_edges.iter().skip(1).chain(inner_edges.iter().take(1)));
-        let mut perimeter_half_edges_walker = self.face_half_edges(perimeter_face);
+        let mut perimeter_half_edges_walker = self.face_half_edges(perimeter_face).walker();
 
         for (inner_edge, next_inner_edge) in inner_edges_circular_pair_windows {
             let perimeter_half_edge = perimeter_half_edges_walker.next(self).unwrap();
@@ -398,15 +398,13 @@ impl<
                 .unwrap()
                 .outward_half_edge,
         );
-        let inner_edges: Vec<EdgeId> = self.cw_edges(initial_edge).iter(self).collect();
+        let inner_edges: Vec<EdgeId> = self.cw_edges(initial_edge).collect();
         let perimeter_edges: Vec<EdgeId> = self
             .edges_with_excludes(initial_edge, inner_edges.clone())
-            .iter(self)
             .collect();
 
         self.remove_faces(
             self.cw_faces(self.face_in_front(initial_half_edge))
-                .iter(self)
                 .collect::<Vec<FaceId>>(),
         );
         self.remove_edges(inner_edges);
@@ -456,7 +454,6 @@ impl<
                 ),
                 edges.clone(),
             )
-            .iter(self)
             .collect();
 
         self.remove_faces(faces);

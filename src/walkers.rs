@@ -25,6 +25,12 @@ macro_rules! create_walker_and_iter {
             walker: $walker,
             dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
         }
+
+        impl<'a, VW, HEW, FW, VC, HEC, FC> $iter<'a, VW, HEW, FW, VC, HEC, FC> {
+            pub fn walker(self) -> $walker {
+                self.walker
+            }
+        }
     };
 }
 
@@ -77,7 +83,7 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesWalker {
+    pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         let initial_vertex = self.origin(
             self.faces
                 .get(&face.id())
@@ -90,6 +96,7 @@ impl<
             initial_vertex,
             curr_vertex: initial_vertex,
         }
+        .iter(self)
     }
 }
 
@@ -127,7 +134,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesWalker {
+    pub fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         let initial_half_edge = self
             .faces
             .get(&face.id())
@@ -139,6 +146,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
             initial_half_edge,
             curr_half_edge: initial_half_edge,
         }
+        .iter(self)
     }
 }
 
@@ -177,7 +185,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub fn face_edges(&self, face: FaceId) -> FaceEdgesWalker {
+    pub fn face_edges(&self, face: FaceId) -> FaceEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         let initial_edge = self.full_edge(
             self.faces
                 .get(&face.id())
@@ -190,6 +198,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
             initial_edge,
             curr_edge: initial_edge,
         }
+        .iter(self)
     }
 }
 
@@ -227,11 +236,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn cw_half_edges(&self, initial_half_edge: HalfEdgeId) -> CwHalfEdgesWalker {
+    pub fn cw_half_edges(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> CwHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CwHalfEdgesWalker {
             initial_half_edge,
             curr_half_edge: initial_half_edge,
         }
+        .iter(self)
     }
 }
 
@@ -269,11 +282,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn ccw_half_edges(&self, initial_half_edge: HalfEdgeId) -> CcwHalfEdgesWalker {
+    pub fn ccw_half_edges(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> CcwHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CcwHalfEdgesWalker {
             initial_half_edge,
             curr_half_edge: initial_half_edge,
         }
+        .iter(self)
     }
 }
 
@@ -312,11 +329,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub fn cw_edges(&self, initial_edge: EdgeId) -> CwEdgesWalker {
+    pub fn cw_edges(&self, initial_edge: EdgeId) -> CwEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CwEdgesWalker {
             initial_edge,
             curr_edge: initial_edge,
         }
+        .iter(self)
     }
 }
 
@@ -352,11 +370,12 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn ccw_edges(&self, initial_edge: EdgeId) -> CcwEdgesWalker {
+    pub fn ccw_edges(&self, initial_edge: EdgeId) -> CcwEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CcwEdgesWalker {
             initial_edge,
             curr_edge: initial_edge,
         }
+        .iter(self)
     }
 }
 
@@ -403,12 +422,13 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         &self,
         initial_edge: EdgeId,
         excluded_edges: impl IntoIterator<Item = EdgeId>,
-    ) -> EdgesWithExcludesWalker {
+    ) -> EdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         EdgesWithExcludesWalker {
             initial_edge,
             curr_edge: initial_edge,
             excluded_edges: excluded_edges.into_iter().collect(),
         }
+        .iter(self)
     }
 }
 
@@ -447,7 +467,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn cw_faces(&self, initial_face: FaceId) -> CwFacesWalker {
+    pub fn cw_faces(&self, initial_face: FaceId) -> CwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         let initial_half_edge = self
             .faces
             .get(&initial_face.id())
@@ -459,6 +479,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
             initial_half_edge,
             curr_half_edge: initial_half_edge,
         }
+        .iter(self)
     }
 }
 
@@ -497,7 +518,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn ccw_faces(&self, initial_face: FaceId) -> CcwFacesWalker {
+    pub fn ccw_faces(&self, initial_face: FaceId) -> CcwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         let initial_half_edge = self
             .faces
             .get(&initial_face.id())
@@ -509,5 +530,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
             initial_half_edge,
             curr_half_edge: initial_half_edge,
         }
+        .iter(self)
     }
 }
