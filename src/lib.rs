@@ -14,14 +14,42 @@ pub use walkers::{
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VertexId(usize);
 
+impl VertexId {
+    pub fn id(self) -> usize {
+        self.0
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct HalfEdgeId(usize);
+
+impl HalfEdgeId {
+    pub fn id(self) -> usize {
+        self.0
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
+impl EdgeId {
+    pub fn forward(self) -> HalfEdgeId {
+        self.0
+    }
+
+    pub fn backward(self) -> HalfEdgeId {
+        self.1
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FaceId(usize);
+
+impl FaceId {
+    pub fn id(self) -> usize {
+        self.0
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Vertex<VW> {
