@@ -170,6 +170,10 @@ impl<
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn insert_polygon(&mut self, vertex_weights: impl IntoIterator<Item = VW>) {
+        self.insert_polygon_in_face(self.unbounded_face(), vertex_weights);
+    }
+
     pub fn insert_polygon_in_face(
         &mut self,
         target_face: FaceId,
@@ -193,6 +197,20 @@ impl<
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn insert_polygon_with_all_weights(
+        &mut self,
+        vertex_weights: impl IntoIterator<Item = VW>,
+        edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
+        face_weight: FW,
+    ) {
+        self.insert_polygon_in_face_with_all_weights(
+            self.unbounded_face(),
+            vertex_weights,
+            edge_weights,
+            face_weight,
+        );
+    }
+
     pub fn insert_polygon_in_face_with_all_weights(
         &mut self,
         outer_face: FaceId,
@@ -788,8 +806,16 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Returns the id of the unbounded face.
+    ///
+    /// The unbounded face is always the first element of the face list.
     #[inline]
-    fn face_weight(&self, face: FaceId) -> &FW {
+    pub fn unbounded_face(&self) -> FaceId {
+        FaceId(0)
+    }
+
+    #[inline]
+    pub fn face_weight(&self, face: FaceId) -> &FW {
         &self.faces.get(&face.id()).unwrap().weight
     }
 }
