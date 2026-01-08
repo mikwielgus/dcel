@@ -86,7 +86,7 @@ pub struct Dcel<
     half_edges: HEC,
     faces: FC,
     vertex_weight_marker: std::marker::PhantomData<VW>,
-    edge_weight_marker: std::marker::PhantomData<HEW>,
+    half_edge_weight_marker: std::marker::PhantomData<HEW>,
     face_weight_marker: std::marker::PhantomData<FW>,
 }
 
@@ -105,7 +105,7 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
             half_edges: HEC::default(),
             faces,
             vertex_weight_marker: std::marker::PhantomData,
-            edge_weight_marker: std::marker::PhantomData,
+            half_edge_weight_marker: std::marker::PhantomData,
             face_weight_marker: std::marker::PhantomData,
         }
     }
@@ -128,7 +128,7 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
             half_edges,
             faces,
             vertex_weight_marker: std::marker::PhantomData,
-            edge_weight_marker: std::marker::PhantomData,
+            half_edge_weight_marker: std::marker::PhantomData,
             face_weight_marker: std::marker::PhantomData,
         }
     }
@@ -228,7 +228,7 @@ impl<
         let mut edges = vec![];
         let edge_weights: Vec<(HEW, HEW)> = edge_weights.into_iter().collect();
 
-        for ((from_vertex, to_vertex), (half_edge_weight, twin_half_edge_weight)) in
+        for ((from_vertex, to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
             vertexes_circular_pair_windows.zip(edge_weights.clone().into_iter())
         {
             let edge = self.add_unwired_edge(
@@ -236,8 +236,8 @@ impl<
                 *to_vertex,
                 new_face,
                 target_face,
-                half_edge_weight,
-                twin_half_edge_weight,
+                forward_half_edge_weight,
+                backward_half_edge_weight,
             );
             edges.push(edge);
         }
@@ -536,7 +536,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Item = HalfEdge<HEW>> + Push<usi
         weight: HEW,
         twin_weight: HEW,
     ) -> EdgeId {
-        let half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
+        let forward_half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
             origin,
             // Uninitialized as edge 0 before until the twin is created in the next few lines of this method.
             twin: HalfEdgeId(0),
@@ -548,9 +548,9 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Item = HalfEdge<HEW>> + Push<usi
             weight: weight.clone(),
         }));
 
-        let twin_half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
+        let backward_half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
             origin: twin_origin,
-            twin: half_edge,
+            twin: forward_half_edge,
             // Uninitialized as edge 0. Initializing `.prev` and `.next` to
             // correct value is the responsibility of the caller.
             prev: HalfEdgeId(0),
@@ -563,11 +563,11 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Item = HalfEdge<HEW>> + Push<usi
         // PERF: This could actually be optimized away by making it the
         // responsibility of the caller
         self.half_edges.insert(
-            half_edge.0,
+            forward_half_edge.0,
             HalfEdge {
                 origin,
                 // Uninitialized as edge 0 before until the twin is created in the next few lines of this method.
-                twin: twin_half_edge,
+                twin: backward_half_edge,
                 // Uninitialized as edge 0. Initializing `.prev` and `.next` to
                 // correct value is the responsibility of the caller.
                 prev: HalfEdgeId(0),
@@ -577,7 +577,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Item = HalfEdge<HEW>> + Push<usi
             },
         );
 
-        EdgeId(half_edge, twin_half_edge)
+        EdgeId(forward_half_edge, backward_half_edge)
     }
 }
 
@@ -706,17 +706,17 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
     }
 
     pub fn prev_edge(&self, edge: EdgeId) -> EdgeId {
-        let next_half_edge = self.half_edges.get(&edge.0.0).unwrap().prev;
-        let next_twin_half_edge = self.half_edges.get(&next_half_edge.0).unwrap().twin;
+        let next_forward_half_edge = self.half_edges.get(&edge.0.0).unwrap().prev;
+        let next_backward_half_edge = self.half_edges.get(&next_forward_half_edge.0).unwrap().twin;
 
-        EdgeId(next_half_edge, next_twin_half_edge)
+        EdgeId(next_forward_half_edge, next_backward_half_edge)
     }
 
     pub fn next_edge(&self, edge: EdgeId) -> EdgeId {
-        let next_half_edge = self.half_edges.get(&edge.0.0).unwrap().next;
-        let next_twin_half_edge = self.half_edges.get(&next_half_edge.0).unwrap().twin;
+        let next_forward_half_edge = self.half_edges.get(&edge.0.0).unwrap().next;
+        let next_backward_half_edge = self.half_edges.get(&next_forward_half_edge.0).unwrap().twin;
 
-        EdgeId(next_half_edge, next_twin_half_edge)
+        EdgeId(next_forward_half_edge, next_backward_half_edge)
     }
 
     pub fn cw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
