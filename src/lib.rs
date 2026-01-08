@@ -641,69 +641,69 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
 }
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    fn origin(&self, half_edge: HalfEdgeId) -> VertexId {
+    pub fn origin(&self, half_edge: HalfEdgeId) -> VertexId {
         self.half_edges.get(&half_edge.0).unwrap().origin
     }
 
-    fn endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
+    pub fn endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
         (self.origin(edge.0), self.origin(edge.1))
     }
 
-    fn twin(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn twin(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.0).unwrap().twin
     }
 
-    fn full_edge(&self, half_edge: HalfEdgeId) -> EdgeId {
+    pub fn full_edge(&self, half_edge: HalfEdgeId) -> EdgeId {
         EdgeId(half_edge, self.twin(half_edge))
     }
 
-    fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
+    pub fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
         self.half_edges.get(&half_edge.0).unwrap().face
     }
 
-    fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
+    pub fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
         self.face_in_front(self.twin(half_edge))
     }
 
-    fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
+    pub fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
         (self.face_in_front(edge.0), self.face_behind(edge.1))
     }
 
-    fn prev_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn prev_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.0).unwrap().prev
     }
 
-    fn next_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn next_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.0).unwrap().next
     }
 
-    fn prev_edge(&self, edge: EdgeId) -> EdgeId {
+    pub fn prev_edge(&self, edge: EdgeId) -> EdgeId {
         let next_half_edge = self.half_edges.get(&edge.0.0).unwrap().prev;
         let next_twin_half_edge = self.half_edges.get(&next_half_edge.0).unwrap().twin;
 
         EdgeId(next_half_edge, next_twin_half_edge)
     }
 
-    fn next_edge(&self, edge: EdgeId) -> EdgeId {
+    pub fn next_edge(&self, edge: EdgeId) -> EdgeId {
         let next_half_edge = self.half_edges.get(&edge.0.0).unwrap().next;
         let next_twin_half_edge = self.half_edges.get(&next_half_edge.0).unwrap().twin;
 
         EdgeId(next_half_edge, next_twin_half_edge)
     }
 
-    fn cw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn cw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.twin(self.prev_half_edge(half_edge))
     }
 
-    fn ccw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn ccw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.next_half_edge(self.twin(half_edge))
     }
 
-    fn cw_edge(&self, edge: EdgeId) -> EdgeId {
+    pub fn cw_edge(&self, edge: EdgeId) -> EdgeId {
         self.full_edge(self.cw_half_edge(edge.0))
     }
 
-    fn ccw_edge(&self, edge: EdgeId) -> EdgeId {
+    pub fn ccw_edge(&self, edge: EdgeId) -> EdgeId {
         self.full_edge(self.ccw_half_edge(edge.0))
     }
 }
