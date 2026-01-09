@@ -59,7 +59,7 @@ impl FaceId {
 
 #[derive(Clone, Debug)]
 pub struct Vertex<VW> {
-    outward_half_edge: HalfEdgeId,
+    right_outgoing_half_edge: HalfEdgeId,
     weight: VW,
 }
 
@@ -284,7 +284,7 @@ impl<
             self.vertexes
                 .get(&inner_vertex.id())
                 .unwrap()
-                .outward_half_edge,
+                .right_outgoing_half_edge,
         );
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
@@ -294,12 +294,12 @@ impl<
             .vertexes
             .get(&inner_vertex.id())
             .unwrap()
-            .outward_half_edge;
+            .right_outgoing_half_edge;
         let initial_edge = self.full_edge(
             self.vertexes
                 .get(&inner_vertex.id())
                 .unwrap()
-                .outward_half_edge,
+                .right_outgoing_half_edge,
         );
         let inner_edges: Vec<EdgeId> = self.cw_edges(initial_edge).collect();
         let perimeter_edges: Vec<EdgeId> = self
@@ -397,7 +397,7 @@ impl<VW, HEW, FW, VC: Push<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
             // So instead uninitialized edge ids are edge 0.
             // Initializing `.outward_edge` to a correct value is the
             // responsibility of the caller.
-            outward_half_edge: HalfEdgeId(0),
+            right_outgoing_half_edge: HalfEdgeId(0),
             weight,
         }))
     }
@@ -418,11 +418,11 @@ impl<VW, HEW, FW, VC: Remove<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, F
 impl<VW: Clone, HEW, FW, VC: Get<usize, Item = Vertex<VW>> + Insert<usize>, HEC, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn wire_vertex(&mut self, vertex: VertexId, outward_half_edge: HalfEdgeId) {
+    fn wire_vertex(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
         self.vertexes.insert(
             vertex.id(),
             Vertex {
-                outward_half_edge,
+                right_outgoing_half_edge: outgoing_half_edge,
                 weight: self.vertexes.get(&vertex.id()).unwrap().weight.clone(),
             },
         )
@@ -557,8 +557,30 @@ impl<VW, HEW, FW: Clone, VC, HEC, FC: Get<usize, Item = Face<FW>> + Insert<usize
 
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    fn outward_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
-        self.vertexes.get(&vertex.id()).unwrap().outward_half_edge
+    fn right_outgoing_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.vertexes
+            .get(&vertex.id())
+            .unwrap()
+            .right_outgoing_half_edge
+    }
+}
+
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    fn right_incoming_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.prev_half_edge(self.right_outgoing_half_edge(vertex))
+    }
+
+    #[inline]
+    fn left_incoming_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.twin(self.right_outgoing_half_edge(vertex))
+    }
+
+    #[inline]
+    fn left_outgoing_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.twin(self.right_incoming_half_edge(vertex))
     }
 }
 
@@ -574,12 +596,12 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
 {
     #[inline]
     fn prev_vertex(&self, vertex: VertexId) -> VertexId {
-        self.origin(self.prev_half_edge(self.outward_half_edge(vertex)))
+        self.origin(self.prev_half_edge(self.right_outgoing_half_edge(vertex)))
     }
 
     #[inline]
     fn next_vertex(&self, vertex: VertexId) -> VertexId {
-        self.origin(self.next_half_edge(self.outward_half_edge(vertex)))
+        self.origin(self.next_half_edge(self.right_outgoing_half_edge(vertex)))
     }
 }
 
