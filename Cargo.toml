@@ -1,6 +1,14 @@
 [package]
 name = "dcel"
 version = "0.1.0"
+authors = ["Mikolaj Wielgus <wielgusmikolaj@gmail.com>"]
+description = "Implementation of doubly-connected edge list."
+repository = "https://codeberg.org/topola/dcel"
+documentation = "https://docs.rs/dcel"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+keywords = ["no_std"]
+categories = ["data-structures", "no-std", "rust-patterns"]
 edition = "2024"
 
 [dependencies]
