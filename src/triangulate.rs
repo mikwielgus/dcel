@@ -153,7 +153,7 @@ impl<
         for (inner_edge, next_inner_edge) in inner_edges_circular_pair_windows {
             let perimeter_half_edge = perimeter_half_edges_walker.next(self).unwrap();
 
-            self.wire_face_edges_vertexes(
+            self.wire_edge_chain(
                 perimeter_face,
                 &[
                     self.full_edge(perimeter_half_edge),
