@@ -5,6 +5,8 @@
 mod iter;
 mod triangulate;
 
+use std::collections::BTreeSet;
+
 pub use iter::{
     CcwEdgesIter, CcwEdgesWalker, CcwHalfEdgesIter, CcwHalfEdgesWalker, CwEdgesIter, CwEdgesWalker,
     CwHalfEdgesIter, CwHalfEdgesWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
@@ -326,6 +328,13 @@ impl<
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Remove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn merge_faces(&mut self, faces: impl IntoIterator<Item = FaceId>) {
+        let mut faces = faces.into_iter();
+        let absorbing_face = faces.next().unwrap();
+
+        self.absorb_faces(absorbing_face, faces);
+    }
+
     pub fn merge_faces_over_edges_and_vertexes(
         &mut self,
         faces: impl IntoIterator<Item = FaceId>,
@@ -335,7 +344,80 @@ impl<
         let mut faces = faces.into_iter();
         let absorbing_face = faces.next().unwrap();
 
-        self.absorb_faces_over_edges_and_vertexes(absorbing_face, faces, edges, vertexes)
+        self.absorb_faces_over_edges_and_vertexes(absorbing_face, faces, edges, vertexes);
+    }
+
+    pub fn absorb_faces(
+        &mut self,
+        absorbing_face: FaceId,
+        faces: impl IntoIterator<Item = FaceId>,
+    ) {
+        let mut visited_half_edges = BTreeSet::new();
+        let mut visited_vertexes = BTreeSet::new();
+
+        self.record_occurrences_in_face(
+            &mut visited_half_edges,
+            &mut visited_vertexes,
+            absorbing_face,
+        );
+
+        for face in faces {
+            self.record_occurrences_in_face(&mut visited_half_edges, &mut visited_vertexes, face);
+        }
+
+        self.remove_vertexes(
+            visited_vertexes
+                .iter()
+                .filter(|&&vertex| {
+                    self.cw_edges(self.vertex_next_edge(VertexId(vertex)))
+                        .all(|edge| {
+                            visited_half_edges.contains(&edge.forward().id())
+                                && visited_half_edges.contains(&edge.backward().id())
+                        })
+                })
+                .map(|vertex| VertexId(*vertex))
+                // PERF: Needless collect?
+                .collect::<Vec<VertexId>>(),
+        );
+
+        self.remove_edges(
+            visited_half_edges
+                .iter()
+                .map(|&half_edge| self.full_edge(HalfEdgeId(half_edge)))
+                .filter(|&edge| self.is_inner_edge(&visited_half_edges, edge))
+                .collect::<Vec<EdgeId>>(),
+        );
+
+        self.wire_face_edges_vertexes(
+            absorbing_face,
+            &visited_half_edges
+                .iter()
+                .map(|&half_edge| self.full_edge(HalfEdgeId(half_edge)))
+                .filter(|&edge| self.is_outer_edge(&visited_half_edges, edge))
+                .collect::<Vec<_>>(),
+        );
+    }
+
+    fn record_occurrences_in_face(
+        &self,
+        visited_half_edges: &mut BTreeSet<usize>,
+        visited_vertexes: &mut BTreeSet<usize>,
+        face: FaceId,
+    ) {
+        for edge in self.face_edges(face) {
+            visited_half_edges.insert(edge.forward().id());
+            visited_vertexes.insert(self.origin(edge.forward()).id());
+        }
+    }
+
+    fn is_inner_edge(&self, visited_half_edges: &BTreeSet<usize>, edge: EdgeId) -> bool {
+        visited_half_edges.contains(&edge.forward().id())
+            && visited_half_edges.contains(&edge.backward().id())
+    }
+
+    fn is_outer_edge(&self, visited_half_edges: &BTreeSet<usize>, edge: EdgeId) -> bool {
+        !visited_half_edges.contains(&edge.forward().id())
+            || !visited_half_edges.contains(&edge.backward().id())
     }
 
     pub fn absorb_faces_over_edges_and_vertexes(
