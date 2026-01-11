@@ -158,3 +158,25 @@ impl<VW: Clone> VertexCounter<VW> {
         self.map.keys().map(|&id| VertexId(id))
     }
 }
+
+pub struct EdgesTracker {
+    map: BTreeMap<(usize, usize), usize>,
+}
+
+impl EdgesTracker {
+    pub fn new() -> Self {
+        Self {
+            map: BTreeMap::new(),
+        }
+    }
+
+    pub fn visit_vertexes_edge(&mut self, from: VertexId, to: VertexId, half_edge: HalfEdgeId) {
+        self.map.insert((from.id(), to.id()), half_edge.id());
+    }
+
+    pub fn vertexes_half_edge(&self, from: VertexId, to: VertexId) -> Option<HalfEdgeId> {
+        self.map
+            .get(&(from.id(), to.id()))
+            .map(|id| HalfEdgeId(*id))
+    }
+}
