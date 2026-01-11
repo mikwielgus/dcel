@@ -6,7 +6,10 @@ use std::collections::BTreeSet;
 
 use maplike::{Get, Insert, Remove};
 
-use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
+use crate::{
+    Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId,
+    count::{HalfEdgesCounter, VertexCounter},
+};
 
 impl<
     VW: Clone,
@@ -56,7 +59,7 @@ impl<
 }
 
 impl<
-    VW: Clone,
+    VW: Copy + Eq,
     HEW: Clone,
     FW: Clone,
     VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Remove<usize>,
@@ -88,49 +91,36 @@ impl<
         absorbing_face: FaceId,
         faces: impl IntoIterator<Item = FaceId>,
     ) {
-        let mut visited_half_edges = BTreeSet::new();
-        let mut visited_vertexes = BTreeSet::new();
-
-        self.record_occurrences_in_face(
-            &mut visited_half_edges,
-            &mut visited_vertexes,
-            absorbing_face,
-        );
+        let mut half_edges_counter = HalfEdgesCounter::new();
+        let mut vertex_weights_counter = VertexCounter::new();
 
         for face in faces {
-            self.record_occurrences_in_face(&mut visited_half_edges, &mut visited_vertexes, face);
+            half_edges_counter.visit_face_edges(self, face);
+            vertex_weights_counter.visit_face_vertexes(self, face);
         }
 
         self.remove_vertexes(
-            visited_vertexes
-                .iter()
-                .filter(|&&vertex| {
-                    self.cw_edges(self.vertex_next_edge(VertexId(vertex)))
-                        .all(|edge| {
-                            visited_half_edges.contains(&edge.forward().id())
-                                && visited_half_edges.contains(&edge.backward().id())
-                        })
+            vertex_weights_counter
+                .visited_vertexes()
+                .filter(|&vertex| {
+                    self.cw_edges(self.vertex_next_edge(vertex))
+                        .all(|edge| half_edges_counter.is_inner_edge(edge))
                 })
-                .map(|vertex| VertexId(*vertex))
                 // PERF: Needless collect?
                 .collect::<Vec<VertexId>>(),
         );
 
         self.remove_edges(
-            visited_half_edges
-                .iter()
-                .map(|&half_edge| self.full_edge(HalfEdgeId(half_edge)))
-                .filter(|&edge| self.is_inner_edge(&visited_half_edges, edge))
+            half_edges_counter
+                .inner_edges(self)
                 .collect::<Vec<EdgeId>>(),
         );
 
         self.wire_face_edges_vertexes(
             absorbing_face,
-            &visited_half_edges
-                .iter()
-                .map(|&half_edge| self.full_edge(HalfEdgeId(half_edge)))
-                .filter(|&edge| self.is_outer_edge(&visited_half_edges, edge))
-                .collect::<Vec<_>>(),
+            &half_edges_counter
+                .visited_edges(self)
+                .collect::<Vec<EdgeId>>(),
         );
     }
 
