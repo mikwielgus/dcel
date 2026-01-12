@@ -21,6 +21,11 @@ pub struct VertexId(usize);
 
 impl VertexId {
     #[inline]
+    pub fn new(id: usize) -> Self {
+        Self(id)
+    }
+
+    #[inline]
     pub fn id(self) -> usize {
         self.0
     }
@@ -31,6 +36,11 @@ pub struct HalfEdgeId(usize);
 
 impl HalfEdgeId {
     #[inline]
+    pub fn new(id: usize) -> Self {
+        Self(id)
+    }
+
+    #[inline]
     pub fn id(self) -> usize {
         self.0
     }
@@ -40,6 +50,11 @@ impl HalfEdgeId {
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
 impl EdgeId {
+    #[inline]
+    pub fn new(forward: HalfEdgeId, backward: HalfEdgeId) -> EdgeId {
+        Self(forward, backward)
+    }
+
     #[inline]
     pub fn forward(self) -> HalfEdgeId {
         self.0
@@ -55,6 +70,11 @@ impl EdgeId {
 pub struct FaceId(usize);
 
 impl FaceId {
+    #[inline]
+    pub fn new(id: usize) -> Self {
+        Self(id)
+    }
+
     #[inline]
     pub fn id(self) -> usize {
         self.0
@@ -329,7 +349,11 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usiz
             next_edge.backward().id(),
             HalfEdge {
                 next: edge.backward(),
-                ..self.half_edges.get(&edge.forward().id()).unwrap().clone()
+                ..self
+                    .half_edges
+                    .get(&next_edge.backward().id())
+                    .unwrap()
+                    .clone()
             },
         );
     }
@@ -417,7 +441,7 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
 
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    fn vertex_weight(&self, vertex: VertexId) -> &VW {
+    pub fn vertex_weight(&self, vertex: VertexId) -> &VW {
         &self.vertexes.get(&vertex.id()).unwrap().weight
     }
 }
