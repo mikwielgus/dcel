@@ -161,22 +161,23 @@ impl VertexesCounter {
     }
 }
 
-pub struct VertexWeightsCounter<VW> {
-    map: HashMap<VW, usize>,
+pub struct VertexTracker<VW> {
+    map: HashMap<VW, VertexId>,
 }
 
-impl<VW: Eq + Hash> VertexWeightsCounter<VW> {
+impl<VW: Eq + Hash> VertexTracker<VW> {
     pub fn new() -> Self {
         Self {
             map: HashMap::new(),
         }
     }
 
-    pub fn visit_vertex_weight(&mut self, weight: VW) -> bool {
-        let mut entry = self.map.entry(weight).or_insert(0);
-        *entry += 1;
+    pub fn visit_vertex(&mut self, weight: VW, vertex: VertexId) {
+        self.map.insert(weight, vertex);
+    }
 
-        *entry >= 1
+    pub fn vertex(&mut self, weight: VW) -> Option<VertexId> {
+        self.map.get(&weight).cloned()
     }
 }
 

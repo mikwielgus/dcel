@@ -8,7 +8,7 @@ use maplike::{Get, Insert, Push};
 
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId,
-    track::{EdgesTracker, VertexWeightsCounter},
+    track::{EdgesTracker, VertexTracker},
 };
 
 impl<
@@ -25,7 +25,7 @@ impl<
     }
 
     pub fn insert_mesh_in_face(&mut self, face_polygons: impl IntoIterator<Item = Vec<VW>>) {
-        let mut vertex_weights_counter = VertexWeightsCounter::new();
+        let mut vertex_weights_counter = VertexTracker::new();
         let mut edges_tracker = EdgesTracker::new();
 
         for face_polygon in face_polygons {
@@ -39,7 +39,7 @@ impl<
 
     fn insert_adjoined_polygon(
         &mut self,
-        vertex_weights_counter: &mut VertexWeightsCounter<VW>,
+        vertex_weights_counter: &mut VertexTracker<VW>,
         edges_tracker: &mut EdgesTracker,
         vertex_weights: impl IntoIterator<Item = VW>,
     ) {
@@ -53,7 +53,7 @@ impl<
 
     fn insert_adjoined_polygon_in_face(
         &mut self,
-        vertex_weights_counter: &mut VertexWeightsCounter<VW>,
+        vertex_weights_counter: &mut VertexTracker<VW>,
         edges_tracker: &mut EdgesTracker,
         outer_face: FaceId,
         vertex_weights: impl IntoIterator<Item = VW>,
@@ -107,7 +107,7 @@ impl<
 {
     fn insert_adjoined_polygon_with_all_weights(
         &mut self,
-        vertex_weights_counter: &mut VertexWeightsCounter<VW>,
+        vertex_weights_counter: &mut VertexTracker<VW>,
         edges_tracker: &mut EdgesTracker,
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
@@ -125,7 +125,7 @@ impl<
 
     fn insert_adjoined_polygon_in_face_with_all_weights(
         &mut self,
-        vertex_weights_counter: &mut VertexWeightsCounter<VW>,
+        vertex_weights_counter: &mut VertexTracker<VW>,
         edges_tracker: &mut EdgesTracker,
         outer_face: FaceId,
         vertex_weights: impl IntoIterator<Item = VW>,
@@ -148,15 +148,20 @@ impl<
 
     fn add_deduplicated_unwired_polygon_vertexes(
         &mut self,
-        vertex_weights_counter: &mut VertexWeightsCounter<VW>,
+        vertex_weights_counter: &mut VertexTracker<VW>,
         vertex_weights: impl IntoIterator<Item = VW>,
     ) -> Vec<VertexId> {
         vertex_weights
             .into_iter()
-            .filter(|vertex_weight| {
-                !vertex_weights_counter.visit_vertex_weight(vertex_weight.clone())
+            .map(|weight| {
+                vertex_weights_counter
+                    .vertex(weight.clone())
+                    .unwrap_or_else(|| {
+                        let vertex = self.add_unwired_vertex(weight.clone());
+                        vertex_weights_counter.visit_vertex(weight, vertex);
+                        vertex
+                    })
             })
-            .map(|vertex_weight| self.add_unwired_vertex(vertex_weight))
             .collect()
     }
 
