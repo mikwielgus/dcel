@@ -557,3 +557,47 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         .iter(self)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    // Vertexes for a regular pentagon centered at (0,0) with radius 1.0.
+    // Coordinates calculated as (cos(2πn/5), sin(2πn/5)) for n = 0 to 4.
+    const PENTAGON_VERTEXES: [[f32; 2]; 5] = [
+        [1.0, 0.0],               // 0 degrees.
+        [0.309017, 0.9510565],    // 72 degrees.
+        [-0.809017, 0.58778525],  // 144 degrees.
+        [-0.809017, -0.58778525], // 216 degrees.
+        [0.309017, -0.9510565],   // 288 degrees.
+    ];
+
+    #[test]
+    fn test_iter_face_vertexes() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(dcel.face_vertexes(face).collect::<Vec<VertexId>>().len(), 5);
+    }
+
+    #[test]
+    fn test_iter_face_half_edges() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(
+            dcel.face_half_edges(face)
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            5
+        );
+    }
+
+    #[test]
+    fn test_iter_face_edges() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(dcel.face_edges(face).collect::<Vec<EdgeId>>().len(), 5);
+    }
+}
