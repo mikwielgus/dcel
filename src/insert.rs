@@ -178,10 +178,9 @@ impl<
             .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
 
         let mut edges = vec![];
-        let edge_weights: Vec<(HEW, HEW)> = edge_weights.into_iter().collect();
 
         for ((&from_vertex, &to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
-            vertexes_circular_pair_windows.zip(edge_weights.clone().into_iter())
+            vertexes_circular_pair_windows.zip(edge_weights)
         {
             let edge = edges_tracker
                 // Note that vertexes are intentionally reversed here.
@@ -264,10 +263,9 @@ impl<
             .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
 
         let mut edges = vec![];
-        let edge_weights: Vec<(HEW, HEW)> = edge_weights.into_iter().collect();
 
         for ((from_vertex, to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
-            vertexes_circular_pair_windows.zip(edge_weights.clone().into_iter())
+            vertexes_circular_pair_windows.zip(edge_weights)
         {
             let edge = self.add_unwired_edge(
                 *from_vertex,

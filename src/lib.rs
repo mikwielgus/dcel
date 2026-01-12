@@ -100,7 +100,7 @@ pub struct Dcel<
     face_weight_marker: std::marker::PhantomData<FW>,
 }
 
-impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = FW>>
+impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
@@ -108,7 +108,10 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
         let mut faces = FC::default();
 
         // Push the outermost face.
-        faces.push(FW::default());
+        faces.push(Face {
+            incident_half_edge: None,
+            weight: FW::default(),
+        });
 
         Self {
             vertexes: VC::default(),
@@ -121,8 +124,8 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
     }
 }
 
-impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = FW>> Default
-    for Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = Face<FW>>>
+    Default for Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
     fn default() -> Self {
