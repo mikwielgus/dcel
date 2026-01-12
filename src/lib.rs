@@ -155,7 +155,7 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn from_parts(vertexes: VC, half_edges: HEC, faces: FC) -> Self {
+    pub fn from_collections(vertexes: VC, half_edges: HEC, faces: FC) -> Self {
         Self {
             vertexes,
             half_edges,
@@ -186,6 +186,36 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn dissolve(self) -> (VC, HEC, FC) {
         (self.vertexes, self.half_edges, self.faces)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC>
+where
+    for<'a> &'a VC: IntoIterator<Item = &'a usize>,
+{
+    #[inline]
+    pub fn vertex_ids(&self) -> impl Iterator<Item = VertexId> {
+        self.vertexes.into_iter().map(|id| VertexId(*id))
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC>
+where
+    for<'a> &'a HEC: IntoIterator<Item = &'a usize>,
+{
+    #[inline]
+    pub fn half_edge_ids(&self) -> impl Iterator<Item = HalfEdgeId> {
+        self.half_edges.into_iter().map(|id| HalfEdgeId(*id))
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC>
+where
+    for<'a> &'a FC: IntoIterator<Item = &'a usize>,
+{
+    #[inline]
+    pub fn face_ids(&self) -> impl Iterator<Item = FaceId> {
+        self.faces.into_iter().map(|id| FaceId(*id))
     }
 }
 
