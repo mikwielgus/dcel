@@ -2,7 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::hash::Hash;
 
 use maplike::Get;
 
@@ -123,11 +124,11 @@ impl HalfEdgesCounter {
     }
 }
 
-pub struct VertexCounter<VW> {
-    map: BTreeMap<usize, (VW, usize)>,
+pub struct VertexesCounter {
+    map: BTreeMap<usize, usize>,
 }
 
-impl<VW: Clone> VertexCounter<VW> {
+impl VertexesCounter {
     pub fn new() -> Self {
         Self {
             map: BTreeMap::new(),
@@ -135,6 +136,7 @@ impl<VW: Clone> VertexCounter<VW> {
     }
 
     pub fn visit_face_vertexes<
+        VW,
         HEW,
         FW,
         VC: Get<usize, Item = Vertex<VW>>,
@@ -146,16 +148,35 @@ impl<VW: Clone> VertexCounter<VW> {
         face: FaceId,
     ) {
         for vertex in dcel.face_vertexes(face) {
-            self.visit_vertex(vertex, dcel.vertex_weight(vertex).clone());
+            self.visit_vertex(vertex);
         }
     }
 
-    pub fn visit_vertex(&mut self, vertex: VertexId, weight: VW) {
-        self.map.entry(vertex.id()).or_insert((weight, 0)).1 += 1;
+    pub fn visit_vertex(&mut self, vertex: VertexId) {
+        *self.map.entry(vertex.id()).or_insert(0) += 1;
     }
 
     pub fn visited_vertexes(&self) -> impl Iterator<Item = VertexId> {
         self.map.keys().map(|&id| VertexId(id))
+    }
+}
+
+pub struct VertexWeightsCounter<VW> {
+    map: HashMap<VW, usize>,
+}
+
+impl<VW: Eq + Hash> VertexWeightsCounter<VW> {
+    pub fn new() -> Self {
+        Self {
+            map: HashMap::new(),
+        }
+    }
+
+    pub fn visit_vertex_weight(&mut self, weight: VW) -> bool {
+        let mut entry = self.map.entry(weight).or_insert(0);
+        *entry += 1;
+
+        *entry >= 1
     }
 }
 

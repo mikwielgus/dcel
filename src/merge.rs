@@ -8,7 +8,7 @@ use maplike::{Get, Insert, Remove};
 
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId,
-    track::{HalfEdgesCounter, VertexCounter},
+    track::{HalfEdgesCounter, VertexesCounter},
 };
 
 impl<
@@ -92,7 +92,7 @@ impl<
         faces: impl IntoIterator<Item = FaceId>,
     ) {
         let mut half_edges_counter = HalfEdgesCounter::new();
-        let mut vertex_weights_counter = VertexCounter::new();
+        let mut vertex_weights_counter = VertexesCounter::new();
 
         for face in faces {
             half_edges_counter.visit_face_edges(self, face);
