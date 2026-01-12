@@ -78,21 +78,21 @@ impl<
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn insert_polygon(&mut self, vertex_weights: impl IntoIterator<Item = VW>) {
-        self.insert_polygon_in_face(self.unbounded_face(), vertex_weights);
+    pub fn insert_polygon(&mut self, vertex_weights: impl IntoIterator<Item = VW>) -> FaceId {
+        self.insert_polygon_in_face(self.unbounded_face(), vertex_weights)
     }
 
     pub fn insert_polygon_in_face(
         &mut self,
         outer_face: FaceId,
         vertexes_weights: impl IntoIterator<Item = VW>,
-    ) {
+    ) -> FaceId {
         self.insert_polygon_in_face_with_all_weights(
             outer_face,
             vertexes_weights,
             std::iter::repeat((HEW::default(), HEW::default())),
             FW::default(),
-        );
+        )
     }
 }
 
@@ -233,12 +233,14 @@ impl<
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_weight: FW,
-    ) {
+    ) -> FaceId {
         let new_face = self.add_unwired_face(face_weight);
         let vertexes = self.add_unwired_polygon_vertexes(vertex_weights);
         let edges = self.add_unwired_polygon_edges(&vertexes, new_face, outer_face, edge_weights);
 
         self.wire_face_edges_vertexes(new_face, &edges);
+
+        new_face
     }
 
     fn add_unwired_polygon_vertexes(
