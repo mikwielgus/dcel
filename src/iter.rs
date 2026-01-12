@@ -37,7 +37,7 @@ macro_rules! create_walker_and_iter {
 create_walker_and_iter!(
     FaceVertexesWalker {
         initial_vertex: VertexId,
-        curr_vertex: VertexId,
+        curr_vertex: Option<VertexId>,
     },
     FaceVertexesIter
 );
@@ -55,10 +55,12 @@ impl FaceVertexesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
-        let next_vertex = dcel.next_vertex(self.curr_vertex);
+        let next_vertex = dcel.next_vertex(self.curr_vertex?);
 
-        (next_vertex != self.initial_vertex)
-            .then(|| std::mem::replace(&mut self.curr_vertex, next_vertex))
+        std::mem::replace(
+            &mut self.curr_vertex,
+            (next_vertex != self.initial_vertex).then_some(next_vertex),
+        )
     }
 }
 
@@ -94,7 +96,7 @@ impl<
 
         FaceVertexesWalker {
             initial_vertex,
-            curr_vertex: initial_vertex,
+            curr_vertex: Some(initial_vertex),
         }
         .iter(self)
     }
@@ -103,7 +105,7 @@ impl<
 create_walker_and_iter!(
     FaceHalfEdgesWalker {
         initial_half_edge: HalfEdgeId,
-        curr_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     FaceHalfEdgesIter
 );
@@ -114,10 +116,12 @@ impl FaceHalfEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.next_half_edge(self.curr_half_edge);
+        let next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
 
-        (next_half_edge != self.initial_half_edge)
-            .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
     }
 }
 
@@ -144,7 +148,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
 
         FaceHalfEdgesWalker {
             initial_half_edge,
-            curr_half_edge: initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }
@@ -153,7 +157,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
 create_walker_and_iter!(
     FaceEdgesWalker {
         initial_edge: EdgeId,
-        curr_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
     },
     FaceEdgesIter
 );
@@ -164,9 +168,12 @@ impl FaceEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.next_edge(self.curr_edge);
+        let next_edge = dcel.next_edge(self.curr_edge?);
 
-        (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
     }
 }
 
@@ -196,7 +203,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 
         FaceEdgesWalker {
             initial_edge,
-            curr_edge: initial_edge,
+            curr_edge: Some(initial_edge),
         }
         .iter(self)
     }
@@ -205,7 +212,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 create_walker_and_iter!(
     CwHalfEdgesWalker {
         initial_half_edge: HalfEdgeId,
-        curr_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     CwHalfEdgesIter
 );
@@ -216,10 +223,12 @@ impl CwHalfEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.cw_half_edge(self.curr_half_edge);
+        let next_half_edge = dcel.cw_half_edge(self.curr_half_edge?);
 
-        (next_half_edge != self.initial_half_edge)
-            .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
     }
 }
 
@@ -242,7 +251,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
     ) -> CwHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CwHalfEdgesWalker {
             initial_half_edge,
-            curr_half_edge: initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }
@@ -251,7 +260,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
 create_walker_and_iter!(
     CcwHalfEdgesWalker {
         initial_half_edge: HalfEdgeId,
-        curr_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     CcwHalfEdgesIter
 );
@@ -262,10 +271,12 @@ impl CcwHalfEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.ccw_half_edge(self.curr_half_edge);
+        let next_half_edge = dcel.ccw_half_edge(self.curr_half_edge?);
 
-        (next_half_edge != self.initial_half_edge)
-            .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
     }
 }
 
@@ -288,7 +299,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
     ) -> CcwHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CcwHalfEdgesWalker {
             initial_half_edge,
-            curr_half_edge: initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }
@@ -297,7 +308,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
 create_walker_and_iter!(
     CwEdgesWalker {
         initial_edge: EdgeId,
-        curr_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
     },
     CwEdgesIter
 );
@@ -308,9 +319,12 @@ impl CwEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.cw_edge(self.curr_edge);
+        let next_edge = dcel.cw_edge(self.curr_edge?);
 
-        (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
     }
 }
 
@@ -332,7 +346,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     pub fn cw_edges(&self, initial_edge: EdgeId) -> CwEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CwEdgesWalker {
             initial_edge,
-            curr_edge: initial_edge,
+            curr_edge: Some(initial_edge),
         }
         .iter(self)
     }
@@ -341,7 +355,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 create_walker_and_iter!(
     CcwEdgesWalker {
         initial_edge: EdgeId,
-        curr_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
     },
     CcwEdgesIter
 );
@@ -351,9 +365,12 @@ impl CcwEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.ccw_edge(self.curr_edge);
+        let next_edge = dcel.ccw_edge(self.curr_edge?);
 
-        (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
     }
 }
 
@@ -373,7 +390,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     pub fn ccw_edges(&self, initial_edge: EdgeId) -> CcwEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CcwEdgesWalker {
             initial_edge,
-            curr_edge: initial_edge,
+            curr_edge: Some(initial_edge),
         }
         .iter(self)
     }
@@ -382,7 +399,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 create_walker_and_iter!(
     EdgesWithExcludesWalker {
         initial_edge: EdgeId,
-        curr_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
         excluded_edges: Vec<EdgeId>,
     },
     EdgesWithExcludesIter
@@ -393,7 +410,7 @@ impl EdgesWithExcludesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let mut candidate_next_edge = dcel.next_edge(self.curr_edge);
+        let mut candidate_next_edge = dcel.next_edge(self.curr_edge?);
 
         while self.excluded_edges.contains(&candidate_next_edge) {
             candidate_next_edge = dcel.ccw_edge(candidate_next_edge);
@@ -401,7 +418,10 @@ impl EdgesWithExcludesWalker {
 
         let next_edge = candidate_next_edge;
 
-        (next_edge != self.initial_edge).then(|| std::mem::replace(&mut self.curr_edge, next_edge))
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
     }
 }
 
@@ -425,7 +445,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     ) -> EdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         EdgesWithExcludesWalker {
             initial_edge,
-            curr_edge: initial_edge,
+            curr_edge: Some(initial_edge),
             excluded_edges: excluded_edges.into_iter().collect(),
         }
         .iter(self)
@@ -435,7 +455,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 create_walker_and_iter!(
     CwFacesWalker {
         initial_half_edge: HalfEdgeId,
-        curr_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     CwFacesIter
 );
@@ -445,10 +465,12 @@ impl CwFacesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.cw_half_edge(self.curr_half_edge);
+        let next_half_edge = dcel.cw_half_edge(self.curr_half_edge?);
 
-        (next_half_edge != self.initial_half_edge)
-            .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
     }
 }
 
@@ -477,7 +499,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 
         CwFacesWalker {
             initial_half_edge,
-            curr_half_edge: initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }
@@ -486,7 +508,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 create_walker_and_iter!(
     CcwFacesWalker {
         initial_half_edge: HalfEdgeId,
-        curr_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     CcwFacesIter
 );
@@ -496,10 +518,12 @@ impl CcwFacesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.ccw_half_edge(self.curr_half_edge);
+        let next_half_edge = dcel.ccw_half_edge(self.curr_half_edge?);
 
-        (next_half_edge != self.initial_half_edge)
-            .then(|| std::mem::replace(&mut self.curr_half_edge, next_half_edge))
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
     }
 }
 
@@ -528,7 +552,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 
         CcwFacesWalker {
             initial_half_edge,
-            curr_half_edge: initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }
