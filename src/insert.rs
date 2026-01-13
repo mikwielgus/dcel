@@ -20,11 +20,17 @@ impl<
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn insert_mesh(&mut self, face_polygons: impl IntoIterator<Item = Vec<VW>>) {
+    pub fn insert_mesh(
+        &mut self,
+        face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
+    ) {
         self.insert_mesh_in_face(face_polygons);
     }
 
-    pub fn insert_mesh_in_face(&mut self, face_polygons: impl IntoIterator<Item = Vec<VW>>) {
+    pub fn insert_mesh_in_face(
+        &mut self,
+        face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
+    ) {
         let mut vertex_weights_counter = VertexTracker::new();
         let mut edges_tracker = EdgesTracker::new();
 
