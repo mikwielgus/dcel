@@ -188,20 +188,38 @@ impl<
         for ((&from_vertex, &to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
             vertexes_circular_pair_windows.zip(edge_weights)
         {
-            let edge = edges_tracker
-                // Note that vertexes are intentionally reversed here.
-                .vertexes_half_edge(to_vertex, from_vertex)
-                .map(|half_edge| self.full_edge(half_edge))
-                .unwrap_or_else(|| {
-                    self.add_unwired_edge(
-                        from_vertex,
-                        to_vertex,
-                        new_face,
-                        outer_face,
-                        forward_half_edge_weight,
-                        backward_half_edge_weight,
-                    )
-                });
+            let edge = if let Some(existing_half_edge) =
+                edges_tracker.vertexes_half_edge(to_vertex, from_vertex)
+            {
+                // Reuse already existing shared edge.
+                let reused_edge = self.full_edge(self.twin(existing_half_edge));
+
+                // Make the forward half-edge point to the new face.
+                self.half_edges.insert(
+                    reused_edge.forward().id(),
+                    HalfEdge {
+                        face: new_face,
+                        ..self
+                            .half_edges
+                            .get(&reused_edge.forward().id())
+                            .unwrap()
+                            .clone()
+                    },
+                );
+
+                reused_edge
+            } else {
+                // There is no preexisting shared edge. Add a new one.
+                self.add_unwired_edge(
+                    from_vertex,
+                    to_vertex,
+                    new_face,
+                    outer_face,
+                    forward_half_edge_weight,
+                    backward_half_edge_weight,
+                )
+            };
+
             edges_tracker.visit_vertexes_edge(from_vertex, to_vertex, edge.forward());
             edges.push(edge);
         }
