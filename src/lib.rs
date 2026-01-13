@@ -390,29 +390,6 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usiz
                     .clone()
             },
         );
-
-        // Link the backward (outer) half-edges in reverse order around the
-        // outer face.
-        // next_edge.backward.next := edge.backward
-        self.half_edges.insert(
-            next_edge.backward().id(),
-            HalfEdge {
-                next: edge.backward(),
-                ..self
-                    .half_edges
-                    .get(&next_edge.backward().id())
-                    .unwrap()
-                    .clone()
-            },
-        );
-        // edge.backward.prev := next_edge.backward
-        self.half_edges.insert(
-            edge.backward().id(),
-            HalfEdge {
-                prev: next_edge.backward(),
-                ..self.half_edges.get(&edge.backward().id()).unwrap().clone()
-            },
-        );
     }
 }
 
