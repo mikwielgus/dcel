@@ -1,0 +1,224 @@
+// SPDX-FileCopyrightText: 2026 dcel contributors
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+use maplike::Get;
+
+use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
+
+impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub fn vertexes(&self) -> &VC {
+        &self.vertexes
+    }
+
+    #[inline]
+    pub fn half_edges(&self) -> &HEC {
+        &self.half_edges
+    }
+
+    #[inline]
+    pub fn faces(&self) -> &FC {
+        &self.faces
+    }
+
+    #[inline]
+    pub fn dissolve(self) -> (VC, HEC, FC) {
+        (self.vertexes, self.half_edges, self.faces)
+    }
+}
+
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub(crate) fn outgoing_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.vertexes
+            .get(&vertex.id())
+            .unwrap()
+            .outgoing_next_half_edge
+    }
+}
+
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub(crate) fn incoming_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.twin(self.outgoing_next_half_edge(vertex))
+    }
+
+    #[inline]
+    pub(crate) fn vertex_next_edge(&self, vertex: VertexId) -> EdgeId {
+        EdgeId(
+            self.outgoing_next_half_edge(vertex),
+            self.incoming_next_half_edge(vertex),
+        )
+    }
+
+    #[inline]
+    pub(crate) fn incoming_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.prev_half_edge(self.outgoing_next_half_edge(vertex))
+    }
+
+    #[inline]
+    pub(crate) fn outgoing_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+        self.twin(self.incoming_prev_half_edge(vertex))
+    }
+
+    #[inline]
+    pub(crate) fn vertex_prev_edge(&self, vertex: VertexId) -> EdgeId {
+        EdgeId(
+            self.incoming_prev_half_edge(vertex),
+            self.outgoing_prev_half_edge(vertex),
+        )
+    }
+}
+
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub fn vertex_weight(&self, vertex: VertexId) -> &VW {
+        &self.vertexes.get(&vertex.id()).unwrap().weight
+    }
+}
+
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub(crate) fn prev_vertex(&self, vertex: VertexId) -> VertexId {
+        self.origin(self.prev_half_edge(self.outgoing_next_half_edge(vertex)))
+    }
+
+    #[inline]
+    pub(crate) fn next_vertex(&self, vertex: VertexId) -> VertexId {
+        self.origin(self.next_half_edge(self.outgoing_next_half_edge(vertex)))
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub fn origin(&self, half_edge: HalfEdgeId) -> VertexId {
+        self.half_edges.get(&half_edge.id()).unwrap().origin
+    }
+
+    #[inline]
+    pub fn endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
+        (self.origin(edge.forward()), self.origin(edge.backward()))
+    }
+
+    #[inline]
+    pub fn twin(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.half_edges.get(&half_edge.id()).unwrap().twin
+    }
+
+    #[inline]
+    pub fn full_edge(&self, half_edge: HalfEdgeId) -> EdgeId {
+        EdgeId(half_edge, self.twin(half_edge))
+    }
+
+    #[inline]
+    pub fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
+        self.half_edges.get(&half_edge.id()).unwrap().face
+    }
+
+    #[inline]
+    pub fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
+        self.face_in_front(self.twin(half_edge))
+    }
+
+    #[inline]
+    pub fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
+        (
+            self.face_in_front(edge.forward()),
+            self.face_behind(edge.backward()),
+        )
+    }
+
+    #[inline]
+    pub fn prev_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.half_edges.get(&half_edge.id()).unwrap().prev
+    }
+
+    #[inline]
+    pub fn next_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.half_edges.get(&half_edge.id()).unwrap().next
+    }
+
+    #[inline]
+    pub fn prev_edge(&self, edge: EdgeId) -> EdgeId {
+        let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().prev;
+        let next_backward_half_edge = self
+            .half_edges
+            .get(&next_forward_half_edge.id())
+            .unwrap()
+            .twin;
+
+        EdgeId(next_forward_half_edge, next_backward_half_edge)
+    }
+
+    #[inline]
+    pub fn next_edge(&self, edge: EdgeId) -> EdgeId {
+        let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().next;
+        let next_backward_half_edge = self
+            .half_edges
+            .get(&next_forward_half_edge.id())
+            .unwrap()
+            .twin;
+
+        EdgeId(next_forward_half_edge, next_backward_half_edge)
+    }
+
+    #[inline]
+    pub fn cw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.twin(self.prev_half_edge(half_edge))
+    }
+
+    #[inline]
+    pub fn ccw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.next_half_edge(self.twin(half_edge))
+    }
+
+    #[inline]
+    pub fn cw_edge(&self, edge: EdgeId) -> EdgeId {
+        self.full_edge(self.cw_half_edge(edge.forward()))
+    }
+
+    #[inline]
+    pub fn ccw_edge(&self, edge: EdgeId) -> EdgeId {
+        self.full_edge(self.ccw_half_edge(edge.forward()))
+    }
+
+    #[inline]
+    pub fn half_edge_weight(&self, half_edge: HalfEdgeId) -> &HEW {
+        &self.half_edges.get(&half_edge.id()).unwrap().weight
+    }
+
+    #[inline]
+    pub fn edge_weights(&self, edge: EdgeId) -> (&HEW, &HEW) {
+        (
+            self.half_edge_weight(edge.forward()),
+            self.half_edge_weight(edge.backward()),
+        )
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub fn incident_half_edge(&self, face: FaceId) -> Option<HalfEdgeId> {
+        self.faces.get(&face.id()).unwrap().incident_half_edge
+    }
+
+    #[inline]
+    pub fn face_weight(&self, face: FaceId) -> &FW {
+        &self.faces.get(&face.id()).unwrap().weight
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Returns the id of the unbounded face.
+    ///
+    /// The unbounded face is always the first element of the face list.
+    #[inline]
+    pub fn unbounded_face(&self) -> FaceId {
+        FaceId(0)
+    }
+}
