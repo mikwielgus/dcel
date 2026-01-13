@@ -368,6 +368,9 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usiz
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_edge(&mut self, edge: EdgeId, next_edge: EdgeId) {
+        // Link the forward (inner) half-edge of `edge` with the forward
+        // half-edge of `next_edge`.
+        // edge.forward.next := next_edge.forward
         self.half_edges.insert(
             edge.forward().id(),
             HalfEdge {
@@ -375,6 +378,22 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usiz
                 ..self.half_edges.get(&edge.forward().id()).unwrap().clone()
             },
         );
+        // next_edge.forward.prev := edge.forward
+        self.half_edges.insert(
+            next_edge.forward().id(),
+            HalfEdge {
+                prev: edge.forward(),
+                ..self
+                    .half_edges
+                    .get(&next_edge.forward().id())
+                    .unwrap()
+                    .clone()
+            },
+        );
+
+        // Link the backward (outer) half-edges in reverse order around the
+        // outer face.
+        // next_edge.backward.next := edge.backward
         self.half_edges.insert(
             next_edge.backward().id(),
             HalfEdge {
@@ -384,6 +403,14 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usiz
                     .get(&next_edge.backward().id())
                     .unwrap()
                     .clone()
+            },
+        );
+        // edge.backward.prev := next_edge.backward
+        self.half_edges.insert(
+            edge.backward().id(),
+            HalfEdge {
+                prev: next_edge.backward(),
+                ..self.half_edges.get(&edge.backward().id()).unwrap().clone()
             },
         );
     }
