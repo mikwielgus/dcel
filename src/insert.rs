@@ -149,7 +149,9 @@ impl<
             edge_weights,
         );
 
-        self.wire_face_edges_vertexes(new_face, &edges);
+        self.wire_inner_half_edge_chain(new_face, &edges);
+        // TODO.
+        //self.wire_outer_half_edge_chain_circularly(new_face, &edges);
     }
 
     fn add_deduplicated_unwired_polygon_vertexes(
@@ -179,14 +181,14 @@ impl<
         outer_face: FaceId,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
     ) -> Vec<EdgeId> {
-        let vertexes_circular_pair_windows = vertexes
+        let vertexes_circular_tuple_windows = vertexes
             .iter()
             .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
 
         let mut edges = vec![];
 
         for ((&from_vertex, &to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
-            vertexes_circular_pair_windows.zip(edge_weights)
+            vertexes_circular_tuple_windows.zip(edge_weights)
         {
             let edge = if let Some(existing_half_edge) =
                 edges_tracker.vertexes_half_edge(to_vertex, from_vertex)
@@ -262,7 +264,8 @@ impl<
         let vertexes = self.add_unwired_polygon_vertexes(vertex_weights);
         let edges = self.add_unwired_polygon_edges(&vertexes, new_face, outer_face, edge_weights);
 
-        self.wire_face_edges_vertexes(new_face, &edges);
+        self.wire_inner_half_edge_chain(new_face, &edges);
+        self.wire_outer_half_edge_chain_circularly(new_face, &edges);
 
         new_face
     }
@@ -284,14 +287,14 @@ impl<
         outer_face: FaceId,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
     ) -> Vec<EdgeId> {
-        let vertexes_circular_pair_windows = vertexes
+        let vertexes_circular_tuple_windows = vertexes
             .iter()
             .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
 
         let mut edges = vec![];
 
         for ((from_vertex, to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
-            vertexes_circular_pair_windows.zip(edge_weights)
+            vertexes_circular_tuple_windows.zip(edge_weights)
         {
             let edge = self.add_unwired_edge(
                 *from_vertex,

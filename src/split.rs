@@ -73,7 +73,7 @@ impl<
         edges.extend(new_edges);
         edges.push(self.vertex_next_edge(to));
 
-        self.wire_edge_chain(new_face, &edges);
+        self.wire_inner_half_edge_chain(new_face, &edges);
     }
 
     fn add_unwired_dangling_edge_chain(

@@ -54,7 +54,7 @@ impl<
         self.remove_edges(inner_edges);
         self.remove_vertex(inner_vertex);
 
-        self.wire_face_edges_vertexes(absorbing_face, &perimeter_edges);
+        self.wire_inner_half_edge_chain(absorbing_face, &perimeter_edges);
     }
 }
 
@@ -116,7 +116,7 @@ impl<
                 .collect::<Vec<EdgeId>>(),
         );
 
-        self.wire_face_edges_vertexes(
+        self.wire_inner_half_edge_chain(
             absorbing_face,
             &half_edges_counter
                 .visited_edges(self)
@@ -171,6 +171,6 @@ impl<
         self.remove_edges(edges);
         self.remove_vertexes(vertexes);
 
-        self.wire_face_edges_vertexes(absorbing_face, &perimeter_edges);
+        self.wire_inner_half_edge_chain(absorbing_face, &perimeter_edges);
     }
 }

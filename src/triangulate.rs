@@ -149,15 +149,15 @@ impl<
         perimeter_face: FaceId,
         inner_edges: &[EdgeId],
     ) {
-        let inner_edges_circular_pair_windows = inner_edges
+        let inner_edges_circular_tuple_windows = inner_edges
             .iter()
             .zip(inner_edges.iter().skip(1).chain(inner_edges.iter().take(1)));
         let mut perimeter_half_edges_walker = self.face_half_edges(perimeter_face).walker();
 
-        for (inner_edge, next_inner_edge) in inner_edges_circular_pair_windows {
+        for (inner_edge, next_inner_edge) in inner_edges_circular_tuple_windows {
             let perimeter_half_edge = perimeter_half_edges_walker.next(self).unwrap();
 
-            self.wire_edge_chain(
+            self.wire_inner_half_edge_chain(
                 perimeter_face,
                 &[
                     self.full_edge(perimeter_half_edge),

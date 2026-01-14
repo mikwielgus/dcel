@@ -207,29 +207,26 @@ impl<
     FC: Get<usize, Item = Face<FW>> + Insert<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn wire_edge_chain(&mut self, face: FaceId, edges: &[EdgeId]) {
+    fn wire_inner_half_edge_chain(&mut self, face: FaceId, edges: &[EdgeId]) {
         self.wire_face(face, edges[0].forward());
 
-        let edges_circular_pair_windows = edges
+        let edges_circular_tuple_windows = edges
             .iter()
             .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
 
-        for (edge, next_edge) in edges_circular_pair_windows {
-            self.wire_edge(*edge, *next_edge);
-            self.wire_vertex(self.origin(edge.forward()), edge.forward());
+        for (edge, next_edge) in edges_circular_tuple_windows {
+            self.link_subsequent_half_edges(edge.forward(), next_edge.forward());
+            self.link_vertex_to_edge(self.origin(edge.forward()), edge.forward());
         }
     }
 
-    fn wire_face_edges_vertexes(&mut self, face: FaceId, edges: &[EdgeId]) {
-        self.wire_face(face, edges[0].forward());
-
-        let edges_circular_pair_windows = edges
+    fn wire_outer_half_edge_chain_circularly(&mut self, face: FaceId, edges: &[EdgeId]) {
+        let edges_circular_tuple_windows = edges
             .iter()
             .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
 
-        for (edge, next_edge) in edges_circular_pair_windows {
-            self.wire_edge(*edge, *next_edge);
-            self.wire_vertex(self.origin(edge.forward()), edge.forward());
+        for (edge, next_edge) in edges_circular_tuple_windows {
+            self.link_subsequent_half_edges(edge.backward(), next_edge.backward());
         }
     }
 }
@@ -262,7 +259,7 @@ impl<VW, HEW, FW, VC: Remove<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, F
 impl<VW: Clone, HEW, FW, VC: Get<usize, Item = Vertex<VW>> + Insert<usize>, HEC, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn wire_vertex(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
+    fn link_vertex_to_edge(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
         self.vertexes.insert(
             vertex.id(),
             Vertex {
@@ -346,27 +343,23 @@ impl<VW, HEW, FW, VC, HEC: Remove<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW
 impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn wire_edge(&mut self, edge: EdgeId, next_edge: EdgeId) {
+    fn link_subsequent_half_edges(&mut self, half_edge: HalfEdgeId, next_half_edge: HalfEdgeId) {
         // Link the forward (inner) half-edge of `edge` with the forward
         // half-edge of `next_edge`.
-        // edge.forward.next := next_edge.forward
+        // half_edge.next := next_half_edge
         self.half_edges.insert(
-            edge.forward().id(),
+            half_edge.id(),
             HalfEdge {
-                next: next_edge.forward(),
-                ..self.half_edges.get(&edge.forward().id()).unwrap().clone()
+                next: next_half_edge,
+                ..self.half_edges.get(&half_edge.id()).unwrap().clone()
             },
         );
-        // next_edge.forward.prev := edge.forward
+        // next_half_edge.prev := half_edge
         self.half_edges.insert(
-            next_edge.forward().id(),
+            next_half_edge.id(),
             HalfEdge {
-                prev: edge.forward(),
-                ..self
-                    .half_edges
-                    .get(&next_edge.forward().id())
-                    .unwrap()
-                    .clone()
+                prev: half_edge,
+                ..self.half_edges.get(&next_half_edge.id()).unwrap().clone()
             },
         );
     }
