@@ -193,6 +193,21 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 {
     #[inline]
     pub fn face_edges(&self, face: FaceId) -> FaceEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no edges.
+        // Since the unbounded face is supposed to behave similarly to other
+        // edges, it is better to branch out here than to have the code below
+        // panic.
+        if face == self.unbounded_face() {
+            return FaceEdgesWalker {
+                // Uninitialized edge.
+                initial_edge: EdgeId::new(HalfEdgeId::new(0), HalfEdgeId::new(0)),
+                // Setting `curr_edge` to None makes the iterator produce no
+                // elements.
+                curr_edge: None,
+            }
+            .iter(self);
+        }
+
         let initial_edge = self.full_edge(
             self.faces
                 .get(&face.id())
