@@ -150,8 +150,7 @@ impl<
         );
 
         self.wire_inner_half_edge_chain(new_face, &edges);
-        // TODO.
-        //self.wire_outer_half_edge_chain_circularly(new_face, &edges);
+        self.wire_outer_half_edge_chain_adjoiningly(outer_face, &edges);
     }
 
     fn add_deduplicated_unwired_polygon_vertexes(
@@ -265,7 +264,7 @@ impl<
         let edges = self.add_unwired_polygon_edges(&vertexes, new_face, outer_face, edge_weights);
 
         self.wire_inner_half_edge_chain(new_face, &edges);
-        self.wire_outer_half_edge_chain_circularly(new_face, &edges);
+        self.wire_outer_half_edge_chain_circularly(&edges);
 
         new_face
     }

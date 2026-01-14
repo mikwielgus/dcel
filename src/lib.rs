@@ -220,13 +220,41 @@ impl<
         }
     }
 
-    fn wire_outer_half_edge_chain_circularly(&mut self, face: FaceId, edges: &[EdgeId]) {
+    fn wire_outer_half_edge_chain_circularly(&mut self, edges: &[EdgeId]) {
         let edges_circular_tuple_windows = edges
             .iter()
             .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
 
         for (edge, next_edge) in edges_circular_tuple_windows {
             self.link_subsequent_half_edges(edge.backward(), next_edge.backward());
+        }
+    }
+
+    fn wire_outer_half_edge_chain_adjoiningly(&mut self, outer_face: FaceId, edges: &[EdgeId]) {
+        let edges_circular_tuple_windows = edges
+            .iter()
+            .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
+
+        for (edge, next_edge) in edges_circular_tuple_windows {
+            let is_edge_outward = self.face_behind(edge.forward()) == outer_face;
+            let is_next_edge_outward = self.face_behind(next_edge.forward()) == outer_face;
+
+            if is_edge_outward && is_next_edge_outward {
+                self.link_subsequent_half_edges(next_edge.backward(), edge.backward());
+            } else if !is_edge_outward && is_next_edge_outward {
+                self.link_subsequent_half_edges(
+                    next_edge.backward(),
+                    self.cw_half_edge(edge.backward()),
+                );
+            } else if is_edge_outward && !is_next_edge_outward {
+                self.link_subsequent_half_edges(
+                    self.twin(self.ccw_half_edge(next_edge.forward())),
+                    edge.backward(),
+                );
+            } else {
+                // Both subsequent edges are pre-existing, so they are already
+                // fully wired. Nothing to do here.
+            }
         }
     }
 }
