@@ -86,6 +86,20 @@ impl<
 {
     #[inline]
     pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no vertexes. Since the unbounded face is supposed
+        // to behave similarly to other faces, it is better to branch out here
+        // than to have the code below panic.
+        if face == self.unbounded_face() {
+            return FaceVertexesWalker {
+                // Uninitialized vertex.
+                initial_vertex: VertexId::new(0),
+                // Setting `curr_vertex` to None makes the iterator produce no
+                // elements.
+                curr_vertex: None,
+            }
+            .iter(self);
+        }
+
         let initial_vertex = self.origin(
             self.faces
                 .get(&face.id())
@@ -605,6 +619,12 @@ mod test {
         let mut dcel = Dcel::<[f32; 2]>::new();
         let face = dcel.insert_polygon(PENTAGON_VERTEXES);
 
+        assert_eq!(
+            dcel.face_vertexes(dcel.unbounded_face())
+                .collect::<Vec<VertexId>>()
+                .len(),
+            0
+        );
         assert_eq!(dcel.face_vertexes(face).collect::<Vec<VertexId>>().len(), 5);
     }
 
@@ -613,6 +633,12 @@ mod test {
         let mut dcel = Dcel::<[f32; 2]>::new();
         let face = dcel.insert_polygon(PENTAGON_VERTEXES);
 
+        assert_eq!(
+            dcel.face_half_edges(dcel.unbounded_face())
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            0
+        );
         assert_eq!(
             dcel.face_half_edges(face)
                 .collect::<Vec<HalfEdgeId>>()
@@ -626,6 +652,12 @@ mod test {
         let mut dcel = Dcel::<[f32; 2]>::new();
         let face = dcel.insert_polygon(PENTAGON_VERTEXES);
 
+        assert_eq!(
+            dcel.face_edges(dcel.unbounded_face())
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            0
+        );
         assert_eq!(dcel.face_edges(face).collect::<Vec<EdgeId>>().len(), 5);
     }
 }
