@@ -124,28 +124,6 @@ impl<
         );
     }
 
-    fn record_occurrences_in_face(
-        &self,
-        visited_half_edges: &mut BTreeSet<usize>,
-        visited_vertexes: &mut BTreeSet<usize>,
-        face: FaceId,
-    ) {
-        for edge in self.face_edges(face) {
-            visited_half_edges.insert(edge.forward().id());
-            visited_vertexes.insert(self.origin(edge.forward()).id());
-        }
-    }
-
-    fn is_inner_edge(&self, visited_half_edges: &BTreeSet<usize>, edge: EdgeId) -> bool {
-        visited_half_edges.contains(&edge.forward().id())
-            && visited_half_edges.contains(&edge.backward().id())
-    }
-
-    fn is_outer_edge(&self, visited_half_edges: &BTreeSet<usize>, edge: EdgeId) -> bool {
-        !visited_half_edges.contains(&edge.forward().id())
-            || !visited_half_edges.contains(&edge.backward().id())
-    }
-
     pub fn absorb_faces_over_edges_and_vertexes(
         &mut self,
         absorbing_face: FaceId,
