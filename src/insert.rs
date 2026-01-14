@@ -333,6 +333,12 @@ mod test {
         assert_eq!(dcel.faces().len(), 3);
 
         assert_eq!(
+            dcel.face_vertexes(FaceId::new(0))
+                .collect::<Vec<VertexId>>()
+                .len(),
+            0
+        );
+        assert_eq!(
             dcel.face_half_edges(FaceId::new(0))
                 .collect::<Vec<HalfEdgeId>>()
                 .len(),
@@ -403,6 +409,12 @@ mod test {
         for (i, _face) in dcel.faces().iter().enumerate() {
             if FaceId::new(i) == dcel.unbounded_face() {
                 assert_eq!(
+                    dcel.face_vertexes(FaceId::new(i))
+                        .collect::<Vec<VertexId>>()
+                        .len(),
+                    0
+                );
+                assert_eq!(
                     dcel.face_half_edges(FaceId::new(i))
                         .collect::<Vec<HalfEdgeId>>()
                         .len(),
@@ -417,6 +429,12 @@ mod test {
                 continue;
             }
 
+            assert_eq!(
+                dcel.face_vertexes(FaceId::new(i))
+                    .collect::<Vec<VertexId>>()
+                    .len(),
+                4
+            );
             assert_eq!(
                 dcel.face_half_edges(FaceId::new(i))
                     .collect::<Vec<HalfEdgeId>>()
