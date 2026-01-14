@@ -333,6 +333,18 @@ mod test {
         assert_eq!(dcel.faces().len(), 3);
 
         assert_eq!(
+            dcel.face_half_edges(FaceId::new(0))
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            0
+        );
+        assert_eq!(
+            dcel.face_edges(FaceId::new(0))
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            0
+        );
+        assert_eq!(
             dcel.face_half_edges(FaceId::new(1))
                 .collect::<Vec<HalfEdgeId>>()
                 .len(),
@@ -387,6 +399,37 @@ mod test {
 
         let mut dcel: Dcel<(i64, i64)> = Dcel::new();
         dcel.insert_mesh(mesh);
+
+        for (i, _face) in dcel.faces().iter().enumerate() {
+            if FaceId::new(i) == dcel.unbounded_face() {
+                assert_eq!(
+                    dcel.face_half_edges(FaceId::new(i))
+                        .collect::<Vec<HalfEdgeId>>()
+                        .len(),
+                    0
+                );
+                assert_eq!(
+                    dcel.face_edges(FaceId::new(i))
+                        .collect::<Vec<EdgeId>>()
+                        .len(),
+                    0
+                );
+                continue;
+            }
+
+            assert_eq!(
+                dcel.face_half_edges(FaceId::new(i))
+                    .collect::<Vec<HalfEdgeId>>()
+                    .len(),
+                4
+            );
+            assert_eq!(
+                dcel.face_edges(FaceId::new(i))
+                    .collect::<Vec<EdgeId>>()
+                    .len(),
+                4
+            );
+        }
 
         assert_eq!(dcel.vertexes().len(), 25);
         assert_eq!(dcel.half_edges().len(), 80);
