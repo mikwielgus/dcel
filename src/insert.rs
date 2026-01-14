@@ -312,7 +312,51 @@ impl<
 
 #[cfg(test)]
 mod test {
+    use crate::HalfEdgeId;
+
     use super::*;
+
+    #[test]
+    fn test_insert_adjoined_squares() {
+        let two_adjoined_squares: Vec<Vec<(i64, i64)>> = vec![
+            // Left square (CCW).
+            vec![(0, 0), (0, 1), (-1, 1), (-1, 0)],
+            // Right square sharing edge with left square (CCW).
+            vec![(0, 0), (1, 0), (1, 1), (0, 1)],
+        ];
+
+        let mut dcel: Dcel<(i64, i64)> = Dcel::new();
+        dcel.insert_mesh(two_adjoined_squares);
+
+        assert_eq!(dcel.vertexes().len(), 6);
+        assert_eq!(dcel.half_edges().len(), 14);
+        assert_eq!(dcel.faces().len(), 3);
+
+        assert_eq!(
+            dcel.face_half_edges(FaceId::new(1))
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            4
+        );
+        assert_eq!(
+            dcel.face_edges(FaceId::new(1))
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            4
+        );
+        assert_eq!(
+            dcel.face_half_edges(FaceId::new(1))
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            4
+        );
+        assert_eq!(
+            dcel.face_edges(FaceId::new(2))
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            4
+        );
+    }
 
     #[test]
     fn test_insert_noisy_4x4_grid_mesh() {
