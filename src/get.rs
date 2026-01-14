@@ -80,20 +80,6 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, 
     }
 }
 
-impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    #[inline]
-    pub(crate) fn prev_vertex(&self, vertex: VertexId) -> VertexId {
-        self.origin(self.prev_half_edge(self.outgoing_next_half_edge(vertex)))
-    }
-
-    #[inline]
-    pub(crate) fn next_vertex(&self, vertex: VertexId) -> VertexId {
-        self.origin(self.next_half_edge(self.outgoing_next_half_edge(vertex)))
-    }
-}
-
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn origin(&self, half_edge: HalfEdgeId) -> VertexId {

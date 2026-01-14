@@ -36,8 +36,8 @@ macro_rules! create_walker_and_iter {
 
 create_walker_and_iter!(
     FaceVertexesWalker {
-        initial_vertex: VertexId,
-        curr_vertex: Option<VertexId>,
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     FaceVertexesIter
 );
@@ -55,12 +55,13 @@ impl FaceVertexesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
-        let next_vertex = dcel.next_vertex(self.curr_vertex?);
+        let next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
-            &mut self.curr_vertex,
-            (next_vertex != self.initial_vertex).then_some(next_vertex),
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
         )
+        .map(|half_edge| dcel.origin(half_edge))
     }
 }
 
@@ -91,26 +92,25 @@ impl<
         // than to have the code below panic.
         if face == self.unbounded_face() {
             return FaceVertexesWalker {
-                // Uninitialized vertex.
-                initial_vertex: VertexId::new(0),
+                // Uninitialized half-edge.
+                initial_half_edge: HalfEdgeId::new(0),
                 // Setting `curr_vertex` to None makes the iterator produce no
                 // elements.
-                curr_vertex: None,
+                curr_half_edge: None,
             }
             .iter(self);
         }
 
-        let initial_vertex = self.origin(
-            self.faces
-                .get(&face.id())
-                .unwrap()
-                .incident_half_edge
-                .unwrap(),
-        );
+        let initial_half_edge = self
+            .faces
+            .get(&face.id())
+            .unwrap()
+            .incident_half_edge
+            .unwrap();
 
         FaceVertexesWalker {
-            initial_vertex,
-            curr_vertex: Some(initial_vertex),
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }
