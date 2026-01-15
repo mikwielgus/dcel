@@ -787,4 +787,66 @@ mod test {
             4
         );
     }
+
+    #[test]
+    fn test_ccw_faces() {
+        let mut dcel = Dcel::<[i32; 2]>::new();
+        dcel.insert_mesh(ADJOINED_SQUARES_2X2);
+
+        for id in [3, 5, 6, 8] {
+            assert_eq!(
+                dcel.ccw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<FaceId>>()
+                    .len(),
+                2
+            );
+        }
+
+        for id in [0, 2, 4, 7] {
+            assert_eq!(
+                dcel.ccw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<FaceId>>()
+                    .len(),
+                3
+            );
+        }
+
+        assert_eq!(
+            dcel.ccw_faces(dcel.outgoing_next_half_edge(VertexId::new(1)))
+                .collect::<Vec<FaceId>>()
+                .len(),
+            4
+        );
+    }
+
+    #[test]
+    fn test_cw_faces() {
+        let mut dcel = Dcel::<[i32; 2]>::new();
+        dcel.insert_mesh(ADJOINED_SQUARES_2X2);
+
+        for id in [3, 5, 6, 8] {
+            assert_eq!(
+                dcel.cw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<FaceId>>()
+                    .len(),
+                2
+            );
+        }
+
+        for id in [0, 2, 4, 7] {
+            assert_eq!(
+                dcel.cw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<FaceId>>()
+                    .len(),
+                3
+            );
+        }
+
+        assert_eq!(
+            dcel.cw_faces(dcel.outgoing_next_half_edge(VertexId::new(1)))
+                .collect::<Vec<FaceId>>()
+                .len(),
+            4
+        );
+    }
 }
