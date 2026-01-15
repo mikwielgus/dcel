@@ -30,7 +30,7 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
 
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub(crate) fn outgoing_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+    pub fn outgoing_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.vertexes
             .get(&vertex.id())
             .unwrap()
@@ -42,12 +42,12 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub(crate) fn incoming_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+    pub fn incoming_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.twin(self.outgoing_next_half_edge(vertex))
     }
 
     #[inline]
-    pub(crate) fn vertex_next_edge(&self, vertex: VertexId) -> EdgeId {
+    pub fn vertex_next_edge(&self, vertex: VertexId) -> EdgeId {
         EdgeId(
             self.outgoing_next_half_edge(vertex),
             self.incoming_next_half_edge(vertex),
@@ -55,17 +55,17 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
     }
 
     #[inline]
-    pub(crate) fn incoming_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+    pub fn incoming_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.prev_half_edge(self.outgoing_next_half_edge(vertex))
     }
 
     #[inline]
-    pub(crate) fn outgoing_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
+    pub fn outgoing_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.twin(self.incoming_prev_half_edge(vertex))
     }
 
     #[inline]
-    pub(crate) fn vertex_prev_edge(&self, vertex: VertexId) -> EdgeId {
+    pub fn vertex_prev_edge(&self, vertex: VertexId) -> EdgeId {
         EdgeId(
             self.incoming_prev_half_edge(vertex),
             self.outgoing_prev_half_edge(vertex),
