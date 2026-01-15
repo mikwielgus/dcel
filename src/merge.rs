@@ -47,10 +47,7 @@ impl<
             .edges_with_excludes(initial_edge, inner_edges.clone())
             .collect();
 
-        self.remove_faces(
-            self.cw_faces(self.face_in_front(initial_half_edge))
-                .collect::<Vec<FaceId>>(),
-        );
+        self.remove_faces(self.cw_faces(initial_half_edge).collect::<Vec<FaceId>>());
         self.remove_edges(inner_edges);
         self.remove_vertex(inner_vertex);
 

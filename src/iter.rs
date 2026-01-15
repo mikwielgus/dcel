@@ -531,14 +531,10 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn cw_faces(&self, initial_face: FaceId) -> CwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self
-            .faces
-            .get(&initial_face.id())
-            .unwrap()
-            .incident_half_edge
-            .unwrap();
-
+    pub fn cw_faces(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> CwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CwFacesWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
@@ -584,14 +580,10 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn ccw_faces(&self, initial_face: FaceId) -> CcwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self
-            .faces
-            .get(&initial_face.id())
-            .unwrap()
-            .incident_half_edge
-            .unwrap();
-
+    pub fn ccw_faces(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> CcwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CcwFacesWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
