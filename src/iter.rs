@@ -660,4 +660,139 @@ mod test {
         );
         assert_eq!(dcel.face_edges(face).collect::<Vec<EdgeId>>().len(), 5);
     }
+
+    const ADJOINED_SQUARES_2X2: [[[i32; 2]; 4]; 4] = [
+        // Bottom-left square (CCW)
+        [[-1, 0], [0, 0], [0, -1], [-1, -1]],
+        // Bottom-right square (CCW)
+        [[0, 0], [1, 0], [1, -1], [0, -1]],
+        // Top-left square (CCW)
+        [[-1, 1], [0, 1], [0, 0], [-1, 0]],
+        // Top-right square (CCW)
+        [[0, 1], [1, 1], [1, 0], [0, 0]],
+    ];
+
+    #[test]
+    fn test_ccw_half_edges() {
+        let mut dcel = Dcel::<[i32; 2]>::new();
+        dcel.insert_mesh(ADJOINED_SQUARES_2X2);
+
+        for id in [3, 5, 6, 8] {
+            assert_eq!(
+                dcel.ccw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<HalfEdgeId>>()
+                    .len(),
+                2
+            );
+        }
+
+        for id in [0, 2, 4, 7] {
+            assert_eq!(
+                dcel.ccw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<HalfEdgeId>>()
+                    .len(),
+                3
+            );
+        }
+
+        assert_eq!(
+            dcel.ccw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(1)))
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            4
+        );
+    }
+
+    #[test]
+    fn test_cw_half_edges() {
+        let mut dcel = Dcel::<[i32; 2]>::new();
+        dcel.insert_mesh(ADJOINED_SQUARES_2X2);
+
+        for id in [3, 5, 6, 8] {
+            assert_eq!(
+                dcel.cw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<HalfEdgeId>>()
+                    .len(),
+                2
+            );
+        }
+
+        for id in [0, 2, 4, 7] {
+            assert_eq!(
+                dcel.cw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                    .collect::<Vec<HalfEdgeId>>()
+                    .len(),
+                3
+            );
+        }
+
+        assert_eq!(
+            dcel.cw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(1)))
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            4
+        );
+    }
+
+    #[test]
+    fn test_ccw_edges() {
+        let mut dcel = Dcel::<[i32; 2]>::new();
+        dcel.insert_mesh(ADJOINED_SQUARES_2X2);
+
+        for id in [3, 5, 6, 8] {
+            assert_eq!(
+                dcel.ccw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
+                    .collect::<Vec<EdgeId>>()
+                    .len(),
+                2
+            );
+        }
+
+        for id in [0, 2, 4, 7] {
+            assert_eq!(
+                dcel.ccw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
+                    .collect::<Vec<EdgeId>>()
+                    .len(),
+                3
+            );
+        }
+
+        assert_eq!(
+            dcel.ccw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(1))))
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            4
+        );
+    }
+
+    #[test]
+    fn test_cw_edges() {
+        let mut dcel = Dcel::<[i32; 2]>::new();
+        dcel.insert_mesh(ADJOINED_SQUARES_2X2);
+
+        for id in [3, 5, 6, 8] {
+            assert_eq!(
+                dcel.cw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
+                    .collect::<Vec<EdgeId>>()
+                    .len(),
+                2
+            );
+        }
+
+        for id in [0, 2, 4, 7] {
+            assert_eq!(
+                dcel.cw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
+                    .collect::<Vec<EdgeId>>()
+                    .len(),
+                3
+            );
+        }
+
+        assert_eq!(
+            dcel.cw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(1))))
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            4
+        );
+    }
 }
