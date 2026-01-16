@@ -163,9 +163,10 @@ impl<
 
         for (inner_edge, next_inner_edge) in inner_edges_circular_tuple_windows {
             let perimeter_half_edge = perimeter_half_edges_walker.next(self).unwrap();
+            let triangle_face = self.face_in_front(inner_edge.backward());
 
             self.wire_inner_half_edge_chain(
-                perimeter_face,
+                triangle_face,
                 &[
                     self.full_edge(perimeter_half_edge),
                     self.full_edge(next_inner_edge.forward()),
