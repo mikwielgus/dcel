@@ -14,8 +14,8 @@ mod walkers;
 use maplike::{Get, Insert, Push, Remove};
 
 pub use walkers::{
-    CcwEdgesIter, CcwEdgesWalker, CcwHalfEdgesIter, CcwHalfEdgesWalker, CwEdgesIter, CwEdgesWalker,
-    CwHalfEdgesIter, CwHalfEdgesWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
+    SpokesIter, SpokesWalker, HalfSpokesIter, HalfSpokesWalker, SpokesReverseIter, SpokesReverseWalker,
+    HalfSpokesReverseIter, HalfSpokesReverseWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
     FaceHalfEdgesWalker,
 };
 

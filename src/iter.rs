@@ -7,11 +7,11 @@ use maplike::Get;
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex,
     walkers::{
-        CcwEdgesIter, CcwEdgesWalker, CcwFacesIter, CcwFacesWalker, CcwHalfEdgesIter,
-        CcwHalfEdgesWalker, CwEdgesIter, CwEdgesWalker, CwFacesIter, CwFacesWalker,
-        CwHalfEdgesIter, CwHalfEdgesWalker, EdgesWithExcludesIter, EdgesWithExcludesWalker,
-        FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter, FaceHalfEdgesWalker, FaceVertexesIter,
-        FaceVertexesWalker,
+        EdgesWithExcludesIter, EdgesWithExcludesWalker, FaceEdgesIter, FaceEdgesWalker,
+        FaceHalfEdgesIter, FaceHalfEdgesWalker, FaceVertexesIter, FaceVertexesWalker,
+        HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker,
+        InterspokesIter, InterspokesReverseIter, InterspokesReverseWalker, InterspokesWalker,
+        SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
     },
 };
 
@@ -124,11 +124,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn cw_half_edges(
+    pub fn half_spokes(
         &self,
         initial_half_edge: HalfEdgeId,
-    ) -> CwHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CwHalfEdgesWalker {
+    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        HalfSpokesWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
         }
@@ -138,11 +138,11 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn ccw_half_edges(
+    pub fn reverse_half_spokes(
         &self,
         initial_half_edge: HalfEdgeId,
-    ) -> CcwHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CcwHalfEdgesWalker {
+    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        HalfSpokesReverseWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
         }
@@ -153,9 +153,8 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    #[inline]
-    pub fn cw_edges(&self, initial_edge: EdgeId) -> CwEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CwEdgesWalker {
+    pub fn spokes(&self, initial_edge: EdgeId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        SpokesWalker {
             initial_edge,
             curr_edge: Some(initial_edge),
         }
@@ -166,8 +165,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn ccw_edges(&self, initial_edge: EdgeId) -> CcwEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CcwEdgesWalker {
+    #[inline]
+    pub fn reverse_spokes(
+        &self,
+        initial_edge: EdgeId,
+    ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        SpokesReverseWalker {
             initial_edge,
             curr_edge: Some(initial_edge),
         }
@@ -195,11 +198,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn cw_faces(
+    pub fn interspokes(
         &self,
         initial_half_edge: HalfEdgeId,
-    ) -> CwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CwFacesWalker {
+    ) -> InterspokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        InterspokesWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
         }
@@ -210,11 +213,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn ccw_faces(
+    pub fn reverse_interspokes(
         &self,
         initial_half_edge: HalfEdgeId,
-    ) -> CcwFacesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CcwFacesWalker {
+    ) -> InterspokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        InterspokesReverseWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
         }
@@ -297,13 +300,13 @@ mod test {
     ];
 
     #[test]
-    fn test_ccw_half_edges() {
+    fn test_half_spokes() {
         let mut dcel = Dcel::<[i32; 2]>::new();
         dcel.insert_mesh(ADJOINED_SQUARES_2X2);
 
         for id in [3, 5, 6, 8] {
             assert_eq!(
-                dcel.ccw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.half_spokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<HalfEdgeId>>()
                     .len(),
                 2
@@ -312,7 +315,7 @@ mod test {
 
         for id in [0, 2, 4, 7] {
             assert_eq!(
-                dcel.ccw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.half_spokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<HalfEdgeId>>()
                     .len(),
                 3
@@ -320,7 +323,7 @@ mod test {
         }
 
         assert_eq!(
-            dcel.ccw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(1)))
+            dcel.half_spokes(dcel.outgoing_next_half_edge(VertexId::new(1)))
                 .collect::<Vec<HalfEdgeId>>()
                 .len(),
             4
@@ -328,13 +331,13 @@ mod test {
     }
 
     #[test]
-    fn test_cw_half_edges() {
+    fn test_reverse_half_spokes() {
         let mut dcel = Dcel::<[i32; 2]>::new();
         dcel.insert_mesh(ADJOINED_SQUARES_2X2);
 
         for id in [3, 5, 6, 8] {
             assert_eq!(
-                dcel.cw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.reverse_half_spokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<HalfEdgeId>>()
                     .len(),
                 2
@@ -343,7 +346,7 @@ mod test {
 
         for id in [0, 2, 4, 7] {
             assert_eq!(
-                dcel.cw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.reverse_half_spokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<HalfEdgeId>>()
                     .len(),
                 3
@@ -351,7 +354,7 @@ mod test {
         }
 
         assert_eq!(
-            dcel.cw_half_edges(dcel.outgoing_next_half_edge(VertexId::new(1)))
+            dcel.reverse_half_spokes(dcel.outgoing_next_half_edge(VertexId::new(1)))
                 .collect::<Vec<HalfEdgeId>>()
                 .len(),
             4
@@ -359,13 +362,13 @@ mod test {
     }
 
     #[test]
-    fn test_ccw_edges() {
+    fn test_spokes() {
         let mut dcel = Dcel::<[i32; 2]>::new();
         dcel.insert_mesh(ADJOINED_SQUARES_2X2);
 
         for id in [3, 5, 6, 8] {
             assert_eq!(
-                dcel.ccw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
+                dcel.spokes(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
                     .collect::<Vec<EdgeId>>()
                     .len(),
                 2
@@ -374,7 +377,7 @@ mod test {
 
         for id in [0, 2, 4, 7] {
             assert_eq!(
-                dcel.ccw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
+                dcel.spokes(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
                     .collect::<Vec<EdgeId>>()
                     .len(),
                 3
@@ -382,7 +385,7 @@ mod test {
         }
 
         assert_eq!(
-            dcel.ccw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(1))))
+            dcel.spokes(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(1))))
                 .collect::<Vec<EdgeId>>()
                 .len(),
             4
@@ -390,30 +393,34 @@ mod test {
     }
 
     #[test]
-    fn test_cw_edges() {
+    fn test_reverse_spokes() {
         let mut dcel = Dcel::<[i32; 2]>::new();
         dcel.insert_mesh(ADJOINED_SQUARES_2X2);
 
         for id in [3, 5, 6, 8] {
             assert_eq!(
-                dcel.cw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
-                    .collect::<Vec<EdgeId>>()
-                    .len(),
+                dcel.reverse_spokes(
+                    dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                )
+                .collect::<Vec<EdgeId>>()
+                .len(),
                 2
             );
         }
 
         for id in [0, 2, 4, 7] {
             assert_eq!(
-                dcel.cw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id))))
-                    .collect::<Vec<EdgeId>>()
-                    .len(),
+                dcel.reverse_spokes(
+                    dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                )
+                .collect::<Vec<EdgeId>>()
+                .len(),
                 3
             );
         }
 
         assert_eq!(
-            dcel.cw_edges(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(1))))
+            dcel.reverse_spokes(dcel.full_edge(dcel.outgoing_next_half_edge(VertexId::new(1))))
                 .collect::<Vec<EdgeId>>()
                 .len(),
             4
@@ -421,13 +428,13 @@ mod test {
     }
 
     #[test]
-    fn test_ccw_faces() {
+    fn test_interspokes() {
         let mut dcel = Dcel::<[i32; 2]>::new();
         dcel.insert_mesh(ADJOINED_SQUARES_2X2);
 
         for id in [3, 5, 6, 8] {
             assert_eq!(
-                dcel.ccw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.interspokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<FaceId>>()
                     .len(),
                 2
@@ -436,7 +443,7 @@ mod test {
 
         for id in [0, 2, 4, 7] {
             assert_eq!(
-                dcel.ccw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.interspokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<FaceId>>()
                     .len(),
                 3
@@ -444,7 +451,7 @@ mod test {
         }
 
         assert_eq!(
-            dcel.ccw_faces(dcel.outgoing_next_half_edge(VertexId::new(1)))
+            dcel.interspokes(dcel.outgoing_next_half_edge(VertexId::new(1)))
                 .collect::<Vec<FaceId>>()
                 .len(),
             4
@@ -452,13 +459,13 @@ mod test {
     }
 
     #[test]
-    fn test_cw_faces() {
+    fn test_reverse_interspokes() {
         let mut dcel = Dcel::<[i32; 2]>::new();
         dcel.insert_mesh(ADJOINED_SQUARES_2X2);
 
         for id in [3, 5, 6, 8] {
             assert_eq!(
-                dcel.cw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.reverse_interspokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<FaceId>>()
                     .len(),
                 2
@@ -467,7 +474,7 @@ mod test {
 
         for id in [0, 2, 4, 7] {
             assert_eq!(
-                dcel.cw_faces(dcel.outgoing_next_half_edge(VertexId::new(id)))
+                dcel.reverse_interspokes(dcel.outgoing_next_half_edge(VertexId::new(id)))
                     .collect::<Vec<FaceId>>()
                     .len(),
                 3
@@ -475,7 +482,7 @@ mod test {
         }
 
         assert_eq!(
-            dcel.cw_faces(dcel.outgoing_next_half_edge(VertexId::new(1)))
+            dcel.reverse_interspokes(dcel.outgoing_next_half_edge(VertexId::new(1)))
                 .collect::<Vec<FaceId>>()
                 .len(),
             4
