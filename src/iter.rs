@@ -7,15 +7,188 @@ use maplike::Get;
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
     walkers::{
-        EdgesWithExcludesIter, EdgesWithExcludesWalker, FaceEdgesIter, FaceEdgesReverseIter,
-        FaceEdgesReverseWalker, FaceEdgesWalker, FaceHalfEdgesIter, FaceHalfEdgesReverseIter,
-        FaceHalfEdgesReverseWalker, FaceHalfEdgesWalker, FaceVertexesIter, FaceVertexesReverseIter,
-        FaceVertexesReverseWalker, FaceVertexesWalker, HalfSpokesIter, HalfSpokesReverseIter,
-        HalfSpokesReverseWalker, HalfSpokesWalker, InterspokesIter, InterspokesReverseIter,
-        InterspokesReverseWalker, InterspokesWalker, SpokesIter, SpokesReverseIter,
-        SpokesReverseWalker, SpokesWalker,
+        CirculateEdgesWithExcludesIter, CirculateEdgesWithExcludesReverseIter,
+        CirculateEdgesWithExcludesReverseWalker, CirculateEdgesWithExcludesWalker, FaceEdgesIter,
+        FaceEdgesReverseIter, FaceEdgesReverseWalker, FaceEdgesWalker, FaceHalfEdgesIter,
+        FaceHalfEdgesReverseIter, FaceHalfEdgesReverseWalker, FaceHalfEdgesWalker,
+        FaceVertexesIter, FaceVertexesReverseIter, FaceVertexesReverseWalker, FaceVertexesWalker,
+        HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker,
+        InterspokesIter, InterspokesReverseIter, InterspokesReverseWalker, InterspokesWalker,
+        SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
     },
 };
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn vertex_half_spokes(
+        &self,
+        vertex: VertexId,
+    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+
+        HalfSpokesWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn vertex_half_spokes_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+
+        HalfSpokesReverseWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub fn half_spokes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        HalfSpokesWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn half_spokes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        HalfSpokesReverseWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+}
+
+impl<
+    VW,
+    HEW,
+    FW,
+    VC: Get<usize, Item = Vertex<VW>>,
+    HEC: Get<usize, Item = HalfEdge<HEW>>,
+    FC: Get<usize, Item = Face<FW>>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn vertex_spokes(&self, vertex: VertexId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_edge = self.vertex_next_edge(vertex);
+
+        SpokesWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn vertex_spokes_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_edge = self.vertex_next_edge(vertex);
+
+        SpokesReverseWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+        }
+        .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn spokes(&self, initial_edge: EdgeId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        SpokesWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn spokes_reverse(
+        &self,
+        initial_edge: EdgeId,
+    ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        SpokesReverseWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+        }
+        .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn interspokes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> InterspokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        InterspokesWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+
+    pub fn interspokes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> InterspokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        InterspokesReverseWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn circulate_edges_with_excludes(
+        &self,
+        initial_edge: EdgeId,
+        excluded_edges: impl IntoIterator<Item = EdgeId>,
+    ) -> CirculateEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateEdgesWithExcludesWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+            excluded_edges: excluded_edges.into_iter().collect(),
+        }
+        .iter(self)
+    }
+
+    pub fn circulate_edges_with_excludes_reverse(
+        &self,
+        initial_edge: EdgeId,
+        excluded_edges: impl IntoIterator<Item = EdgeId>,
+    ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateEdgesWithExcludesReverseWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+            excluded_edges: excluded_edges.into_iter().collect(),
+        }
+        .iter(self)
+    }
+}
 
 impl<
     VW,
@@ -232,166 +405,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     }
 }
 
-impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC: Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    #[inline]
-    pub fn vertex_half_spokes(
-        &self,
-        vertex: VertexId,
-    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.outgoing_next_half_edge(vertex);
-
-        HalfSpokesWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
-        }
-        .iter(self)
-    }
-
-    #[inline]
-    pub fn vertex_half_spokes_reverse(
-        &self,
-        vertex: VertexId,
-    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.outgoing_next_half_edge(vertex);
-
-        HalfSpokesReverseWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
-        }
-        .iter(self)
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    #[inline]
-    pub fn half_spokes(
-        &self,
-        initial_half_edge: HalfEdgeId,
-    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        HalfSpokesWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
-        }
-        .iter(self)
-    }
-
-    #[inline]
-    pub fn half_spokes_reverse(
-        &self,
-        initial_half_edge: HalfEdgeId,
-    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        HalfSpokesReverseWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
-        }
-        .iter(self)
-    }
-}
-
-impl<
-    VW,
-    HEW,
-    FW,
-    VC: Get<usize, Item = Vertex<VW>>,
-    HEC: Get<usize, Item = HalfEdge<HEW>>,
-    FC: Get<usize, Item = Face<FW>>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    #[inline]
-    pub fn vertex_spokes(&self, vertex: VertexId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_edge = self.vertex_next_edge(vertex);
-
-        SpokesWalker {
-            initial_edge,
-            curr_edge: Some(initial_edge),
-        }
-        .iter(self)
-    }
-
-    #[inline]
-    pub fn vertex_spokes_reverse(
-        &self,
-        vertex: VertexId,
-    ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_edge = self.vertex_next_edge(vertex);
-
-        SpokesReverseWalker {
-            initial_edge,
-            curr_edge: Some(initial_edge),
-        }
-        .iter(self)
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    pub fn spokes(&self, initial_edge: EdgeId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        SpokesWalker {
-            initial_edge,
-            curr_edge: Some(initial_edge),
-        }
-        .iter(self)
-    }
-
-    #[inline]
-    pub fn spokes_reverse(
-        &self,
-        initial_edge: EdgeId,
-    ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        SpokesReverseWalker {
-            initial_edge,
-            curr_edge: Some(initial_edge),
-        }
-        .iter(self)
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    pub fn edges_with_excludes(
-        &self,
-        initial_edge: EdgeId,
-        excluded_edges: impl IntoIterator<Item = EdgeId>,
-    ) -> EdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        EdgesWithExcludesWalker {
-            initial_edge,
-            curr_edge: Some(initial_edge),
-            excluded_edges: excluded_edges.into_iter().collect(),
-        }
-        .iter(self)
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    pub fn interspokes(
-        &self,
-        initial_half_edge: HalfEdgeId,
-    ) -> InterspokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        InterspokesWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
-        }
-        .iter(self)
-    }
-
-    pub fn interspokes_reverse(
-        &self,
-        initial_half_edge: HalfEdgeId,
-    ) -> InterspokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        InterspokesReverseWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
-        }
-        .iter(self)
-    }
-}
-
 #[cfg(test)]
 mod test {
     use crate::VertexId;
@@ -407,108 +420,6 @@ mod test {
         [-0.809017, -0.58778525], // 216 degrees.
         [0.309017, -0.9510565],   // 288 degrees.
     ];
-
-    #[test]
-    fn test_iter_face_vertexes() {
-        let mut dcel = Dcel::<[f32; 2]>::new();
-        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
-
-        assert_eq!(
-            dcel.face_vertexes(dcel.unbounded_face())
-                .collect::<Vec<VertexId>>()
-                .len(),
-            0
-        );
-        assert_eq!(dcel.face_vertexes(face).collect::<Vec<VertexId>>().len(), 5);
-    }
-
-    #[test]
-    fn test_iter_face_vertexes_reverse() {
-        let mut dcel = Dcel::<[f32; 2]>::new();
-        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
-
-        assert_eq!(
-            dcel.face_vertexes_reverse(dcel.unbounded_face())
-                .collect::<Vec<VertexId>>()
-                .len(),
-            0
-        );
-        assert_eq!(
-            dcel.face_vertexes_reverse(face)
-                .collect::<Vec<VertexId>>()
-                .len(),
-            5
-        );
-    }
-
-    #[test]
-    fn test_iter_face_half_edges() {
-        let mut dcel = Dcel::<[f32; 2]>::new();
-        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
-
-        assert_eq!(
-            dcel.face_half_edges(dcel.unbounded_face())
-                .collect::<Vec<HalfEdgeId>>()
-                .len(),
-            0
-        );
-        assert_eq!(
-            dcel.face_half_edges(face)
-                .collect::<Vec<HalfEdgeId>>()
-                .len(),
-            5
-        );
-    }
-
-    #[test]
-    fn test_iter_face_half_edges_reverse() {
-        let mut dcel = Dcel::<[f32; 2]>::new();
-        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
-
-        assert_eq!(
-            dcel.face_half_edges_reverse(dcel.unbounded_face())
-                .collect::<Vec<HalfEdgeId>>()
-                .len(),
-            0
-        );
-        assert_eq!(
-            dcel.face_half_edges_reverse(face)
-                .collect::<Vec<HalfEdgeId>>()
-                .len(),
-            5
-        );
-    }
-
-    #[test]
-    fn test_iter_face_edges() {
-        let mut dcel = Dcel::<[f32; 2]>::new();
-        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
-
-        assert_eq!(
-            dcel.face_edges(dcel.unbounded_face())
-                .collect::<Vec<EdgeId>>()
-                .len(),
-            0
-        );
-        assert_eq!(dcel.face_edges(face).collect::<Vec<EdgeId>>().len(), 5);
-    }
-
-    #[test]
-    fn test_iter_face_edges_reverse() {
-        let mut dcel = Dcel::<[f32; 2]>::new();
-        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
-
-        assert_eq!(
-            dcel.face_edges_reverse(dcel.unbounded_face())
-                .collect::<Vec<EdgeId>>()
-                .len(),
-            0
-        );
-        assert_eq!(
-            dcel.face_edges_reverse(face).collect::<Vec<EdgeId>>().len(),
-            5
-        );
-    }
 
     const ADJOINED_SQUARES_2X2: [[[i32; 2]; 4]; 4] = [
         // Bottom-left square (CCW)
@@ -708,6 +619,108 @@ mod test {
                 .collect::<Vec<FaceId>>()
                 .len(),
             4
+        );
+    }
+
+    #[test]
+    fn test_iter_face_vertexes() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(
+            dcel.face_vertexes(dcel.unbounded_face())
+                .collect::<Vec<VertexId>>()
+                .len(),
+            0
+        );
+        assert_eq!(dcel.face_vertexes(face).collect::<Vec<VertexId>>().len(), 5);
+    }
+
+    #[test]
+    fn test_iter_face_vertexes_reverse() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(
+            dcel.face_vertexes_reverse(dcel.unbounded_face())
+                .collect::<Vec<VertexId>>()
+                .len(),
+            0
+        );
+        assert_eq!(
+            dcel.face_vertexes_reverse(face)
+                .collect::<Vec<VertexId>>()
+                .len(),
+            5
+        );
+    }
+
+    #[test]
+    fn test_iter_face_half_edges() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(
+            dcel.face_half_edges(dcel.unbounded_face())
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            0
+        );
+        assert_eq!(
+            dcel.face_half_edges(face)
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            5
+        );
+    }
+
+    #[test]
+    fn test_iter_face_half_edges_reverse() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(
+            dcel.face_half_edges_reverse(dcel.unbounded_face())
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            0
+        );
+        assert_eq!(
+            dcel.face_half_edges_reverse(face)
+                .collect::<Vec<HalfEdgeId>>()
+                .len(),
+            5
+        );
+    }
+
+    #[test]
+    fn test_iter_face_edges() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(
+            dcel.face_edges(dcel.unbounded_face())
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            0
+        );
+        assert_eq!(dcel.face_edges(face).collect::<Vec<EdgeId>>().len(), 5);
+    }
+
+    #[test]
+    fn test_iter_face_edges_reverse() {
+        let mut dcel = Dcel::<[f32; 2]>::new();
+        let face = dcel.insert_polygon(PENTAGON_VERTEXES);
+
+        assert_eq!(
+            dcel.face_edges_reverse(dcel.unbounded_face())
+                .collect::<Vec<EdgeId>>()
+                .len(),
+            0
+        );
+        assert_eq!(
+            dcel.face_edges_reverse(face).collect::<Vec<EdgeId>>().len(),
+            5
         );
     }
 }

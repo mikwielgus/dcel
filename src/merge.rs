@@ -44,7 +44,7 @@ impl<
         );
         let inner_edges: Vec<EdgeId> = self.spokes_reverse(initial_edge).collect();
         let perimeter_edges: Vec<EdgeId> = self
-            .edges_with_excludes(initial_edge, inner_edges.clone())
+            .circulate_edges_with_excludes(initial_edge, inner_edges.clone())
             .collect();
 
         self.remove_faces(
@@ -133,7 +133,7 @@ impl<
     ) {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
         let perimeter_edges: Vec<EdgeId> = self
-            .edges_with_excludes(
+            .circulate_edges_with_excludes(
                 self.full_edge(
                     self.faces
                         .get(&absorbing_face.id())

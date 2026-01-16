@@ -31,6 +31,286 @@ macro_rules! create_walker_and_iter {
 }
 
 create_walker_and_iter!(
+    HalfSpokesWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
+    },
+    HalfSpokesIter
+);
+
+impl HalfSpokesWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
+
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for HalfSpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    HalfSpokesReverseWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
+    },
+    HalfSpokesReverseIter
+);
+
+impl HalfSpokesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
+
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for HalfSpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    SpokesWalker {
+        initial_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
+    },
+    SpokesIter
+);
+
+impl SpokesWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        let next_edge = dcel.turn_edge(self.curr_edge?);
+
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for SpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    SpokesReverseWalker {
+        initial_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
+    },
+    SpokesReverseIter
+);
+
+impl SpokesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        let next_edge = dcel.turn_back_edge(self.curr_edge?);
+
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for SpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    InterspokesWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
+    },
+    InterspokesIter
+);
+
+impl InterspokesWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
+
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for InterspokesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = FaceId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker
+            .next(self.dcel)
+            .map(|half_edge| self.dcel.face_in_front(half_edge))
+    }
+}
+
+create_walker_and_iter!(
+    InterspokesReverseWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
+    },
+    InterspokesReverseIter
+);
+
+impl InterspokesReverseWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
+
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for InterspokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = FaceId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker
+            .next(self.dcel)
+            .map(|half_edge| self.dcel.face_in_front(half_edge))
+    }
+}
+
+create_walker_and_iter!(
+    CirculateEdgesWithExcludesWalker {
+        initial_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
+        excluded_edges: Vec<EdgeId>,
+    },
+    CirculateEdgesWithExcludesIter
+);
+
+impl CirculateEdgesWithExcludesWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        let mut candidate_next_edge = dcel.next_edge(self.curr_edge?);
+
+        while self.excluded_edges.contains(&candidate_next_edge) {
+            candidate_next_edge = dcel.turn_edge(candidate_next_edge);
+        }
+
+        let next_edge = candidate_next_edge;
+
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for CirculateEdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculateEdgesWithExcludesReverseWalker {
+        initial_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
+        excluded_edges: Vec<EdgeId>,
+    },
+    CirculateEdgesWithExcludesReverseIter
+);
+
+impl CirculateEdgesWithExcludesReverseWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        let mut candidate_next_edge = dcel.prev_edge(self.curr_edge?);
+
+        while self.excluded_edges.contains(&candidate_next_edge) {
+            candidate_next_edge = dcel.turn_back_edge(candidate_next_edge);
+        }
+
+        let next_edge = candidate_next_edge;
+
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for CirculateEdgesWithExcludesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
     FaceVertexesWalker {
         face_half_edges_walker: FaceHalfEdgesWalker,
     },
@@ -220,7 +500,7 @@ impl FaceEdgesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.next_edge(self.curr_edge?);
+        let next_edge = dcel.prev_edge(self.curr_edge?);
 
         std::mem::replace(
             &mut self.curr_edge,
@@ -237,246 +517,5 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.walker.next(self.dcel)
-    }
-}
-
-create_walker_and_iter!(
-    HalfSpokesWalker {
-        initial_half_edge: HalfEdgeId,
-        curr_half_edge: Option<HalfEdgeId>,
-    },
-    HalfSpokesIter
-);
-
-impl HalfSpokesWalker {
-    #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
-
-        std::mem::replace(
-            &mut self.curr_half_edge,
-            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
-        )
-    }
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for HalfSpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = HalfEdgeId;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker.next(self.dcel)
-    }
-}
-
-create_walker_and_iter!(
-    HalfSpokesReverseWalker {
-        initial_half_edge: HalfEdgeId,
-        curr_half_edge: Option<HalfEdgeId>,
-    },
-    HalfSpokesReverseIter
-);
-
-impl HalfSpokesReverseWalker {
-    #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
-
-        std::mem::replace(
-            &mut self.curr_half_edge,
-            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
-        )
-    }
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for HalfSpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = HalfEdgeId;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker.next(self.dcel)
-    }
-}
-
-create_walker_and_iter!(
-    SpokesWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
-    },
-    SpokesIter
-);
-
-impl SpokesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<EdgeId> {
-        let next_edge = dcel.turn_edge(self.curr_edge?);
-
-        std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
-        )
-    }
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for SpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = EdgeId;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker.next(self.dcel)
-    }
-}
-
-create_walker_and_iter!(
-    SpokesReverseWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
-    },
-    SpokesReverseIter
-);
-
-impl SpokesReverseWalker {
-    #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<EdgeId> {
-        let next_edge = dcel.turn_back_edge(self.curr_edge?);
-
-        std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
-        )
-    }
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for SpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = EdgeId;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker.next(self.dcel)
-    }
-}
-
-create_walker_and_iter!(
-    EdgesWithExcludesWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
-        excluded_edges: Vec<EdgeId>,
-    },
-    EdgesWithExcludesIter
-);
-
-impl EdgesWithExcludesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<EdgeId> {
-        let mut candidate_next_edge = dcel.next_edge(self.curr_edge?);
-
-        while self.excluded_edges.contains(&candidate_next_edge) {
-            candidate_next_edge = dcel.turn_edge(candidate_next_edge);
-        }
-
-        let next_edge = candidate_next_edge;
-
-        std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
-        )
-    }
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for EdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = EdgeId;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker.next(self.dcel)
-    }
-}
-
-create_walker_and_iter!(
-    InterspokesWalker {
-        initial_half_edge: HalfEdgeId,
-        curr_half_edge: Option<HalfEdgeId>,
-    },
-    InterspokesIter
-);
-
-impl InterspokesWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
-
-        std::mem::replace(
-            &mut self.curr_half_edge,
-            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
-        )
-    }
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for InterspokesIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = FaceId;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker
-            .next(self.dcel)
-            .map(|half_edge| self.dcel.face_in_front(half_edge))
-    }
-}
-
-create_walker_and_iter!(
-    InterspokesReverseWalker {
-        initial_half_edge: HalfEdgeId,
-        curr_half_edge: Option<HalfEdgeId>,
-    },
-    InterspokesReverseIter
-);
-
-impl InterspokesReverseWalker {
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
-        &mut self,
-        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
-
-        std::mem::replace(
-            &mut self.curr_half_edge,
-            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
-        )
-    }
-}
-
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
-    for InterspokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
-{
-    type Item = FaceId;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.walker
-            .next(self.dcel)
-            .map(|half_edge| self.dcel.face_in_front(half_edge))
     }
 }
