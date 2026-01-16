@@ -115,6 +115,7 @@ impl<
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
     pub fn spokes(&self, initial_edge: EdgeId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesWalker {
             initial_edge,
@@ -135,6 +136,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         .iter(self)
     }
 
+    #[inline]
     pub fn interspokes(
         &self,
         initial_half_edge: HalfEdgeId,
@@ -146,6 +148,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         .iter(self)
     }
 
+    #[inline]
     pub fn interspokes_reverse(
         &self,
         initial_half_edge: HalfEdgeId,
@@ -161,6 +164,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
     pub fn circulate_half_edges_with_excludes(
         &self,
         initial_half_edge: HalfEdgeId,
@@ -174,6 +178,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         .iter(self)
     }
 
+    #[inline]
     pub fn circulate_half_edges_with_excludes_reverse(
         &self,
         initial_half_edge: HalfEdgeId,
@@ -187,6 +192,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         .iter(self)
     }
 
+    #[inline]
     pub fn circulate_edges_with_excludes(
         &self,
         initial_edge: EdgeId,
@@ -200,6 +206,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         .iter(self)
     }
 
+    #[inline]
     pub fn circulate_edges_with_excludes_reverse(
         &self,
         initial_edge: EdgeId,
