@@ -9,7 +9,7 @@ use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId};
 impl<
     VW: Clone,
     HEW: Clone + Default,
-    FW: Clone + Default + Get<usize>,
+    FW: Clone + Default,
     VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
@@ -49,7 +49,7 @@ impl<
 impl<
     VW: Clone,
     HEW: Clone,
-    FW: Clone + Get<usize>,
+    FW: Clone,
     VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
