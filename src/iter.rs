@@ -265,7 +265,7 @@ impl CwHalfEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.cw_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -313,7 +313,7 @@ impl CcwHalfEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.ccw_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -361,7 +361,7 @@ impl CwEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.cw_edge(self.curr_edge?);
+        let next_edge = dcel.turn_back_edge(self.curr_edge?);
 
         std::mem::replace(
             &mut self.curr_edge,
@@ -407,7 +407,7 @@ impl CcwEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.ccw_edge(self.curr_edge?);
+        let next_edge = dcel.turn_edge(self.curr_edge?);
 
         std::mem::replace(
             &mut self.curr_edge,
@@ -455,7 +455,7 @@ impl EdgesWithExcludesWalker {
         let mut candidate_next_edge = dcel.next_edge(self.curr_edge?);
 
         while self.excluded_edges.contains(&candidate_next_edge) {
-            candidate_next_edge = dcel.ccw_edge(candidate_next_edge);
+            candidate_next_edge = dcel.turn_edge(candidate_next_edge);
         }
 
         let next_edge = candidate_next_edge;
@@ -507,7 +507,7 @@ impl CwFacesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.cw_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -556,7 +556,7 @@ impl CcwFacesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.ccw_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,

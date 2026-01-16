@@ -244,11 +244,11 @@ impl<
             } else if !is_edge_outward && is_next_edge_outward {
                 self.link_subsequent_half_edges(
                     next_edge.backward(),
-                    self.ccw_half_edge(edge.backward()),
+                    self.turn_half_edge(edge.backward()),
                 );
             } else if is_edge_outward && !is_next_edge_outward {
                 self.link_subsequent_half_edges(
-                    self.twin(self.cw_half_edge(next_edge.forward())),
+                    self.twin(self.turn_back_half_edge(next_edge.forward())),
                     edge.backward(),
                 );
             } else {

@@ -154,23 +154,23 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
     }
 
     #[inline]
-    pub fn cw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
-        self.twin(self.prev_half_edge(half_edge))
-    }
-
-    #[inline]
-    pub fn ccw_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn turn_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.next_half_edge(self.twin(half_edge))
     }
 
     #[inline]
-    pub fn cw_edge(&self, edge: EdgeId) -> EdgeId {
-        self.full_edge(self.cw_half_edge(edge.forward()))
+    pub fn turn_back_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.twin(self.prev_half_edge(half_edge))
     }
 
     #[inline]
-    pub fn ccw_edge(&self, edge: EdgeId) -> EdgeId {
-        self.full_edge(self.ccw_half_edge(edge.forward()))
+    pub fn turn_edge(&self, edge: EdgeId) -> EdgeId {
+        self.full_edge(self.turn_half_edge(edge.forward()))
+    }
+
+    #[inline]
+    pub fn turn_back_edge(&self, edge: EdgeId) -> EdgeId {
+        self.full_edge(self.turn_back_half_edge(edge.forward()))
     }
 
     #[inline]
