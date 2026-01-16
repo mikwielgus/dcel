@@ -129,10 +129,17 @@ impl<
         while let Some(perimeter_vertex) = face_vertexes_walker.next(self) {
             let (weight, twin_weight) = inner_edge_weights.next().unwrap();
 
+            let prev_face = if i == 0 {
+                // Wrap to avoid negative index.
+                triangle_faces[triangle_faces.len() - 1]
+            } else {
+                triangle_faces[i - 1]
+            };
+
             edges.push(self.add_unwired_edge(
                 perimeter_vertex,
                 inner_vertex,
-                triangle_faces[i.wrapping_sub_signed(1)],
+                prev_face,
                 triangle_faces[i],
                 weight,
                 twin_weight,
