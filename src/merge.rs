@@ -42,13 +42,13 @@ impl<
                 .unwrap()
                 .outgoing_next_half_edge,
         );
-        let inner_edges: Vec<EdgeId> = self.reverse_spokes(initial_edge).collect();
+        let inner_edges: Vec<EdgeId> = self.spokes_reverse(initial_edge).collect();
         let perimeter_edges: Vec<EdgeId> = self
             .edges_with_excludes(initial_edge, inner_edges.clone())
             .collect();
 
         self.remove_faces(
-            self.reverse_interspokes(initial_half_edge)
+            self.interspokes_reverse(initial_half_edge)
                 .collect::<Vec<FaceId>>(),
         );
         self.remove_edges(inner_edges);
@@ -103,7 +103,7 @@ impl<
             vertex_weights_counter
                 .visited_vertexes()
                 .filter(|&vertex| {
-                    self.reverse_spokes(self.vertex_next_edge(vertex))
+                    self.spokes_reverse(self.vertex_next_edge(vertex))
                         .all(|edge| half_edges_counter.is_inner_edge(edge))
                 })
                 // PERF: Needless collect?

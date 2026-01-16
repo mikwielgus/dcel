@@ -32,8 +32,7 @@ macro_rules! create_walker_and_iter {
 
 create_walker_and_iter!(
     FaceVertexesWalker {
-        initial_half_edge: HalfEdgeId,
-        curr_half_edge: Option<HalfEdgeId>,
+        face_half_edges_walker: FaceHalfEdgesWalker,
     },
     FaceVertexesIter
 );
@@ -51,18 +50,51 @@ impl FaceVertexesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
-        let next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
-
-        std::mem::replace(
-            &mut self.curr_half_edge,
-            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
-        )
-        .map(|half_edge| dcel.origin(half_edge))
+        self.face_half_edges_walker
+            .next(dcel)
+            .map(|half_edge| dcel.origin(half_edge))
     }
 }
 
 impl<'a, VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
     Iterator for FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = VertexId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    FaceVertexesReverseWalker {
+        face_half_edges_reverse_walker: FaceHalfEdgesReverseWalker,
+    },
+    FaceVertexesReverseIter
+);
+
+impl FaceVertexesReverseWalker {
+    #[inline]
+    pub fn next<
+        VW,
+        HEW,
+        FW,
+        VC: Get<usize, Item = Vertex<VW>>,
+        HEC: Get<usize, Item = HalfEdge<HEW>>,
+        FC,
+    >(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<VertexId> {
+        self.face_half_edges_reverse_walker
+            .next(dcel)
+            .map(|half_edge| dcel.origin(half_edge))
+    }
+}
+
+impl<'a, VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Iterator for FaceVertexesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
 
@@ -107,6 +139,40 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
+    FaceHalfEdgesReverseWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
+    },
+    FaceHalfEdgesReverseIter
+);
+
+impl FaceHalfEdgesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for FaceHalfEdgesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
     FaceEdgesWalker {
         initial_edge: EdgeId,
         curr_edge: Option<EdgeId>,
@@ -131,6 +197,40 @@ impl FaceEdgesWalker {
 
 impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
     for FaceEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    FaceEdgesReverseWalker {
+        initial_edge: EdgeId,
+        curr_edge: Option<EdgeId>,
+    },
+    FaceEdgesReverseIter
+);
+
+impl FaceEdgesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        let next_edge = dcel.next_edge(self.curr_edge?);
+
+        std::mem::replace(
+            &mut self.curr_edge,
+            (next_edge != self.initial_edge).then_some(next_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for FaceEdgesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
 
