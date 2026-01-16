@@ -5,7 +5,7 @@
 use maplike::Get;
 
 use crate::{
-    Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex,
+    Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
     walkers::{
         EdgesWithExcludesIter, EdgesWithExcludesWalker, FaceEdgesIter, FaceEdgesReverseIter,
         FaceEdgesReverseWalker, FaceEdgesWalker, FaceHalfEdgesIter, FaceHalfEdgesReverseIter,
@@ -232,6 +232,38 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     }
 }
 
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn vertex_half_spokes(
+        &self,
+        vertex: VertexId,
+    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+
+        HalfSpokesWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn vertex_half_spokes_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+
+        HalfSpokesReverseWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+}
+
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn half_spokes(
@@ -253,6 +285,41 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
         HalfSpokesReverseWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
+        }
+        .iter(self)
+    }
+}
+
+impl<
+    VW,
+    HEW,
+    FW,
+    VC: Get<usize, Item = Vertex<VW>>,
+    HEC: Get<usize, Item = HalfEdge<HEW>>,
+    FC: Get<usize, Item = Face<FW>>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn vertex_spokes(&self, vertex: VertexId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_edge = self.vertex_next_edge(vertex);
+
+        SpokesWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn vertex_spokes_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_edge = self.vertex_next_edge(vertex);
+
+        SpokesReverseWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
         }
         .iter(self)
     }
