@@ -233,6 +233,84 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
+    CirculateHalfEdgesWithExcludesWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
+        excluded_half_edges: Vec<HalfEdgeId>,
+    },
+    CirculateHalfEdgesWithExcludesIter
+);
+
+impl CirculateHalfEdgesWithExcludesWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+
+        while self.excluded_half_edges.contains(&candidate_next_half_edge) {
+            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
+        }
+
+        let next_half_edge = candidate_next_half_edge;
+
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for CirculateHalfEdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculateHalfEdgesWithExcludesReverseWalker {
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
+        excluded_half_edges: Vec<HalfEdgeId>,
+    },
+    CirculateHalfEdgesWithExcludesReverseIter
+);
+
+impl CirculateHalfEdgesWithExcludesReverseWalker {
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+
+        while self.excluded_half_edges.contains(&candidate_next_half_edge) {
+            candidate_next_half_edge = dcel.turn_back_half_edge(candidate_next_half_edge);
+        }
+
+        let next_half_edge = candidate_next_half_edge;
+
+        std::mem::replace(
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
+        )
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for CirculateHalfEdgesWithExcludesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
     CirculateEdgesWithExcludesWalker {
         initial_edge: EdgeId,
         curr_edge: Option<EdgeId>,

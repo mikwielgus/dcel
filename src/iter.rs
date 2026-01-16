@@ -8,13 +8,15 @@ use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
     walkers::{
         CirculateEdgesWithExcludesIter, CirculateEdgesWithExcludesReverseIter,
-        CirculateEdgesWithExcludesReverseWalker, CirculateEdgesWithExcludesWalker, FaceEdgesIter,
-        FaceEdgesReverseIter, FaceEdgesReverseWalker, FaceEdgesWalker, FaceHalfEdgesIter,
-        FaceHalfEdgesReverseIter, FaceHalfEdgesReverseWalker, FaceHalfEdgesWalker,
-        FaceVertexesIter, FaceVertexesReverseIter, FaceVertexesReverseWalker, FaceVertexesWalker,
-        HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker,
-        InterspokesIter, InterspokesReverseIter, InterspokesReverseWalker, InterspokesWalker,
-        SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
+        CirculateEdgesWithExcludesReverseWalker, CirculateEdgesWithExcludesWalker,
+        CirculateHalfEdgesWithExcludesIter, CirculateHalfEdgesWithExcludesReverseIter,
+        CirculateHalfEdgesWithExcludesReverseWalker, CirculateHalfEdgesWithExcludesWalker,
+        FaceEdgesIter, FaceEdgesReverseIter, FaceEdgesReverseWalker, FaceEdgesWalker,
+        FaceHalfEdgesIter, FaceHalfEdgesReverseIter, FaceHalfEdgesReverseWalker,
+        FaceHalfEdgesWalker, FaceVertexesIter, FaceVertexesReverseIter, FaceVertexesReverseWalker,
+        FaceVertexesWalker, HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker,
+        HalfSpokesWalker, InterspokesIter, InterspokesReverseIter, InterspokesReverseWalker,
+        InterspokesWalker, SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
     },
 };
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC: Get<usize, Item = Face<FW>>>
@@ -132,11 +134,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
         }
         .iter(self)
     }
-}
 
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
     pub fn interspokes(
         &self,
         initial_half_edge: HalfEdgeId,
@@ -163,6 +161,32 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
 impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn circulate_half_edges_with_excludes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateHalfEdgesWithExcludesWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+            excluded_half_edges: excluded_half_edges.into_iter().collect(),
+        }
+        .iter(self)
+    }
+
+    pub fn circulate_half_edges_with_excludes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateHalfEdgesWithExcludesReverseWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+            excluded_half_edges: excluded_half_edges.into_iter().collect(),
+        }
+        .iter(self)
+    }
+
     pub fn circulate_edges_with_excludes(
         &self,
         initial_edge: EdgeId,
