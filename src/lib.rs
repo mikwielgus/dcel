@@ -9,13 +9,15 @@ mod merge;
 mod split;
 mod track;
 mod triangulate;
+mod walkers;
 
-pub use iter::{
+use maplike::{Get, Insert, Push, Remove};
+
+pub use walkers::{
     CcwEdgesIter, CcwEdgesWalker, CcwHalfEdgesIter, CcwHalfEdgesWalker, CwEdgesIter, CwEdgesWalker,
     CwHalfEdgesIter, CwHalfEdgesWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
     FaceHalfEdgesWalker,
 };
-use maplike::{Get, Insert, Push, Remove};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VertexId(usize);
