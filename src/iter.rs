@@ -11,6 +11,8 @@ use crate::{
         CirculateEdgesWithExcludesReverseWalker, CirculateEdgesWithExcludesWalker,
         CirculateHalfEdgesWithExcludesIter, CirculateHalfEdgesWithExcludesReverseIter,
         CirculateHalfEdgesWithExcludesReverseWalker, CirculateHalfEdgesWithExcludesWalker,
+        CirculateVertexesWithExcludesIter, CirculateVertexesWithExcludesReverseIter,
+        CirculateVertexesWithExcludesReverseWalker, CirculateVertexesWithExcludesWalker,
         FaceEdgesIter, FaceEdgesReverseIter, FaceEdgesReverseWalker, FaceEdgesWalker,
         FaceHalfEdgesIter, FaceHalfEdgesReverseIter, FaceHalfEdgesReverseWalker,
         FaceHalfEdgesWalker, FaceVertexesIter, FaceVertexesReverseIter, FaceVertexesReverseWalker,
@@ -19,6 +21,39 @@ use crate::{
         InterspokesWalker, SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
     },
 };
+
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn circulate_vertexes_with_excludes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_vertexes: impl IntoIterator<Item = VertexId>,
+    ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateVertexesWithExcludesWalker {
+            initial_vertex: self.origin(initial_half_edge),
+            curr_half_edge: Some(initial_half_edge),
+            excluded_vertexes: excluded_vertexes.into_iter().collect(),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulate_vertexes_with_excludes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_vertexes: impl IntoIterator<Item = VertexId>,
+    ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateVertexesWithExcludesReverseWalker {
+            initial_vertex: self.origin(initial_half_edge),
+            curr_half_edge: Some(initial_half_edge),
+            excluded_vertexes: excluded_vertexes.into_iter().collect(),
+        }
+        .iter(self)
+    }
+}
+
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC: Get<usize, Item = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
@@ -462,6 +497,9 @@ mod test {
         // Top-right square (CCW)
         [[0, 1], [1, 1], [1, 0], [0, 0]],
     ];
+
+    // TODO: Test circulate vertexes.
+    // TODO: Test iterating over spokes with vertex as input.
 
     #[test]
     fn test_half_spokes() {

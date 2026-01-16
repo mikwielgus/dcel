@@ -31,6 +31,96 @@ macro_rules! create_walker_and_iter {
 }
 
 create_walker_and_iter!(
+    CirculateVertexesWithExcludesWalker {
+        initial_vertex: VertexId,
+        curr_half_edge: Option<HalfEdgeId>,
+        excluded_vertexes: Vec<VertexId>,
+    },
+    CirculateVertexesWithExcludesIter
+);
+
+impl CirculateVertexesWithExcludesWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<VertexId> {
+        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+
+        while self
+            .excluded_vertexes
+            .contains(&dcel.origin(candidate_next_half_edge))
+        {
+            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
+        }
+
+        let next_half_edge = candidate_next_half_edge;
+        let next_vertex = dcel.origin(next_half_edge);
+
+        (next_vertex != self.initial_vertex).then(|| {
+            self.curr_half_edge = Some(next_half_edge);
+            next_vertex
+        })
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for CirculateVertexesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = VertexId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculateVertexesWithExcludesReverseWalker {
+        initial_vertex: VertexId,
+        curr_half_edge: Option<HalfEdgeId>,
+        excluded_vertexes: Vec<VertexId>,
+    },
+    CirculateVertexesWithExcludesReverseIter
+);
+
+impl CirculateVertexesWithExcludesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<VertexId> {
+        let mut candidate_next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
+
+        while self
+            .excluded_vertexes
+            .contains(&dcel.origin(candidate_next_half_edge))
+        {
+            candidate_next_half_edge = dcel.turn_back_half_edge(candidate_next_half_edge);
+        }
+
+        let next_half_edge = candidate_next_half_edge;
+        let next_vertex = dcel.origin(next_half_edge);
+
+        (next_vertex != self.initial_vertex).then(|| {
+            self.curr_half_edge = Some(next_half_edge);
+            next_vertex
+        })
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+    for CirculateVertexesWithExcludesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = VertexId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
     HalfSpokesWalker {
         initial_half_edge: HalfEdgeId,
         curr_half_edge: Option<HalfEdgeId>,
