@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use std::collections::BTreeSet;
-
 use maplike::{Get, Insert, Remove};
 
 use crate::{
@@ -15,6 +13,7 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
+    // FIXME: `StableRemove` is actually needed here instead of `Remove`.
     VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Remove<usize>,
     HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Remove<usize>,
     FC: Get<usize, Item = Face<FW>> + Insert<usize> + Remove<usize>,
@@ -42,13 +41,13 @@ impl<
                 .unwrap()
                 .outgoing_next_half_edge,
         );
-        let inner_edges: Vec<EdgeId> = self.spokes_reverse(initial_edge).collect();
-        let perimeter_edges: Vec<EdgeId> = self
-            .circulate_edges_with_excludes(initial_edge, inner_edges.clone())
-            .collect();
+        let inner_edges: Vec<EdgeId> = self.spokes(initial_edge).collect();
+        let perimeter_edges: Vec<EdgeId> =
+            self.vertex_rim_edges(inner_vertex).collect::<Vec<EdgeId>>();
 
         self.remove_faces(
-            self.interspokes_reverse(initial_half_edge)
+            self.interspokes(initial_half_edge)
+                .filter(|face| face.id() != absorbing_face.id())
                 .collect::<Vec<FaceId>>(),
         );
         self.remove_edges(inner_edges);
@@ -97,6 +96,8 @@ impl<
         for face in faces {
             half_edges_counter.visit_face_edges(self, face);
             vertex_weights_counter.visit_face_vertexes(self, face);
+
+            self.remove_face(face);
         }
 
         self.remove_vertexes(

@@ -98,7 +98,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
 
     #[inline]
     pub fn full_edge(&self, half_edge: HalfEdgeId) -> EdgeId {
-        EdgeId(half_edge, self.twin(half_edge))
+        EdgeId::new(half_edge, self.twin(half_edge))
+    }
+
+    #[inline]
+    pub fn reverse_edge(&self, edge: EdgeId) -> EdgeId {
+        EdgeId::new(edge.backward(), edge.forward())
     }
 
     #[inline]
