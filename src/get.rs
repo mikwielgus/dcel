@@ -71,6 +71,13 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
             self.outgoing_prev_half_edge(vertex),
         )
     }
+
+    pub fn is_boundary_vertex(&self, vertex: VertexId) -> bool {
+        self.vertex_spokes(vertex).any(|spoke| {
+            self.face_in_front(spoke.forward()) == self.unbounded_face()
+                || self.face_in_front(spoke.backward()) == self.unbounded_face()
+        })
+    }
 }
 
 impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {

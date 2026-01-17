@@ -63,10 +63,9 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         let initial_half_edge = self.turn_back_half_edge(self.incoming_next_half_edge(vertex));
         let initial_vertex = self.origin(initial_half_edge);
 
-        // If there is only two spokes or less, there is no cycle to complete
-        // the walk. To avoid causing an infinite loop, return an empty
-        // walker-iterator instead.
-        if self.vertex_spokes(vertex).collect::<Vec<EdgeId>>().len() <= 2 {
+        // Boundary vertexes do not have cycles circulating them.
+        // Return an empty walker-iterator instead.
+        if self.is_boundary_vertex(vertex) {
             return CirculateVertexesWithExcludesWalker {
                 initial_vertex,
                 curr_half_edge: None,
@@ -91,10 +90,9 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         let initial_half_edge = self.turn_half_edge(self.incoming_next_half_edge(vertex));
         let initial_vertex = self.origin(initial_half_edge);
 
-        // If there is only two spokes or less, there is no cycle to complete
-        // the walk. To avoid causing an infinite loop, return an empty
-        // walker-iterator instead.
-        if self.vertex_spokes(vertex).collect::<Vec<EdgeId>>().len() <= 2 {
+        // Boundary vertexes do not have cycles circulating them.
+        // Return an empty walker-iterator instead.
+        if self.is_boundary_vertex(vertex) {
             return CirculateVertexesWithExcludesReverseWalker {
                 initial_vertex,
                 curr_half_edge: None,
@@ -156,10 +154,9 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
             .map(|half_edge| self.twin(half_edge))
             .collect::<Vec<HalfEdgeId>>();
 
-        // If there is only two spokes or less, there is no cycle to complete
-        // the walk. To avoid causing an infinite loop, return an empty
-        // walker-iterator instead.
-        if twin_half_spokes.len() <= 2 {
+        // Boundary vertexes do not have cycles circulating them.
+        // Return an empty walker-iterator instead.
+        if self.is_boundary_vertex(vertex) {
             return CirculateHalfEdgesWithExcludesWalker {
                 initial_half_edge,
                 curr_half_edge: None,
@@ -187,10 +184,9 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
             .map(|half_edge| self.twin(half_edge))
             .collect::<Vec<HalfEdgeId>>();
 
-        // If there is only two spokes or less, there is no cycle to complete
-        // the walk. To avoid causing an infinite loop, return an empty
-        // walker-iterator instead.
-        if twin_half_spokes.len() <= 2 {
+        // Boundary vertexes do not have cycles circulating them.
+        // Return an empty walker-iterator instead.
+        if self.is_boundary_vertex(vertex) {
             return CirculateHalfEdgesWithExcludesReverseWalker {
                 initial_half_edge,
                 curr_half_edge: None,
@@ -274,10 +270,9 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         let initial_edge = self.turn_back_edge(self.reverse_edge(self.vertex_next_edge(vertex)));
         let spokes = self.vertex_spokes(vertex).collect::<Vec<EdgeId>>();
 
-        // If there is only two spokes or less, there is no cycle to complete
-        // the walk. To avoid causing an infinite loop, return an empty
-        // walker-iterator instead.
-        if spokes.len() <= 2 {
+        // Boundary vertexes do not have cycles circulating them.
+        // Return an empty walker-iterator instead.
+        if self.is_boundary_vertex(vertex) {
             return CirculateEdgesWithExcludesWalker {
                 initial_edge,
                 curr_edge: None,
@@ -302,10 +297,9 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         let initial_edge = self.turn_edge(self.reverse_edge(self.vertex_next_edge(vertex)));
         let spokes = self.vertex_spokes(vertex).collect::<Vec<EdgeId>>();
 
-        // If there is only two spokes or less, there is no cycle to complete
-        // the walk. To avoid causing an infinite loop, return an empty
-        // walker-iterator instead.
-        if spokes.len() <= 2 {
+        // Boundary vertexes do not have cycles circulating them.
+        // Return an empty walker-iterator instead.
+        if self.is_boundary_vertex(vertex) {
             return CirculateEdgesWithExcludesReverseWalker {
                 initial_edge,
                 curr_edge: None,
