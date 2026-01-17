@@ -36,9 +36,7 @@ macro_rules! create_walker_and_iter {
 
 create_walker_and_iter!(
     CirculateVertexesWithExcludesWalker {
-        initial_vertex: VertexId,
-        curr_half_edge: Option<HalfEdgeId>,
-        excluded_vertexes: Vec<VertexId>,
+        circulator: CirculateHalfEdgesWithExcludesWalker,
     },
     CirculateVertexesWithExcludesIter
 );
@@ -49,22 +47,9 @@ impl CirculateVertexesWithExcludesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
-        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
-
-        while self
-            .excluded_vertexes
-            .contains(&dcel.origin(candidate_next_half_edge))
-        {
-            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
-        }
-
-        let next_half_edge = candidate_next_half_edge;
-        let next_vertex = dcel.origin(next_half_edge);
-
-        (next_vertex != self.initial_vertex).then(|| {
-            self.curr_half_edge = Some(next_half_edge);
-            next_vertex
-        })
+        self.circulator
+            .next(dcel)
+            .map(|half_edge| dcel.origin(half_edge))
     }
 }
 
@@ -81,9 +66,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     CirculateVertexesWithExcludesReverseWalker {
-        initial_vertex: VertexId,
-        curr_half_edge: Option<HalfEdgeId>,
-        excluded_vertexes: Vec<VertexId>,
+        circulator: CirculateHalfEdgesWithExcludesReverseWalker,
     },
     CirculateVertexesWithExcludesReverseIter
 );
@@ -94,22 +77,9 @@ impl CirculateVertexesWithExcludesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
-        let mut candidate_next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
-
-        while self
-            .excluded_vertexes
-            .contains(&dcel.origin(candidate_next_half_edge))
-        {
-            candidate_next_half_edge = dcel.turn_back_half_edge(candidate_next_half_edge);
-        }
-
-        let next_half_edge = candidate_next_half_edge;
-        let next_vertex = dcel.origin(next_half_edge);
-
-        (next_vertex != self.initial_vertex).then(|| {
-            self.curr_half_edge = Some(next_half_edge);
-            next_vertex
-        })
+        self.circulator
+            .next(dcel)
+            .map(|half_edge| dcel.origin(half_edge))
     }
 }
 
@@ -347,10 +317,11 @@ impl CirculateHalfEdgesWithExcludesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+        let mut candidate_next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
 
         while self.excluded_half_edges.contains(&candidate_next_half_edge) {
-            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
+            candidate_next_half_edge =
+                dcel.twin(dcel.turn_back_half_edge(dcel.twin(candidate_next_half_edge)));
         }
 
         let next_half_edge = candidate_next_half_edge;
@@ -388,10 +359,10 @@ impl CirculateHalfEdgesWithExcludesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let mut candidate_next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
+        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
 
         while self.excluded_half_edges.contains(&candidate_next_half_edge) {
-            candidate_next_half_edge = dcel.turn_back_half_edge(candidate_next_half_edge);
+            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
         }
 
         let next_half_edge = candidate_next_half_edge;
@@ -416,9 +387,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     CirculateEdgesWithExcludesWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
-        excluded_edges: Vec<EdgeId>,
+        circulator: CirculateHalfEdgesWithExcludesWalker,
     },
     CirculateEdgesWithExcludesIter
 );
@@ -429,18 +398,9 @@ impl CirculateEdgesWithExcludesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let mut candidate_next_edge = dcel.next_edge(self.curr_edge?);
-
-        while self.excluded_edges.contains(&candidate_next_edge) {
-            candidate_next_edge = dcel.turn_edge(candidate_next_edge);
-        }
-
-        let next_edge = candidate_next_edge;
-
-        std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
-        )
+        self.circulator
+            .next(dcel)
+            .map(|half_edge| dcel.full_edge(half_edge))
     }
 }
 
@@ -457,9 +417,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     CirculateEdgesWithExcludesReverseWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
-        excluded_edges: Vec<EdgeId>,
+        circulator: CirculateHalfEdgesWithExcludesReverseWalker,
     },
     CirculateEdgesWithExcludesReverseIter
 );
@@ -470,18 +428,9 @@ impl CirculateEdgesWithExcludesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let mut candidate_next_edge = dcel.prev_edge(self.curr_edge?);
-
-        while self.excluded_edges.contains(&candidate_next_edge) {
-            candidate_next_edge = dcel.turn_back_edge(candidate_next_edge);
-        }
-
-        let next_edge = candidate_next_edge;
-
-        std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
-        )
+        self.circulator
+            .next(dcel)
+            .map(|half_edge| dcel.full_edge(half_edge))
     }
 }
 
@@ -498,7 +447,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     FaceVertexesWalker {
-        face_half_edges_walker: FaceHalfEdgesWalker,
+        circulator: FaceHalfEdgesWalker,
     },
     FaceVertexesIter
 );
@@ -516,7 +465,7 @@ impl FaceVertexesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
-        self.face_half_edges_walker
+        self.circulator
             .next(dcel)
             .map(|half_edge| dcel.origin(half_edge))
     }
@@ -535,7 +484,7 @@ impl<'a, VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = 
 
 create_walker_and_iter!(
     FaceVertexesReverseWalker {
-        face_half_edges_reverse_walker: FaceHalfEdgesReverseWalker,
+        circulator: FaceHalfEdgesReverseWalker,
     },
     FaceVertexesReverseIter
 );
@@ -553,7 +502,7 @@ impl FaceVertexesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
-        self.face_half_edges_reverse_walker
+        self.circulator
             .next(dcel)
             .map(|half_edge| dcel.origin(half_edge))
     }
@@ -618,7 +567,7 @@ impl FaceHalfEdgesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -640,8 +589,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     FaceEdgesWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
+        circulator: FaceHalfEdgesWalker,
     },
     FaceEdgesIter
 );
@@ -652,12 +600,9 @@ impl FaceEdgesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.next_edge(self.curr_edge?);
-
-        std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
-        )
+        self.circulator
+            .next(dcel)
+            .map(|half_edge| dcel.full_edge(half_edge))
     }
 }
 
@@ -674,8 +619,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     FaceEdgesReverseWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
+        circulator: FaceHalfEdgesReverseWalker,
     },
     FaceEdgesReverseIter
 );
@@ -686,12 +630,9 @@ impl FaceEdgesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.prev_edge(self.curr_edge?);
-
-        std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
-        )
+        self.circulator
+            .next(dcel)
+            .map(|half_edge| dcel.full_edge(half_edge))
     }
 }
 
