@@ -17,6 +17,3 @@ edition = "2024"
 
 [dependencies]
 maplike = "0.5"
-
-[dev-dependencies]
-macroquad = "0.4"
