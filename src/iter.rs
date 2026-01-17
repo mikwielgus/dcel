@@ -22,9 +22,7 @@ use crate::{
     },
 };
 
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn circulate_vertexes_with_excludes(
         &self,
@@ -54,9 +52,43 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     }
 }
 
-impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC: Get<usize, Item = Face<FW>>>
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
+    pub fn vertex_rim_vertexes(
+        &self,
+        vertex: VertexId,
+    ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+        let initial_vertex = self.origin(self.next_half_edge(initial_half_edge));
+
+        CirculateVertexesWithExcludesWalker {
+            initial_vertex,
+            curr_half_edge: Some(initial_half_edge),
+            excluded_vertexes: vec![vertex],
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn vertex_rim_vertexes_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+        let initial_vertex = self.origin(self.next_half_edge(initial_half_edge));
+
+        CirculateVertexesWithExcludesReverseWalker {
+            initial_vertex,
+            curr_half_edge: Some(initial_half_edge),
+            excluded_vertexes: vec![vertex],
+        }
+        .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn vertex_half_spokes(
         &self,
@@ -86,7 +118,41 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC: Get<usize, Item = 
     }
 }
 
-impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn vertex_rim_half_edges(
+        &self,
+        vertex: VertexId,
+    ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+
+        CirculateHalfEdgesWithExcludesWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+            excluded_half_edges: self.vertex_half_spokes(vertex).collect::<Vec<HalfEdgeId>>(),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn vertex_rim_half_edges_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+
+        CirculateHalfEdgesWithExcludesReverseWalker {
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
+            excluded_half_edges: self.vertex_half_spokes(vertex).collect::<Vec<HalfEdgeId>>(),
+        }
+        .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn half_spokes(
         &self,
@@ -112,14 +178,8 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC
     }
 }
 
-impl<
-    VW,
-    HEW,
-    FW,
-    VC: Get<usize, Item = Vertex<VW>>,
-    HEC: Get<usize, Item = HalfEdge<HEW>>,
-    FC: Get<usize, Item = Face<FW>>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
     pub fn vertex_spokes(&self, vertex: VertexId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
@@ -147,9 +207,41 @@ impl<
     }
 }
 
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
+impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    #[inline]
+    pub fn vertex_rim_edges(
+        &self,
+        vertex: VertexId,
+    ) -> CirculateEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_edge = self.vertex_next_edge(vertex);
+
+        CirculateEdgesWithExcludesWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+            excluded_edges: self.vertex_spokes(vertex).collect::<Vec<EdgeId>>(),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn vertex_rim_edges_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        let initial_edge = self.vertex_next_edge(vertex);
+
+        CirculateEdgesWithExcludesReverseWalker {
+            initial_edge,
+            curr_edge: Some(initial_edge),
+            excluded_edges: self.vertex_spokes(vertex).collect::<Vec<EdgeId>>(),
+        }
+        .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn spokes(&self, initial_edge: EdgeId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesWalker {
@@ -196,9 +288,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item
     }
 }
 
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC: Get<usize, Item = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
+impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn circulate_half_edges_with_excludes(
         &self,
@@ -500,6 +590,7 @@ mod test {
 
     // TODO: Test circulate vertexes.
     // TODO: Test iterating over spokes with vertex as input.
+    // TODO: Test iterating over rim.
 
     #[test]
     fn test_half_spokes() {
