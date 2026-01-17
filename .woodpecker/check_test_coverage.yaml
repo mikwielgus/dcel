@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 dcel contributors
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+steps:
+  check_formatting:
+    image: rust
+    environment:
+      RUST_BACKTRACE: 1
+      CARGO_TERM_COLOR: always
+    commands:
+      - cargo install cargo-llvm-cov
+      - cargo llvm-cov --fail-under-lines 50
+    when:
+      event: [pull_request, push, tag]
