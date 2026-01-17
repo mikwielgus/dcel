@@ -14,9 +14,9 @@ mod walkers;
 use maplike::{Get, Insert, Push, Remove};
 
 pub use walkers::{
-    SpokesIter, SpokesWalker, HalfSpokesIter, HalfSpokesWalker, SpokesReverseIter, SpokesReverseWalker,
-    HalfSpokesReverseIter, HalfSpokesReverseWalker, FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter,
-    FaceHalfEdgesWalker,
+    FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter, FaceHalfEdgesWalker, HalfSpokesIter,
+    HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker, SpokesIter,
+    SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
