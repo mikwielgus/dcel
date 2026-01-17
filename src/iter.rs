@@ -126,12 +126,15 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+        let initial_half_edge = self.turn_back_half_edge(self.incoming_next_half_edge(vertex));
 
         CirculateHalfEdgesWithExcludesWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
-            excluded_half_edges: self.vertex_half_spokes(vertex).collect::<Vec<HalfEdgeId>>(),
+            excluded_half_edges: self
+                .vertex_half_spokes(vertex)
+                .map(|half_edge| self.twin(half_edge))
+                .collect::<Vec<HalfEdgeId>>(),
         }
         .iter(self)
     }
@@ -141,12 +144,15 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.outgoing_next_half_edge(vertex);
+        let initial_half_edge = self.turn_half_edge(self.incoming_next_half_edge(vertex));
 
         CirculateHalfEdgesWithExcludesReverseWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
-            excluded_half_edges: self.vertex_half_spokes(vertex).collect::<Vec<HalfEdgeId>>(),
+            excluded_half_edges: self
+                .vertex_half_spokes(vertex)
+                .map(|half_edge| self.twin(half_edge))
+                .collect::<Vec<HalfEdgeId>>(),
         }
         .iter(self)
     }
