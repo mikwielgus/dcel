@@ -107,7 +107,7 @@ pub struct Face<FW> {
 }
 
 #[cfg(feature = "stable-vec")]
-type StableDcel<VW, HEW = (), FW = ()> = Dcel<
+pub type StableDcel<VW, HEW = (), FW = ()> = Dcel<
     VW,
     HEW,
     FW,

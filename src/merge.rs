@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Get, Insert, Remove};
+use maplike::{Get, Insert, Remove, StableRemove};
 
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId,
@@ -13,10 +13,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    // FIXME: `StableRemove` is actually needed here instead of `Remove`.
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Remove<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Remove<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Remove<usize>,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
@@ -61,9 +60,9 @@ impl<
     VW: Copy + Eq,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Remove<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Remove<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Remove<usize>,
+    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces(&mut self, faces: impl IntoIterator<Item = FaceId>) {
