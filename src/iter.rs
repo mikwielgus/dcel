@@ -74,7 +74,7 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.prev_half_edge(self.incoming_next_half_edge(vertex));
+        let initial_half_edge = self.next_half_edge(self.outgoing_next_half_edge(vertex));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
             .flat_map(|edge| [edge.forward(), edge.backward()])
@@ -99,7 +99,7 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.next_half_edge(self.outgoing_next_half_edge(vertex));
+        let initial_half_edge = self.prev_half_edge(self.incoming_next_half_edge(vertex));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
             .flat_map(|edge| [edge.forward(), edge.backward()])

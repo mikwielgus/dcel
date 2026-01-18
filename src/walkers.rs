@@ -317,11 +317,10 @@ impl CirculateHalfEdgesWithExcludesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let mut candidate_next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
+        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
 
         while self.excluded_half_edges.contains(&candidate_next_half_edge) {
-            candidate_next_half_edge =
-                dcel.twin(dcel.turn_back_half_edge(dcel.twin(candidate_next_half_edge)));
+            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
         }
 
         let next_half_edge = candidate_next_half_edge;
@@ -359,10 +358,11 @@ impl CirculateHalfEdgesWithExcludesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+        let mut candidate_next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
 
         while self.excluded_half_edges.contains(&candidate_next_half_edge) {
-            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
+            candidate_next_half_edge =
+                dcel.twin(dcel.turn_back_half_edge(dcel.twin(candidate_next_half_edge)));
         }
 
         let next_half_edge = candidate_next_half_edge;
