@@ -220,15 +220,14 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_inner_half_edge_chain(&mut self, face: FaceId, edges: &[EdgeId]) {
-        self.wire_face(face, edges[0].forward());
-
         let edges_circular_tuple_windows = edges
             .iter()
             .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
 
         for (edge, next_edge) in edges_circular_tuple_windows {
+            self.link_vertex_with_half_edge(self.origin(edge.forward()), edge.forward());
             self.link_subsequent_half_edges(edge.forward(), next_edge.forward());
-            self.link_vertex_to_edge(self.origin(edge.forward()), edge.forward());
+            self.link_face_with_half_edge(face, edge.forward());
         }
     }
 
@@ -299,7 +298,7 @@ impl<VW, HEW, FW, VC: Remove<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, F
 impl<VW: Clone, HEW, FW, VC: Get<usize, Item = Vertex<VW>> + Insert<usize>, HEC, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn link_vertex_to_edge(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
+    fn link_vertex_with_half_edge(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
         self.vertexes.insert(
             vertex.id(),
             Vertex {
@@ -426,14 +425,27 @@ impl<VW, HEW, FW, VC, HEC, FC: Remove<usize>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     }
 }
 
-impl<VW, HEW, FW: Clone, VC, HEC, FC: Get<usize, Item = Face<FW>> + Insert<usize>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
+impl<
+    VW,
+    HEW: Clone,
+    FW: Clone,
+    VC,
+    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>,
+    FC: Get<usize, Item = Face<FW>> + Insert<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn wire_face(&mut self, face: FaceId, incident_half_edge: HalfEdgeId) {
+    fn link_face_with_half_edge(&mut self, face: FaceId, half_edge: HalfEdgeId) {
+        self.half_edges.insert(
+            half_edge.id(),
+            HalfEdge {
+                face,
+                ..self.half_edges.get(&half_edge.id()).unwrap().clone()
+            },
+        );
         self.faces.insert(
             face.id(),
             Face {
-                incident_half_edge: Some(incident_half_edge),
+                incident_half_edge: Some(half_edge),
                 weight: self.faces.get(&face.id()).unwrap().weight.clone(),
             },
         );

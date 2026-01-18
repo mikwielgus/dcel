@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Get, Insert, Remove, StableRemove};
+use maplike::{Get, Insert, StableRemove};
 
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId,
@@ -119,7 +119,7 @@ impl<
         self.wire_inner_half_edge_chain(
             absorbing_face,
             &half_edges_counter
-                .visited_edges(self)
+                .outer_edges(self)
                 .collect::<Vec<EdgeId>>(),
         );
     }
