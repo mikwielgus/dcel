@@ -10,6 +10,8 @@ steps:
       CARGO_TERM_COLOR: always
     commands:
       - cargo install cargo-llvm-cov
-      - cargo llvm-cov --fail-under-lines 50
+      - cargo llvm-cov --fail-under-lines 100 -- src/walkers.rs
+      - cargo llvm-cov --fail-under-lines 90 -- src/iter.rs
+      - cargo llvm-cov --fail-under-lines 60
     when:
       event: [pull_request, push, tag]
