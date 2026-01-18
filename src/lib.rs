@@ -106,6 +106,16 @@ pub struct Face<FW> {
     weight: FW,
 }
 
+#[cfg(feature = "stable-vec")]
+type StableDcel<VW, HEW = (), FW = ()> = Dcel<
+    VW,
+    HEW,
+    FW,
+    stable_vec::StableVec<Vertex<VW>>,
+    stable_vec::StableVec<HalfEdge<HEW>>,
+    stable_vec::StableVec<Face<FW>>,
+>;
+
 #[derive(Clone, Debug)]
 pub struct Dcel<
     VW,
