@@ -4,7 +4,7 @@
 
 [package]
 name = "dcel"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Mikolaj Wielgus <wielgusmikolaj@gmail.com>"]
 description = "Implementation of doubly-connected edge list."
 repository = "https://codeberg.org/topola/dcel"
@@ -24,3 +24,6 @@ stable-vec = ["dep:stable-vec", "maplike/stable-vec"]
 [dependencies]
 maplike = "0.5"
 stable-vec = { version = "0.4", optional = true }
+
+[dev-dependencies]
+macroquad = "0.4"
