@@ -10,9 +10,9 @@ impl<
     VW: Clone,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn split_face_by_edge_chain(
@@ -37,9 +37,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn split_face_by_edge_chain_with_all_weights(

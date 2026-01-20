@@ -133,7 +133,7 @@ pub struct Dcel<
     face_weight_marker: std::marker::PhantomData<FW>,
 }
 
-impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = Face<FW>>>
+impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Value = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
@@ -157,7 +157,7 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
     }
 }
 
-impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Item = Face<FW>>>
+impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Value = Face<FW>>>
     Default for Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
@@ -214,9 +214,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_inner_half_edge_chain(&mut self, face: FaceId, edges: &[EdgeId]) {
@@ -270,7 +270,7 @@ impl<
     }
 }
 
-impl<VW, HEW, FW, VC: Push<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC: Push<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn add_unwired_vertex(&mut self, weight: VW) -> VertexId {
         VertexId(self.vertexes.push(Vertex {
             // Since we do not use optionals, we cannot use `None` as the uninitialized value.
@@ -283,7 +283,7 @@ impl<VW, HEW, FW, VC: Push<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
     }
 }
 
-impl<VW, HEW, FW, VC: Remove<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC: Remove<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn remove_vertexes(&mut self, vertexes: impl IntoIterator<Item = VertexId>) {
         for vertex in vertexes.into_iter() {
             self.remove_vertex(vertex);
@@ -295,7 +295,7 @@ impl<VW, HEW, FW, VC: Remove<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, F
     }
 }
 
-impl<VW: Clone, HEW, FW, VC: Get<usize, Item = Vertex<VW>> + Insert<usize>, HEC, FC>
+impl<VW: Clone, HEW, FW, VC: Get<usize, Value = Vertex<VW>> + Insert<usize>, HEC, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_vertex_with_half_edge(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
@@ -309,7 +309,7 @@ impl<VW: Clone, HEW, FW, VC: Get<usize, Item = Vertex<VW>> + Insert<usize>, HEC,
     }
 }
 
-impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Item = HalfEdge<HEW>> + Push<usize>, FC>
+impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<usize>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn add_unwired_edge(
@@ -366,7 +366,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Item = HalfEdge<HEW>> + Push<usi
     }
 }
 
-impl<VW, HEW, FW, VC, HEC: Remove<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC, HEC: Remove<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn remove_edges(&mut self, edges: impl IntoIterator<Item = EdgeId>) {
         for edge in edges.into_iter() {
             self.remove_edge(edge);
@@ -379,7 +379,7 @@ impl<VW, HEW, FW, VC, HEC: Remove<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW
     }
 }
 
-impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>, FC>
+impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_subsequent_half_edges(&mut self, half_edge: HalfEdgeId, next_half_edge: HalfEdgeId) {
@@ -404,7 +404,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usiz
     }
 }
 
-impl<VW, HEW, FW, VC, HEC, FC: Push<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC, HEC, FC: Push<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn add_unwired_face(&mut self, weight: FW) -> FaceId {
         FaceId(self.faces.push(Face {
             incident_half_edge: None,
@@ -430,8 +430,8 @@ impl<
     HEW: Clone,
     FW: Clone,
     VC,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_face_with_half_edge(&mut self, face: FaceId, half_edge: HalfEdgeId) {

@@ -25,8 +25,8 @@ impl HalfEdgesCounter {
         HEW,
         FW,
         VC,
-        HEC: Get<usize, Item = HalfEdge<HEW>>,
-        FC: Get<usize, Item = Face<FW>>,
+        HEC: Get<usize, Value = HalfEdge<HEW>>,
+        FC: Get<usize, Value = Face<FW>>,
     >(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -42,8 +42,8 @@ impl HalfEdgesCounter {
         HEW,
         FW,
         VC,
-        HEC: Get<usize, Item = HalfEdge<HEW>>,
-        FC: Get<usize, Item = Face<FW>>,
+        HEC: Get<usize, Value = HalfEdge<HEW>>,
+        FC: Get<usize, Value = Face<FW>>,
     >(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -73,7 +73,7 @@ impl HalfEdgesCounter {
             .map(|(key, value)| (HalfEdgeId(*key), *value))
     }
 
-    pub fn visited_edges<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn visited_edges<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> impl Iterator<Item = EdgeId> {
@@ -89,7 +89,7 @@ impl HalfEdgesCounter {
         })
     }
 
-    pub fn inner_edges<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn inner_edges<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> impl Iterator<Item = EdgeId> {
@@ -97,7 +97,7 @@ impl HalfEdgesCounter {
             .filter(|edge| self.is_inner_edge(*edge))
     }
 
-    pub fn outer_edges<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn outer_edges<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> impl Iterator<Item = EdgeId> {
@@ -139,9 +139,9 @@ impl VertexesCounter {
         VW,
         HEW,
         FW,
-        VC: Get<usize, Item = Vertex<VW>>,
-        HEC: Get<usize, Item = HalfEdge<HEW>>,
-        FC: Get<usize, Item = Face<FW>>,
+        VC: Get<usize, Value = Vertex<VW>>,
+        HEC: Get<usize, Value = HalfEdge<HEW>>,
+        FC: Get<usize, Value = Face<FW>>,
     >(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,

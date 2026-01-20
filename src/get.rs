@@ -28,7 +28,7 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     }
 }
 
-impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn outgoing_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.vertexes
@@ -38,7 +38,7 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, 
     }
 }
 
-impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
@@ -80,14 +80,14 @@ impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = Half
     }
 }
 
-impl<VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn vertex_weight(&self, vertex: VertexId) -> &VW {
         &self.vertexes.get(&vertex.id()).unwrap().weight
     }
 }
 
-impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn origin(&self, half_edge: HalfEdgeId) -> VertexId {
         self.half_edges.get(&half_edge.id()).unwrap().origin
@@ -199,7 +199,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Dcel<VW, HEW, F
     }
 }
 
-impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Item = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn incident_half_edge(&self, face: FaceId) -> Option<HalfEdgeId> {
         self.faces.get(&face.id()).unwrap().incident_half_edge

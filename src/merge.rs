@@ -13,9 +13,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + StableRemove<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {

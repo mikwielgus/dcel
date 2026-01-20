@@ -43,7 +43,7 @@ create_walker_and_iter!(
 
 impl CirculateVertexesWithExcludesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
@@ -53,7 +53,7 @@ impl CirculateVertexesWithExcludesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for CirculateVertexesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
@@ -73,7 +73,7 @@ create_walker_and_iter!(
 
 impl CirculateVertexesWithExcludesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<VertexId> {
@@ -83,7 +83,7 @@ impl CirculateVertexesWithExcludesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for CirculateVertexesWithExcludesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
@@ -104,7 +104,7 @@ create_walker_and_iter!(
 
 impl HalfSpokesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -117,7 +117,7 @@ impl HalfSpokesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for HalfSpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -138,7 +138,7 @@ create_walker_and_iter!(
 
 impl HalfSpokesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -151,7 +151,7 @@ impl HalfSpokesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for HalfSpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -172,7 +172,7 @@ create_walker_and_iter!(
 
 impl SpokesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -185,7 +185,7 @@ impl SpokesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for SpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -206,7 +206,7 @@ create_walker_and_iter!(
 
 impl SpokesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -219,7 +219,7 @@ impl SpokesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for SpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -240,7 +240,7 @@ create_walker_and_iter!(
 
 impl InterspokesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -253,7 +253,7 @@ impl InterspokesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for InterspokesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = FaceId;
@@ -276,7 +276,7 @@ create_walker_and_iter!(
 
 impl InterspokesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -289,7 +289,7 @@ impl InterspokesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for InterspokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = FaceId;
@@ -313,7 +313,7 @@ create_walker_and_iter!(
 
 impl CirculateHalfEdgesWithExcludesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -332,7 +332,7 @@ impl CirculateHalfEdgesWithExcludesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for CirculateHalfEdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -354,7 +354,7 @@ create_walker_and_iter!(
 
 impl CirculateHalfEdgesWithExcludesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -374,7 +374,7 @@ impl CirculateHalfEdgesWithExcludesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for CirculateHalfEdgesWithExcludesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -394,7 +394,7 @@ create_walker_and_iter!(
 
 impl CirculateEdgesWithExcludesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -404,7 +404,7 @@ impl CirculateEdgesWithExcludesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for CirculateEdgesWithExcludesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -424,7 +424,7 @@ create_walker_and_iter!(
 
 impl CirculateEdgesWithExcludesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -434,7 +434,7 @@ impl CirculateEdgesWithExcludesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for CirculateEdgesWithExcludesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -458,8 +458,8 @@ impl FaceVertexesWalker {
         VW,
         HEW,
         FW,
-        VC: Get<usize, Item = Vertex<VW>>,
-        HEC: Get<usize, Item = HalfEdge<HEW>>,
+        VC: Get<usize, Value = Vertex<VW>>,
+        HEC: Get<usize, Value = HalfEdge<HEW>>,
         FC,
     >(
         &mut self,
@@ -471,7 +471,7 @@ impl FaceVertexesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+impl<'a, VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Iterator for FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
@@ -495,8 +495,8 @@ impl FaceVertexesReverseWalker {
         VW,
         HEW,
         FW,
-        VC: Get<usize, Item = Vertex<VW>>,
-        HEC: Get<usize, Item = HalfEdge<HEW>>,
+        VC: Get<usize, Value = Vertex<VW>>,
+        HEC: Get<usize, Value = HalfEdge<HEW>>,
         FC,
     >(
         &mut self,
@@ -508,7 +508,7 @@ impl FaceVertexesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC: Get<usize, Item = Vertex<VW>>, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>
+impl<'a, VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Iterator for FaceVertexesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
@@ -529,7 +529,7 @@ create_walker_and_iter!(
 
 impl FaceHalfEdgesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -542,7 +542,7 @@ impl FaceHalfEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for FaceHalfEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -563,7 +563,7 @@ create_walker_and_iter!(
 
 impl FaceHalfEdgesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
@@ -576,7 +576,7 @@ impl FaceHalfEdgesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for FaceHalfEdgesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = HalfEdgeId;
@@ -596,7 +596,7 @@ create_walker_and_iter!(
 
 impl FaceEdgesWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -606,7 +606,7 @@ impl FaceEdgesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for FaceEdgesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
@@ -626,7 +626,7 @@ create_walker_and_iter!(
 
 impl FaceEdgesReverseWalker {
     #[inline]
-    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC>(
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
@@ -636,7 +636,7 @@ impl FaceEdgesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Item = HalfEdge<HEW>>, FC> Iterator
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for FaceEdgesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;

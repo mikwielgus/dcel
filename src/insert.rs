@@ -15,9 +15,9 @@ impl<
     VW: Clone + Eq + Hash,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn insert_mesh(
@@ -79,9 +79,9 @@ impl<
     VW: Clone,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn insert_polygon(&mut self, vertex_weights: impl IntoIterator<Item = VW>) -> FaceId {
@@ -106,9 +106,9 @@ impl<
     VW: Clone + Eq + Hash,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn insert_adjoined_polygon_with_all_weights(
@@ -233,9 +233,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Item = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Item = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Item = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn insert_polygon_with_all_weights(
