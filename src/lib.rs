@@ -11,6 +11,12 @@ mod track;
 mod triangulate;
 mod walkers;
 
+#[cfg(feature = "stable-vec")]
+mod stable_vec;
+
+#[cfg(feature = "stable-vec")]
+pub use stable_vec::StableDcel;
+
 use maplike::{Get, Insert, Push, Remove};
 
 pub use walkers::{
@@ -105,16 +111,6 @@ pub struct Face<FW> {
     incident_half_edge: Option<HalfEdgeId>,
     weight: FW,
 }
-
-#[cfg(feature = "stable-vec")]
-pub type StableDcel<VW, HEW = (), FW = ()> = Dcel<
-    VW,
-    HEW,
-    FW,
-    stable_vec::StableVec<Vertex<VW>>,
-    stable_vec::StableVec<HalfEdge<HEW>>,
-    stable_vec::StableVec<Face<FW>>,
->;
 
 #[derive(Clone, Debug)]
 pub struct Dcel<
@@ -366,7 +362,9 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
     }
 }
 
-impl<VW, HEW, FW, VC, HEC: Remove<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW, VC, HEC: Remove<usize, Value = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
     fn remove_edges(&mut self, edges: impl IntoIterator<Item = EdgeId>) {
         for edge in edges.into_iter() {
             self.remove_edge(edge);
