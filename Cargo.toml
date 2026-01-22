@@ -24,6 +24,3 @@ stable-vec = ["dep:stable-vec", "maplike/stable-vec"]
 [dependencies]
 maplike = "0.7"
 stable-vec = { version = "0.4", optional = true }
-
-[dev-dependencies]
-macroquad = "0.4"
