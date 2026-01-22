@@ -146,17 +146,17 @@ impl<
         );
     }
 
-    fn absorb_faces_over_edges_and_vertexes_in_perimeter(
+    pub(crate) fn absorb_faces_over_edges_and_vertexes_in_perimeter(
         &mut self,
         absorbing_face: FaceId,
         faces_to_absorb: impl IntoIterator<Item = FaceId>,
-        edges: impl IntoIterator<Item = EdgeId>,
-        vertexes: impl IntoIterator<Item = VertexId>,
+        edges_to_remove: impl IntoIterator<Item = EdgeId>,
+        vertexes_to_remove: impl IntoIterator<Item = VertexId>,
         perimeter_edges: &[EdgeId],
     ) {
         self.remove_faces(faces_to_absorb);
-        self.remove_edges(edges);
-        self.remove_vertexes(vertexes);
+        self.remove_edges(edges_to_remove);
+        self.remove_vertexes(vertexes_to_remove);
 
         self.wire_inner_half_edge_chain(absorbing_face, perimeter_edges);
     }

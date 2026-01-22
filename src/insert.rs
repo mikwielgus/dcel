@@ -23,24 +23,27 @@ impl<
     pub fn insert_mesh(
         &mut self,
         face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
-    ) {
-        self.insert_mesh_in_face(face_polygons);
+    ) -> Vec<FaceId> {
+        self.insert_mesh_in_face(face_polygons)
     }
 
     pub fn insert_mesh_in_face(
         &mut self,
         face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
-    ) {
+    ) -> Vec<FaceId> {
         let mut vertex_weights_counter = VertexTracker::new();
         let mut edges_tracker = EdgesTracker::new();
+        let mut faces = vec![];
 
         for face_polygon in face_polygons {
-            self.insert_adjoined_polygon(
+            faces.push(self.insert_adjoined_polygon(
                 &mut vertex_weights_counter,
                 &mut edges_tracker,
                 face_polygon,
-            );
+            ));
         }
+
+        faces
     }
 
     fn insert_adjoined_polygon(
@@ -48,13 +51,13 @@ impl<
         vertex_weights_counter: &mut VertexTracker<VW>,
         edges_tracker: &mut EdgesTracker,
         vertex_weights: impl IntoIterator<Item = VW>,
-    ) {
+    ) -> FaceId {
         self.insert_adjoined_polygon_in_face(
             vertex_weights_counter,
             edges_tracker,
             self.unbounded_face(),
             vertex_weights,
-        );
+        )
     }
 
     fn insert_adjoined_polygon_in_face(
@@ -63,7 +66,7 @@ impl<
         edges_tracker: &mut EdgesTracker,
         outer_face: FaceId,
         vertex_weights: impl IntoIterator<Item = VW>,
-    ) {
+    ) -> FaceId {
         self.insert_adjoined_polygon_in_face_with_all_weights(
             vertex_weights_counter,
             edges_tracker,
@@ -71,7 +74,7 @@ impl<
             vertex_weights,
             std::iter::repeat((HEW::default(), HEW::default())),
             FW::default(),
-        );
+        )
     }
 }
 
@@ -91,11 +94,11 @@ impl<
     pub fn insert_polygon_in_face(
         &mut self,
         outer_face: FaceId,
-        vertexes_weights: impl IntoIterator<Item = VW>,
+        vertex_weights: impl IntoIterator<Item = VW>,
     ) -> FaceId {
         self.insert_polygon_in_face_with_all_weights(
             outer_face,
-            vertexes_weights,
+            vertex_weights,
             std::iter::repeat((HEW::default(), HEW::default())),
             FW::default(),
         )
@@ -118,7 +121,7 @@ impl<
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_weight: FW,
-    ) {
+    ) -> FaceId {
         self.insert_adjoined_polygon_in_face_with_all_weights(
             vertex_weights_counter,
             edges_tracker,
@@ -126,21 +129,21 @@ impl<
             vertex_weights,
             edge_weights,
             face_weight,
-        );
+        )
     }
 
     fn insert_adjoined_polygon_in_face_with_all_weights(
         &mut self,
-        vertex_weights_counter: &mut VertexTracker<VW>,
+        vertex_weights_tracker: &mut VertexTracker<VW>,
         edges_tracker: &mut EdgesTracker,
         outer_face: FaceId,
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_weight: FW,
-    ) {
+    ) -> FaceId {
         let new_face = self.add_unwired_face(face_weight);
         let vertexes =
-            self.add_deduplicated_unwired_polygon_vertexes(vertex_weights_counter, vertex_weights);
+            self.add_deduplicated_unwired_polygon_vertexes(vertex_weights_tracker, vertex_weights);
         let edges = self.add_adjoined_unwired_polygon_edges(
             edges_tracker,
             &vertexes,
@@ -151,6 +154,8 @@ impl<
 
         self.wire_outer_half_edge_chain_adjoiningly(outer_face, &edges);
         self.wire_inner_half_edge_chain(new_face, &edges);
+
+        new_face
     }
 
     fn add_deduplicated_unwired_polygon_vertexes(
@@ -243,13 +248,13 @@ impl<
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_weight: FW,
-    ) {
+    ) -> FaceId {
         self.insert_polygon_in_face_with_all_weights(
             self.unbounded_face(),
             vertex_weights,
             edge_weights,
             face_weight,
-        );
+        )
     }
 
     pub fn insert_polygon_in_face_with_all_weights(

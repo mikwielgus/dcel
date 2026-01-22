@@ -17,6 +17,12 @@ mod stable_vec;
 #[cfg(feature = "stable-vec")]
 pub use stable_vec::StableDcel;
 
+#[cfg(feature = "rstar")]
+mod rstar;
+
+#[cfg(feature = "rstar")]
+pub use rstar::{RTreedDcel, RTreedStableDcel};
+
 use maplike::{Get, Insert, Push, Remove};
 
 pub use walkers::{

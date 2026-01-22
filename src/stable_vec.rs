@@ -2,13 +2,9 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use stable_vec::StableVec;
+
 use crate::{Dcel, Face, HalfEdge, Vertex};
 
-pub type StableDcel<VW, HEW = (), FW = ()> = Dcel<
-    VW,
-    HEW,
-    FW,
-    stable_vec::StableVec<Vertex<VW>>,
-    stable_vec::StableVec<HalfEdge<HEW>>,
-    stable_vec::StableVec<Face<FW>>,
->;
+pub type StableDcel<VW, HEW = (), FW = ()> =
+    Dcel<VW, HEW, FW, StableVec<Vertex<VW>>, StableVec<HalfEdge<HEW>>, StableVec<Face<FW>>>;
