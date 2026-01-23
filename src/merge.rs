@@ -164,12 +164,11 @@ impl<
 
 #[cfg(all(test, feature = "stable-vec"))]
 mod test {
-    use crate::{StableDcel, VertexId, assert_face_boundary, init_dcel_with_3x3_hex_mesh};
+    use crate::{FaceId, StableDcel, VertexId, assert_face_boundary, init_dcel_with_3x3_hex_mesh};
 
     #[test]
-    fn test_merge_around_vertex() {
+    fn test_merge_faces_around_vertex() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
-
         dcel.merge_faces_around_vertex(VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
@@ -183,6 +182,28 @@ mod test {
         assert_face_boundary!(&dcel, 3, 6);
         // Face 4 does not exist.
         assert_face_boundary!(&dcel, 5, 12);
+        assert_face_boundary!(&dcel, 6, 6);
+        assert_face_boundary!(&dcel, 7, 6);
+        assert_face_boundary!(&dcel, 8, 6);
+        assert_face_boundary!(&dcel, 9, 6);
+    }
+
+    #[test]
+    fn test_absorb_faces_around_vertex() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
+        dcel.absorb_faces_around_vertex(FaceId::new(2), VertexId::new(8));
+
+        // There are now eight faces in total: one unbounded and seven bounded.
+        assert_eq!(dcel.faces().num_elements(), 8);
+
+        // Among the remaining faces, one is now a dodecagon, and the remaining
+        // six are hexagons.
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        assert_face_boundary!(&dcel, 2, 12);
+        assert_face_boundary!(&dcel, 3, 6);
+        //assert_face_boundary!(&dcel, 4, 6);
+        //assert_face_boundary!(&dcel, 5, 6);
         assert_face_boundary!(&dcel, 6, 6);
         assert_face_boundary!(&dcel, 7, 6);
         assert_face_boundary!(&dcel, 8, 6);
