@@ -488,243 +488,87 @@ mod test {
     fn test_vertex_rim() {
         let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
-        let assert_vertex_rim = |id: usize, count: usize| {
-            let vertex_rim_vertexes: Vec<VertexId> =
-                dcel.vertex_rim_vertexes(VertexId::new(id)).collect();
-            assert_eq!(vertex_rim_vertexes.len(), count);
-
-            let vertex_rim_vertexes_reverse: Vec<VertexId> = dcel
-                .vertex_rim_vertexes_reverse(VertexId::new(id))
-                .collect();
-            assert_eq!(
-                vertex_rim_vertexes,
-                vertex_rim_vertexes_reverse
-                    .into_iter()
-                    .rev()
-                    .collect::<Vec<VertexId>>()
-            );
-
-            let vertex_rim_half_edges: Vec<HalfEdgeId> =
-                dcel.vertex_rim_half_edges(VertexId::new(id)).collect();
-            assert_eq!(vertex_rim_half_edges.len(), count);
-
-            let vertex_rim_half_edges_reverse: Vec<HalfEdgeId> = dcel
-                .vertex_rim_half_edges_reverse(VertexId::new(id))
-                .collect();
-            assert_eq!(
-                vertex_rim_half_edges,
-                vertex_rim_half_edges_reverse
-                    .into_iter()
-                    .rev()
-                    .collect::<Vec<HalfEdgeId>>()
-            );
-
-            let vertex_rim_edges: Vec<EdgeId> = dcel.vertex_rim_edges(VertexId::new(id)).collect();
-            assert_eq!(vertex_rim_edges.len(), count);
-
-            let vertex_rim_edges_reverse: Vec<EdgeId> =
-                dcel.vertex_rim_edges_reverse(VertexId::new(id)).collect();
-            assert_eq!(
-                vertex_rim_edges,
-                vertex_rim_edges_reverse
-                    .into_iter()
-                    .rev()
-                    .collect::<Vec<EdgeId>>()
-            );
-        };
-
-        assert_vertex_rim(0, 0);
-        assert_vertex_rim(1, 0);
-        assert_vertex_rim(2, 0);
-        assert_vertex_rim(3, 0);
-        assert_vertex_rim(4, 0);
-        assert_vertex_rim(5, 12);
-        assert_vertex_rim(6, 0);
-        assert_vertex_rim(7, 0);
-        assert_vertex_rim(8, 12);
-        assert_vertex_rim(9, 12);
-        assert_vertex_rim(10, 0);
-        assert_vertex_rim(11, 0);
-        assert_vertex_rim(12, 12);
-        assert_vertex_rim(13, 0);
-        assert_vertex_rim(14, 0);
-        assert_vertex_rim(15, 12);
-        assert_vertex_rim(16, 12);
-        assert_vertex_rim(17, 12);
-        assert_vertex_rim(18, 12);
-        assert_vertex_rim(19, 0);
-        assert_vertex_rim(20, 0);
-        assert_vertex_rim(21, 0);
-        assert_vertex_rim(22, 0);
-        assert_vertex_rim(23, 0);
-        assert_vertex_rim(24, 0);
-        assert_vertex_rim(25, 0);
-        assert_vertex_rim(26, 0);
-        assert_vertex_rim(27, 0);
-        assert_vertex_rim(28, 0);
-        assert_vertex_rim(29, 0);
+        test_common::assert_vertex_rim(&dcel, 0, 0);
+        test_common::assert_vertex_rim(&dcel, 1, 0);
+        test_common::assert_vertex_rim(&dcel, 2, 0);
+        test_common::assert_vertex_rim(&dcel, 3, 0);
+        test_common::assert_vertex_rim(&dcel, 4, 0);
+        test_common::assert_vertex_rim(&dcel, 5, 12);
+        test_common::assert_vertex_rim(&dcel, 6, 0);
+        test_common::assert_vertex_rim(&dcel, 7, 0);
+        test_common::assert_vertex_rim(&dcel, 8, 12);
+        test_common::assert_vertex_rim(&dcel, 9, 12);
+        test_common::assert_vertex_rim(&dcel, 10, 0);
+        test_common::assert_vertex_rim(&dcel, 11, 0);
+        test_common::assert_vertex_rim(&dcel, 12, 12);
+        test_common::assert_vertex_rim(&dcel, 13, 0);
+        test_common::assert_vertex_rim(&dcel, 14, 0);
+        test_common::assert_vertex_rim(&dcel, 15, 12);
+        test_common::assert_vertex_rim(&dcel, 16, 12);
+        test_common::assert_vertex_rim(&dcel, 17, 12);
+        test_common::assert_vertex_rim(&dcel, 18, 12);
+        test_common::assert_vertex_rim(&dcel, 19, 0);
+        test_common::assert_vertex_rim(&dcel, 20, 0);
+        test_common::assert_vertex_rim(&dcel, 21, 0);
+        test_common::assert_vertex_rim(&dcel, 22, 0);
+        test_common::assert_vertex_rim(&dcel, 23, 0);
+        test_common::assert_vertex_rim(&dcel, 24, 0);
+        test_common::assert_vertex_rim(&dcel, 25, 0);
+        test_common::assert_vertex_rim(&dcel, 26, 0);
+        test_common::assert_vertex_rim(&dcel, 27, 0);
+        test_common::assert_vertex_rim(&dcel, 28, 0);
+        test_common::assert_vertex_rim(&dcel, 29, 0);
     }
 
     #[test]
     fn test_vertex_spokes_interspokes() {
         let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
-        let assert_vertex_spokes_interspokes = |id: usize, count: usize| {
-            let vertex_half_spokes: Vec<HalfEdgeId> =
-                dcel.vertex_half_spokes(VertexId::new(id)).collect();
-            assert_eq!(vertex_half_spokes.len(), count);
-
-            let vertex_half_spokes_reverse: Vec<HalfEdgeId> =
-                dcel.vertex_half_spokes_reverse(VertexId::new(id)).collect();
-            assert_eq!(
-                vertex_half_spokes.first(),
-                vertex_half_spokes_reverse.first()
-            );
-            assert_eq!(
-                vertex_half_spokes
-                    .into_iter()
-                    .skip(1)
-                    .collect::<Vec<HalfEdgeId>>(),
-                vertex_half_spokes_reverse
-                    .into_iter()
-                    .skip(1)
-                    .rev()
-                    .collect::<Vec<HalfEdgeId>>()
-            );
-
-            let vertex_spokes: Vec<EdgeId> = dcel.vertex_spokes(VertexId::new(id)).collect();
-            assert_eq!(vertex_spokes.len(), count);
-
-            let vertex_spokes_reverse: Vec<EdgeId> =
-                dcel.vertex_spokes_reverse(VertexId::new(id)).collect();
-            assert_eq!(vertex_spokes.first(), vertex_spokes_reverse.first());
-            assert_eq!(
-                vertex_spokes.into_iter().skip(1).collect::<Vec<EdgeId>>(),
-                vertex_spokes_reverse
-                    .into_iter()
-                    .skip(1)
-                    .rev()
-                    .collect::<Vec<EdgeId>>()
-            );
-
-            let vertex_interspokes: Vec<FaceId> =
-                dcel.vertex_interspokes(VertexId::new(id)).collect();
-            assert_eq!(vertex_interspokes.len(), count);
-
-            let vertex_interspokes_reverse: Vec<FaceId> =
-                dcel.vertex_interspokes_reverse(VertexId::new(id)).collect();
-            assert_eq!(
-                vertex_interspokes.first(),
-                vertex_interspokes_reverse.first()
-            );
-            assert_eq!(
-                vertex_interspokes
-                    .into_iter()
-                    .skip(1)
-                    .collect::<Vec<FaceId>>(),
-                vertex_interspokes_reverse
-                    .into_iter()
-                    .skip(1)
-                    .rev()
-                    .collect::<Vec<FaceId>>()
-            );
-        };
-
-        assert_vertex_spokes_interspokes(0, 3);
-        assert_vertex_spokes_interspokes(1, 2);
-        assert_vertex_spokes_interspokes(2, 2);
-        assert_vertex_spokes_interspokes(3, 2);
-        assert_vertex_spokes_interspokes(4, 3);
-        assert_vertex_spokes_interspokes(5, 3);
-        assert_vertex_spokes_interspokes(6, 3);
-        assert_vertex_spokes_interspokes(7, 2);
-        assert_vertex_spokes_interspokes(8, 3);
-        assert_vertex_spokes_interspokes(9, 3);
-        assert_vertex_spokes_interspokes(10, 2);
-        assert_vertex_spokes_interspokes(11, 2);
-        assert_vertex_spokes_interspokes(12, 3);
-        assert_vertex_spokes_interspokes(13, 3);
-        assert_vertex_spokes_interspokes(14, 3);
-        assert_vertex_spokes_interspokes(15, 3);
-        assert_vertex_spokes_interspokes(16, 3);
-        assert_vertex_spokes_interspokes(17, 3);
-        assert_vertex_spokes_interspokes(18, 3);
-        assert_vertex_spokes_interspokes(19, 2);
-        assert_vertex_spokes_interspokes(20, 3);
-        assert_vertex_spokes_interspokes(21, 2);
-        assert_vertex_spokes_interspokes(22, 2);
-        assert_vertex_spokes_interspokes(23, 2);
-        assert_vertex_spokes_interspokes(24, 2);
-        assert_vertex_spokes_interspokes(25, 3);
-        assert_vertex_spokes_interspokes(26, 2);
-        assert_vertex_spokes_interspokes(27, 3);
-        assert_vertex_spokes_interspokes(28, 2);
-        assert_vertex_spokes_interspokes(29, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 0, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 1, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 2, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 3, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 4, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 5, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 6, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 7, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 8, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 9, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 10, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 11, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 12, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 13, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 14, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 15, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 16, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 17, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 18, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 19, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 20, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 21, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 22, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 23, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 24, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 25, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 26, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 27, 3);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 28, 2);
+        test_common::assert_vertex_spokes_interspokes(&dcel, 29, 2);
     }
 
     #[test]
     fn test_face_boundary() {
         let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
-        let assert_face_boundary = |id: usize, count: usize| {
-            let face_vertexes: Vec<VertexId> = dcel.face_vertexes(FaceId::new(id)).collect();
-            assert_eq!(face_vertexes.len(), count);
-
-            let face_vertexes_reverse: Vec<VertexId> =
-                dcel.face_vertexes_reverse(FaceId::new(id)).collect();
-            assert_eq!(face_vertexes.first(), face_vertexes_reverse.first());
-            assert_eq!(
-                face_vertexes.into_iter().skip(1).collect::<Vec<VertexId>>(),
-                face_vertexes_reverse
-                    .into_iter()
-                    .skip(1)
-                    .rev()
-                    .collect::<Vec<VertexId>>()
-            );
-
-            let face_half_edges: Vec<HalfEdgeId> = dcel.face_half_edges(FaceId::new(id)).collect();
-            assert_eq!(face_half_edges.len(), count);
-
-            let face_half_edges_reverse: Vec<HalfEdgeId> =
-                dcel.face_half_edges_reverse(FaceId::new(id)).collect();
-            assert_eq!(face_half_edges.first(), face_half_edges_reverse.first());
-            assert_eq!(
-                face_half_edges
-                    .into_iter()
-                    .skip(1)
-                    .collect::<Vec<HalfEdgeId>>(),
-                face_half_edges_reverse
-                    .into_iter()
-                    .skip(1)
-                    .rev()
-                    .collect::<Vec<HalfEdgeId>>()
-            );
-
-            let face_edges: Vec<EdgeId> = dcel.face_edges(FaceId::new(id)).collect();
-            assert_eq!(face_edges.len(), count);
-
-            let face_edges_reverse: Vec<EdgeId> =
-                dcel.face_edges_reverse(FaceId::new(id)).collect();
-            assert_eq!(face_edges.first(), face_edges_reverse.first());
-            assert_eq!(
-                face_edges.into_iter().skip(1).collect::<Vec<EdgeId>>(),
-                face_edges_reverse
-                    .into_iter()
-                    .skip(1)
-                    .rev()
-                    .collect::<Vec<EdgeId>>()
-            );
-        };
-
-        assert_face_boundary(0, 0);
-        assert_face_boundary(1, 6);
-        assert_face_boundary(2, 6);
-        assert_face_boundary(3, 6);
-        assert_face_boundary(4, 6);
-        assert_face_boundary(5, 6);
-        assert_face_boundary(6, 6);
-        assert_face_boundary(7, 6);
-        assert_face_boundary(8, 6);
-        assert_face_boundary(9, 6);
+        test_common::assert_face_boundary(&dcel, 0, 0);
+        test_common::assert_face_boundary(&dcel, 1, 6);
+        test_common::assert_face_boundary(&dcel, 2, 6);
+        test_common::assert_face_boundary(&dcel, 3, 6);
+        test_common::assert_face_boundary(&dcel, 4, 6);
+        test_common::assert_face_boundary(&dcel, 5, 6);
+        test_common::assert_face_boundary(&dcel, 6, 6);
+        test_common::assert_face_boundary(&dcel, 7, 6);
+        test_common::assert_face_boundary(&dcel, 8, 6);
+        test_common::assert_face_boundary(&dcel, 9, 6);
     }
 }
