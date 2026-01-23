@@ -80,17 +80,18 @@ impl<
         vertexes: impl IntoIterator<Item = VertexId>,
     ) {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
+
+        // Find an initial edge that is not in the excluded list. Otherwise, the
+        // circulator could end up starting from an excluded edge, which would
+        // result in an infinite loop, as the termination condition depends on
+        // returning to the initial edge.
+        let initial_edge = self
+            .face_edges(absorbing_face)
+            .find(|edge| !edges.contains(edge))
+            .unwrap();
+
         let perimeter_edges: Vec<EdgeId> = self
-            .circulate_edges_with_excludes(
-                self.full_edge(
-                    self.faces
-                        .get(&absorbing_face.id())
-                        .unwrap()
-                        .incident_half_edge
-                        .unwrap(),
-                ),
-                edges.clone(),
-            )
+            .circulate_edges_with_excludes(initial_edge, edges.clone())
             .collect();
 
         self.absorb_faces_over_edges_and_vertexes_in_perimeter(
@@ -164,7 +165,10 @@ impl<
 
 #[cfg(all(test, feature = "stable-vec"))]
 mod test {
-    use crate::{FaceId, StableDcel, VertexId, assert_face_boundary, init_dcel_with_3x3_hex_mesh};
+    use crate::{
+        EdgeId, FaceId, HalfEdgeId, StableDcel, VertexId, assert_face_boundary,
+        init_dcel_with_3x3_hex_mesh,
+    };
 
     #[test]
     fn test_merge_faces_around_vertex() {
@@ -202,8 +206,8 @@ mod test {
         assert_face_boundary!(&dcel, 1, 6);
         assert_face_boundary!(&dcel, 2, 12);
         assert_face_boundary!(&dcel, 3, 6);
-        //assert_face_boundary!(&dcel, 4, 6);
-        //assert_face_boundary!(&dcel, 5, 6);
+        // Face 4 does not exist.
+        // Face 5 does not exist.
         assert_face_boundary!(&dcel, 6, 6);
         assert_face_boundary!(&dcel, 7, 6);
         assert_face_boundary!(&dcel, 8, 6);
