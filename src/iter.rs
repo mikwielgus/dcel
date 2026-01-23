@@ -481,94 +481,95 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::test_common;
+    use crate::{
+        assert_face_boundary, assert_vertex_rim, assert_vertex_spokes_interspokes, test_common,
+    };
 
     #[test]
     fn test_vertex_rim() {
         let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
-        test_common::assert_vertex_rim(&dcel, 0, 0);
-        test_common::assert_vertex_rim(&dcel, 1, 0);
-        test_common::assert_vertex_rim(&dcel, 2, 0);
-        test_common::assert_vertex_rim(&dcel, 3, 0);
-        test_common::assert_vertex_rim(&dcel, 4, 0);
-        test_common::assert_vertex_rim(&dcel, 5, 12);
-        test_common::assert_vertex_rim(&dcel, 6, 0);
-        test_common::assert_vertex_rim(&dcel, 7, 0);
-        test_common::assert_vertex_rim(&dcel, 8, 12);
-        test_common::assert_vertex_rim(&dcel, 9, 12);
-        test_common::assert_vertex_rim(&dcel, 10, 0);
-        test_common::assert_vertex_rim(&dcel, 11, 0);
-        test_common::assert_vertex_rim(&dcel, 12, 12);
-        test_common::assert_vertex_rim(&dcel, 13, 0);
-        test_common::assert_vertex_rim(&dcel, 14, 0);
-        test_common::assert_vertex_rim(&dcel, 15, 12);
-        test_common::assert_vertex_rim(&dcel, 16, 12);
-        test_common::assert_vertex_rim(&dcel, 17, 12);
-        test_common::assert_vertex_rim(&dcel, 18, 12);
-        test_common::assert_vertex_rim(&dcel, 19, 0);
-        test_common::assert_vertex_rim(&dcel, 20, 0);
-        test_common::assert_vertex_rim(&dcel, 21, 0);
-        test_common::assert_vertex_rim(&dcel, 22, 0);
-        test_common::assert_vertex_rim(&dcel, 23, 0);
-        test_common::assert_vertex_rim(&dcel, 24, 0);
-        test_common::assert_vertex_rim(&dcel, 25, 0);
-        test_common::assert_vertex_rim(&dcel, 26, 0);
-        test_common::assert_vertex_rim(&dcel, 27, 0);
-        test_common::assert_vertex_rim(&dcel, 28, 0);
-        test_common::assert_vertex_rim(&dcel, 29, 0);
+        assert_vertex_rim!(&dcel, 0, 0);
+        assert_vertex_rim!(&dcel, 1, 0);
+        assert_vertex_rim!(&dcel, 2, 0);
+        assert_vertex_rim!(&dcel, 3, 0);
+        assert_vertex_rim!(&dcel, 4, 0);
+        assert_vertex_rim!(&dcel, 5, 12);
+        assert_vertex_rim!(&dcel, 6, 0);
+        assert_vertex_rim!(&dcel, 7, 0);
+        assert_vertex_rim!(&dcel, 8, 12);
+        assert_vertex_rim!(&dcel, 9, 12);
+        assert_vertex_rim!(&dcel, 10, 0);
+        assert_vertex_rim!(&dcel, 11, 0);
+        assert_vertex_rim!(&dcel, 12, 12);
+        assert_vertex_rim!(&dcel, 13, 0);
+        assert_vertex_rim!(&dcel, 14, 0);
+        assert_vertex_rim!(&dcel, 15, 12);
+        assert_vertex_rim!(&dcel, 16, 12);
+        assert_vertex_rim!(&dcel, 17, 12);
+        assert_vertex_rim!(&dcel, 18, 12);
+        assert_vertex_rim!(&dcel, 19, 0);
+        assert_vertex_rim!(&dcel, 20, 0);
+        assert_vertex_rim!(&dcel, 21, 0);
+        assert_vertex_rim!(&dcel, 22, 0);
+        assert_vertex_rim!(&dcel, 23, 0);
+        assert_vertex_rim!(&dcel, 24, 0);
+        assert_vertex_rim!(&dcel, 25, 0);
+        assert_vertex_rim!(&dcel, 26, 0);
+        assert_vertex_rim!(&dcel, 27, 0);
+        assert_vertex_rim!(&dcel, 28, 0);
+        assert_vertex_rim!(&dcel, 29, 0);
     }
 
     #[test]
     fn test_vertex_spokes_interspokes() {
         let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
-        test_common::assert_vertex_spokes_interspokes(&dcel, 0, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 1, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 2, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 3, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 4, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 5, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 6, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 7, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 8, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 9, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 10, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 11, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 12, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 13, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 14, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 15, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 16, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 17, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 18, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 19, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 20, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 21, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 22, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 23, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 24, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 25, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 26, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 27, 3);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 28, 2);
-        test_common::assert_vertex_spokes_interspokes(&dcel, 29, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 0, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 1, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 2, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 3, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 4, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 5, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 6, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 7, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 8, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 9, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 10, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 11, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 12, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 13, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 14, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 15, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 16, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 17, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 18, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 19, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 20, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 21, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 22, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 23, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 24, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 25, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 26, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 27, 3);
+        assert_vertex_spokes_interspokes!(&dcel, 28, 2);
+        assert_vertex_spokes_interspokes!(&dcel, 29, 2);
     }
 
     #[test]
     fn test_face_boundary() {
         let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
-        test_common::assert_face_boundary(&dcel, 0, 0);
-        test_common::assert_face_boundary(&dcel, 1, 6);
-        test_common::assert_face_boundary(&dcel, 2, 6);
-        test_common::assert_face_boundary(&dcel, 3, 6);
-        test_common::assert_face_boundary(&dcel, 4, 6);
-        test_common::assert_face_boundary(&dcel, 5, 6);
-        test_common::assert_face_boundary(&dcel, 6, 6);
-        test_common::assert_face_boundary(&dcel, 7, 6);
-        test_common::assert_face_boundary(&dcel, 8, 6);
-        test_common::assert_face_boundary(&dcel, 9, 6);
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        assert_face_boundary!(&dcel, 2, 6);
+        assert_face_boundary!(&dcel, 3, 6);
+        assert_face_boundary!(&dcel, 4, 6);
+        assert_face_boundary!(&dcel, 5, 6);
+        assert_face_boundary!(&dcel, 6, 6);
+        assert_face_boundary!(&dcel, 7, 6);
+        assert_face_boundary!(&dcel, 8, 6);
+        assert_face_boundary!(&dcel, 9, 6);
     }
 }
