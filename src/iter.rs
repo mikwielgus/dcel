@@ -482,12 +482,13 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
 #[cfg(test)]
 mod test {
     use crate::{
-        assert_face_boundary, assert_vertex_rim, assert_vertex_spokes_interspokes, test_common,
+        Dcel, assert_face_boundary, assert_vertex_rim, assert_vertex_spokes_interspokes,
+        init_dcel_with_3x3_hex_mesh,
     };
 
     #[test]
     fn test_vertex_rim() {
-        let dcel = test_common::init_dcel_with_3x3_hex_mesh();
+        let dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
 
         assert_vertex_rim!(&dcel, 0, 0);
         assert_vertex_rim!(&dcel, 1, 0);
@@ -523,7 +524,7 @@ mod test {
 
     #[test]
     fn test_vertex_spokes_interspokes() {
-        let dcel = test_common::init_dcel_with_3x3_hex_mesh();
+        let dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
 
         assert_vertex_spokes_interspokes!(&dcel, 0, 3);
         assert_vertex_spokes_interspokes!(&dcel, 1, 2);
@@ -559,7 +560,7 @@ mod test {
 
     #[test]
     fn test_face_boundary() {
-        let dcel = test_common::init_dcel_with_3x3_hex_mesh();
+        let dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
 
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);

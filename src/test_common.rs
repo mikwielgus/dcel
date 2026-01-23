@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use crate::Dcel;
-
 pub const HEX_MESH_3X3: [[[(i32, i32); 6]; 3]; 3] = [
     [
         [
@@ -85,16 +83,19 @@ pub const HEX_MESH_3X3: [[[(i32, i32); 6]; 3]; 3] = [
     ],
 ];
 
-pub fn init_dcel_with_3x3_hex_mesh() -> Dcel<(i32, i32)> {
-    let mesh: Vec<Vec<(i32, i32)>> = HEX_MESH_3X3
-        .iter()
-        .flat_map(|row| row.iter())
-        .map(|face| face.iter().copied().collect())
-        .collect();
-    let mut dcel: Dcel<(i32, i32)> = Dcel::new();
-    dcel.insert_mesh(mesh);
+#[macro_export]
+macro_rules! init_dcel_with_3x3_hex_mesh {
+    ($dcel_type:ty) => {{
+        let mesh: Vec<Vec<(i32, i32)>> = $crate::test_common::HEX_MESH_3X3
+            .iter()
+            .flat_map(|row| row.iter())
+            .map(|face| face.iter().copied().collect())
+            .collect();
+        let mut dcel: $dcel_type = <$dcel_type>::new();
+        dcel.insert_mesh(mesh);
 
-    dcel
+        dcel
+    }};
 }
 
 #[macro_export]
