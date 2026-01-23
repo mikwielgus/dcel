@@ -161,88 +161,31 @@ impl<
         self.wire_inner_half_edge_chain(absorbing_face, perimeter_edges);
     }
 }
-#[cfg(test)]
-mod test {
-    use super::*;
 
-    const HEX_MESH_3X3: [[[(i32, i32); 6]; 3]; 3] = [
-        [
-            [
-                (87, -50),
-                (0, -100),
-                (-87, -50),
-                (-87, 50),
-                (0, 100),
-                (87, 50),
-            ],
-            [
-                (260, -50),
-                (173, -100),
-                (87, -50),
-                (87, 50),
-                (173, 100),
-                (260, 50),
-            ],
-            [
-                (433, -50),
-                (346, -100),
-                (260, -50),
-                (260, 50),
-                (346, 100),
-                (433, 50),
-            ],
-        ],
-        [
-            [
-                (173, 100),
-                (87, 50),
-                (0, 100),
-                (0, 200),
-                (87, 250),
-                (173, 200),
-            ],
-            [
-                (346, 100),
-                (260, 50),
-                (173, 100),
-                (173, 200),
-                (260, 250),
-                (346, 200),
-            ],
-            [
-                (520, 100),
-                (433, 50),
-                (346, 100),
-                (346, 200),
-                (433, 250),
-                (520, 200),
-            ],
-        ],
-        [
-            [
-                (87, 250),
-                (0, 200),
-                (-87, 250),
-                (-87, 350),
-                (0, 400),
-                (87, 350),
-            ],
-            [
-                (260, 250),
-                (173, 200),
-                (87, 250),
-                (87, 350),
-                (173, 400),
-                (260, 350),
-            ],
-            [
-                (433, 250),
-                (346, 200),
-                (260, 250),
-                (260, 350),
-                (346, 400),
-                (433, 350),
-            ],
-        ],
-    ];
+#[cfg(all(test, feature = "stable-vec"))]
+mod test {
+    use crate::{StableDcel, VertexId, assert_face_boundary, init_dcel_with_3x3_hex_mesh};
+
+    #[test]
+    fn test_merge_around_vertex() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
+
+        dcel.merge_faces_around_vertex(VertexId::new(8));
+
+        // There are now eight faces in total: one unbounded and seven bounded.
+        assert_eq!(dcel.faces().num_elements(), 8);
+
+        // Among the remaining faces, one is now a dodecagon, and the remaining
+        // six are hexagons.
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        // Face 2 does not exist.
+        assert_face_boundary!(&dcel, 3, 6);
+        // Face 4 does not exist.
+        assert_face_boundary!(&dcel, 5, 12);
+        assert_face_boundary!(&dcel, 6, 6);
+        assert_face_boundary!(&dcel, 7, 6);
+        assert_face_boundary!(&dcel, 8, 6);
+        assert_face_boundary!(&dcel, 9, 6);
+    }
 }
