@@ -482,103 +482,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
 #[cfg(test)]
 mod test {
     use super::*;
-
-    const HEX_MESH_3X3: [[[(i32, i32); 6]; 3]; 3] = [
-        [
-            [
-                (87, -50),
-                (0, -100),
-                (-87, -50),
-                (-87, 50),
-                (0, 100),
-                (87, 50),
-            ],
-            [
-                (260, -50),
-                (173, -100),
-                (87, -50),
-                (87, 50),
-                (173, 100),
-                (260, 50),
-            ],
-            [
-                (433, -50),
-                (346, -100),
-                (260, -50),
-                (260, 50),
-                (346, 100),
-                (433, 50),
-            ],
-        ],
-        [
-            [
-                (173, 100),
-                (87, 50),
-                (0, 100),
-                (0, 200),
-                (87, 250),
-                (173, 200),
-            ],
-            [
-                (346, 100),
-                (260, 50),
-                (173, 100),
-                (173, 200),
-                (260, 250),
-                (346, 200),
-            ],
-            [
-                (520, 100),
-                (433, 50),
-                (346, 100),
-                (346, 200),
-                (433, 250),
-                (520, 200),
-            ],
-        ],
-        [
-            [
-                (87, 250),
-                (0, 200),
-                (-87, 250),
-                (-87, 350),
-                (0, 400),
-                (87, 350),
-            ],
-            [
-                (260, 250),
-                (173, 200),
-                (87, 250),
-                (87, 350),
-                (173, 400),
-                (260, 350),
-            ],
-            [
-                (433, 250),
-                (346, 200),
-                (260, 250),
-                (260, 350),
-                (346, 400),
-                (433, 350),
-            ],
-        ],
-    ];
-
-    fn init_dcel_with_3x3_hex_mesh() -> Dcel<(i32, i32)> {
-        let mesh: Vec<Vec<(i32, i32)>> = HEX_MESH_3X3
-            .iter()
-            .flat_map(|row| row.iter())
-            .map(|face| face.iter().copied().collect())
-            .collect();
-        let mut dcel: Dcel<(i32, i32)> = Dcel::new();
-        dcel.insert_mesh(mesh);
-
-        dcel
-    }
+    use crate::test_common;
 
     #[test]
     fn test_vertex_rim() {
-        let dcel = init_dcel_with_3x3_hex_mesh();
+        let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
         let assert_vertex_rim = |id: usize, count: usize| {
             let vertex_rim_vertexes: Vec<VertexId> =
@@ -659,7 +567,7 @@ mod test {
 
     #[test]
     fn test_vertex_spokes_interspokes() {
-        let dcel = init_dcel_with_3x3_hex_mesh();
+        let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
         let assert_vertex_spokes_interspokes = |id: usize, count: usize| {
             let vertex_half_spokes: Vec<HalfEdgeId> =
@@ -756,7 +664,7 @@ mod test {
 
     #[test]
     fn test_face_boundary() {
-        let dcel = init_dcel_with_3x3_hex_mesh();
+        let dcel = test_common::init_dcel_with_3x3_hex_mesh();
 
         let assert_face_boundary = |id: usize, count: usize| {
             let face_vertexes: Vec<VertexId> = dcel.face_vertexes(FaceId::new(id)).collect();

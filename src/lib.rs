@@ -11,6 +11,9 @@ mod track;
 mod triangulate;
 mod walkers;
 
+#[cfg(test)]
+pub mod test_common;
+
 #[cfg(feature = "stable-vec")]
 mod stable_vec;
 
