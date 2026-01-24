@@ -601,223 +601,268 @@ mod test {
     use rstar::{RTreeObject, primitives::GeomWithData};
 
     use crate::{
-        EdgeId, FaceId, HalfEdgeId, RTreedStableDcel, StableDcel, VertexId, assert_face_boundary,
+        EdgeId, FaceId, HalfEdgeId, RTreedStableDcel, VertexId, assert_face_boundary,
         init_dcel_with_3x3_hex_mesh,
     };
 
     #[test]
     fn test_merge_faces_around_vertex() {
-        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        dcel.merge_faces_around_vertex(VertexId::new(8));
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        rtreed_dcel.merge_faces_around_vertex(VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
-        assert_eq!(dcel.dcel.faces().num_elements(), 8);
-        assert_eq!(dcel.faces_rtree.size(), 7);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 8);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 7);
 
         // Among the remaining faces, one is now a dodecagon, and the remaining
         // six are hexagons.
-        assert_face_boundary!(dcel.dcel, 0, 0);
-        assert_face_boundary!(dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
         // Face 2 does not exist.
-        assert_face_boundary!(dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
         // Face 4 does not exist.
-        assert_face_boundary!(dcel.dcel, 5, 12);
-        assert_face_boundary!(dcel.dcel, 6, 6);
-        assert_face_boundary!(dcel.dcel, 7, 6);
-        assert_face_boundary!(dcel.dcel, 8, 6);
-        assert_face_boundary!(dcel.dcel, 9, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 12);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
 
-        assert_face_bbox_validity(&dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 1);
         // Face 2 does not exist.
-        assert_face_bbox_validity(&dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
         // Face 4 does not exist.
-        assert_face_bbox_validity(&dcel, 6);
-        assert_face_bbox_validity(&dcel, 7);
-        assert_face_bbox_validity(&dcel, 8);
-        assert_face_bbox_validity(&dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
     }
 
     #[test]
     fn test_absorb_faces_around_vertex() {
-        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        dcel.absorb_faces_around_vertex(FaceId::new(2), VertexId::new(8));
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        rtreed_dcel.absorb_faces_around_vertex(FaceId::new(2), VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
-        assert_eq!(dcel.dcel.faces().num_elements(), 8);
-        assert_eq!(dcel.faces_rtree.size(), 7);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 8);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 7);
 
         // Among the remaining faces, one is now a dodecagon, and the remaining
         // six are hexagons.
-        assert_face_boundary!(dcel.dcel, 0, 0);
-        assert_face_boundary!(dcel.dcel, 1, 6);
-        assert_face_boundary!(dcel.dcel, 2, 12);
-        assert_face_boundary!(dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 12);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
         // Face 4 does not exist.
         // Face 5 does not exist.
-        assert_face_boundary!(dcel.dcel, 6, 6);
-        assert_face_boundary!(dcel.dcel, 7, 6);
-        assert_face_boundary!(dcel.dcel, 8, 6);
-        assert_face_boundary!(dcel.dcel, 9, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
 
-        assert_face_bbox_validity(&dcel, 1);
-        assert_face_bbox_validity(&dcel, 2);
-        assert_face_bbox_validity(&dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
         // Face 4 does not exist.
         // Face 5 does not exist.
-        assert_face_bbox_validity(&dcel, 6);
-        assert_face_bbox_validity(&dcel, 7);
-        assert_face_bbox_validity(&dcel, 8);
-        assert_face_bbox_validity(&dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
     }
 
     #[test]
     fn test_merge_faces_over_edge() {
-        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        dcel.merge_faces_over_edges_and_vertexes(
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        rtreed_dcel.merge_faces_over_edges_and_vertexes(
             [FaceId::new(5), FaceId::new(6)],
             [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
             [],
         );
 
-        assert_eq!(dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
 
-        assert_face_boundary!(dcel.dcel, 0, 0);
-        assert_face_boundary!(dcel.dcel, 1, 6);
-        assert_face_boundary!(dcel.dcel, 2, 6);
-        assert_face_boundary!(dcel.dcel, 3, 6);
-        assert_face_boundary!(dcel.dcel, 4, 6);
-        assert_face_boundary!(dcel.dcel, 5, 10);
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 10);
         // Face 6 does not exist.
-        assert_face_boundary!(dcel.dcel, 7, 6);
-        assert_face_boundary!(dcel.dcel, 8, 6);
-        assert_face_boundary!(dcel.dcel, 9, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
 
-        assert_face_bbox_validity(&dcel, 1);
-        assert_face_bbox_validity(&dcel, 2);
-        assert_face_bbox_validity(&dcel, 3);
-        assert_face_bbox_validity(&dcel, 4);
-        assert_face_bbox_validity(&dcel, 5);
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 4);
+        assert_face_bbox_validity(&rtreed_dcel, 5);
         // Face 6 does not exist.
-        assert_face_bbox_validity(&dcel, 7);
-        assert_face_bbox_validity(&dcel, 8);
-        assert_face_bbox_validity(&dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
     }
 
     #[test]
     fn test_absorb_face_into_face_over_edge() {
-        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        dcel.absorb_faces_over_edges_and_vertexes(
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        rtreed_dcel.absorb_faces_over_edges_and_vertexes(
             FaceId::new(6),
             [FaceId::new(5)],
             [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
             [],
         );
 
-        assert_eq!(dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
 
-        assert_face_boundary!(dcel.dcel, 0, 0);
-        assert_face_boundary!(dcel.dcel, 1, 6);
-        assert_face_boundary!(dcel.dcel, 2, 6);
-        assert_face_boundary!(dcel.dcel, 3, 6);
-        assert_face_boundary!(dcel.dcel, 4, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 6);
         // Face 5 does not exist.
-        assert_face_boundary!(dcel.dcel, 6, 10);
-        assert_face_boundary!(dcel.dcel, 7, 6);
-        assert_face_boundary!(dcel.dcel, 8, 6);
-        assert_face_boundary!(dcel.dcel, 9, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 10);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
 
-        assert_face_bbox_validity(&dcel, 1);
-        assert_face_bbox_validity(&dcel, 2);
-        assert_face_bbox_validity(&dcel, 3);
-        assert_face_bbox_validity(&dcel, 4);
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 4);
         // Face 5 does not exist.
-        assert_face_bbox_validity(&dcel, 6);
-        assert_face_bbox_validity(&dcel, 7);
-        assert_face_bbox_validity(&dcel, 8);
-        assert_face_bbox_validity(&dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
     }
 
     #[test]
     fn merge_two_faces() {
-        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        rtreed_dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
 
-        assert_eq!(dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
 
-        assert_face_boundary!(dcel.dcel, 0, 0);
-        assert_face_boundary!(dcel.dcel, 1, 6);
-        assert_face_boundary!(dcel.dcel, 2, 6);
-        assert_face_boundary!(dcel.dcel, 3, 6);
-        assert_face_boundary!(dcel.dcel, 4, 6);
-        assert_face_boundary!(dcel.dcel, 5, 6);
-        assert_face_boundary!(dcel.dcel, 6, 6);
-        assert_face_boundary!(dcel.dcel, 7, 10);
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 10);
         // Face 8 does not exist.
-        assert_face_boundary!(dcel.dcel, 9, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
 
-        assert_face_bbox_validity(&dcel, 1);
-        assert_face_bbox_validity(&dcel, 2);
-        assert_face_bbox_validity(&dcel, 3);
-        assert_face_bbox_validity(&dcel, 4);
-        assert_face_bbox_validity(&dcel, 5);
-        assert_face_bbox_validity(&dcel, 6);
-        assert_face_bbox_validity(&dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 4);
+        assert_face_bbox_validity(&rtreed_dcel, 5);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
         // Face 8 does not exist.
-        assert_face_bbox_validity(&dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
     }
 
     #[test]
     fn absorb_face_into_face() {
-        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        rtreed_dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
 
-        assert_eq!(dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
 
-        assert_face_boundary!(dcel.dcel, 0, 0);
-        assert_face_boundary!(dcel.dcel, 1, 6);
-        assert_face_boundary!(dcel.dcel, 2, 6);
-        assert_face_boundary!(dcel.dcel, 3, 6);
-        assert_face_boundary!(dcel.dcel, 4, 6);
-        assert_face_boundary!(dcel.dcel, 5, 6);
-        assert_face_boundary!(dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
         // Face 7 does not exist.
-        assert_face_boundary!(dcel.dcel, 8, 10);
-        assert_face_boundary!(dcel.dcel, 9, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 10);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
 
-        assert_face_bbox_validity(&dcel, 1);
-        assert_face_bbox_validity(&dcel, 2);
-        assert_face_bbox_validity(&dcel, 3);
-        assert_face_bbox_validity(&dcel, 4);
-        assert_face_bbox_validity(&dcel, 5);
-        assert_face_bbox_validity(&dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 4);
+        assert_face_bbox_validity(&rtreed_dcel, 5);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
         // Face 7 does not exist.
-        assert_face_bbox_validity(&dcel, 8);
-        assert_face_bbox_validity(&dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
     }
 
-    // TODO: Triangulation tests.
+    #[test]
+    fn test_triangulate_around_vertex() {
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        let (new_faces, new_edges) = rtreed_dcel.triangulate_around_vertex(FaceId::new(5), (260, 125));
 
-    fn assert_face_bbox_validity(dcel: &RTreedStableDcel<(i32, i32)>, face: usize) {
+        assert_eq!(new_faces.len(), 5);
+        assert_eq!(new_edges.len(), 6);
+
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 15);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 14);
+
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 3);
+
+        // All new faces are triangles.
+        for face in &new_faces {
+            let face_vertexes: Vec<VertexId> = rtreed_dcel.dcel.face_vertexes(*face).collect();
+            assert_eq!(face_vertexes.len(), 3);
+        }
+
+        // The new edges are in the edges rtree.
+        assert_eq!(
+            rtreed_dcel.edges_rtree
+                .iter()
+                .filter(|e| new_edges.contains(&e.data))
+                .count(),
+            6
+        );
+
+        assert_face_bbox_validity(&rtreed_dcel, 5);
+        for face in &new_faces {
+            assert!(
+                rtreed_dcel.faces_rtree
+                    .locate_in_envelope(
+                        &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
+                            rtreed_dcel.dcel
+                                .face_vertexes(*face)
+                                .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
+                        )
+                        .envelope(),
+                    )
+                    .any(|element| element.data == *face)
+            );
+        }
+    }
+
+    // TODO: Test fan triangulation.
+
+    fn assert_face_bbox_validity(rtreed_dcel: &RTreedStableDcel<(i32, i32)>, face: usize) {
         assert!(
-            dcel.faces_rtree
+            rtreed_dcel.faces_rtree
                 .locate_in_envelope(
                     &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
-                        dcel.dcel
+                        rtreed_dcel.dcel
                             .face_vertexes(FaceId::new(face))
-                            .map(|vertex| dcel.dcel.vertex_weight(vertex).clone()),
+                            .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
                     )
                     .envelope(),
                 )
                 .any(|&element| element
                     == GeomWithData::new(
                         RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
-                            dcel.dcel
+                            rtreed_dcel.dcel
                                 .face_vertexes(FaceId::new(face))
-                                .map(|vertex| dcel.dcel.vertex_weight(vertex).clone()),
+                                .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
                         ),
                         FaceId::new(face)
                     ))
