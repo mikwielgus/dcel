@@ -19,27 +19,14 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
-        let absorbing_face = self.face_in_front(
-            self.vertexes
-                .get(&inner_vertex.id())
-                .unwrap()
-                .outgoing_next_half_edge,
-        );
+        let absorbing_face = self.face_in_front(self.outgoing_next_half_edge(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
 
     pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
-        let initial_half_edge = self
-            .vertexes
-            .get(&inner_vertex.id())
-            .unwrap()
-            .outgoing_next_half_edge;
-        let initial_edge = self.full_edge(
-            self.vertexes
-                .get(&inner_vertex.id())
-                .unwrap()
-                .outgoing_next_half_edge,
-        );
+        let initial_half_edge = self.outgoing_next_half_edge(inner_vertex);
+        let initial_edge = self.full_edge(initial_half_edge);
+
         let inner_edges: Vec<EdgeId> = self.spokes(initial_edge).collect();
         let perimeter_edges: Vec<EdgeId> =
             self.vertex_rim_edges(inner_vertex).collect::<Vec<EdgeId>>();
@@ -228,6 +215,8 @@ mod test {
             [],
         );
 
+        assert_eq!(dcel.faces().num_elements(), 9);
+
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);
         assert_face_boundary!(&dcel, 2, 6);
@@ -250,6 +239,8 @@ mod test {
             [],
         );
 
+        assert_eq!(dcel.faces().num_elements(), 9);
+
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);
         assert_face_boundary!(&dcel, 2, 6);
@@ -267,6 +258,8 @@ mod test {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
 
+        assert_eq!(dcel.faces().num_elements(), 9);
+
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);
         assert_face_boundary!(&dcel, 2, 6);
@@ -283,6 +276,8 @@ mod test {
     fn absorb_face_into_face() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
+
+        assert_eq!(dcel.faces().num_elements(), 9);
 
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);

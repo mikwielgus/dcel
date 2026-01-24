@@ -30,7 +30,7 @@ pub struct RTreedDcel<
     faces_rtree: RTree<GeomWithData<Rectangle<P>, FaceId>>,
 }
 
-pub type RTreedStableDcel<P, VW, HEW, FW> = RTreedDcel<
+pub type RTreedStableDcel<P, VW = P, HEW = (), FW = ()> = RTreedDcel<
     P,
     VW,
     HEW,
@@ -39,6 +39,26 @@ pub type RTreedStableDcel<P, VW, HEW, FW> = RTreedDcel<
     StableVec<HalfEdge<HEW>>,
     StableVec<Face<FW>>,
 >;
+
+impl<
+    P: Point,
+    VW,
+    HEW,
+    FW: Default,
+    VC: Default,
+    HEC: Default,
+    FC: Default + Push<usize, Value = Face<FW>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn new() -> Self {
+        Self {
+            dcel: Dcel::new(),
+            edges_rtree: RTree::new(),
+            faces_rtree: RTree::new(),
+        }
+    }
+}
 
 impl<
     P: Point,
@@ -214,30 +234,16 @@ impl<
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
-        let absorbing_face = self.dcel.face_in_front(
-            self.dcel
-                .vertexes
-                .get(&inner_vertex.id())
-                .unwrap()
-                .outgoing_next_half_edge,
-        );
+        let absorbing_face = self
+            .dcel
+            .face_in_front(self.dcel.outgoing_next_half_edge(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
 
     pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
-        let initial_half_edge = self
-            .dcel
-            .vertexes
-            .get(&inner_vertex.id())
-            .unwrap()
-            .outgoing_next_half_edge;
-        let initial_edge = self.dcel.full_edge(
-            self.dcel
-                .vertexes
-                .get(&inner_vertex.id())
-                .unwrap()
-                .outgoing_next_half_edge,
-        );
+        let initial_half_edge = self.dcel.outgoing_next_half_edge(inner_vertex);
+        let initial_edge = self.dcel.full_edge(initial_half_edge);
+
         let inner_edges: Vec<EdgeId> = self.dcel.spokes(initial_edge).collect();
         let perimeter_edges: Vec<EdgeId> = self
             .dcel
@@ -281,19 +287,20 @@ impl<
         vertexes: impl IntoIterator<Item = VertexId>,
     ) {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
+
+        // Find an initial edge that is not in the excluded list. Otherwise, the
+        // circulator could end up starting from an excluded edge, which would
+        // result in an infinite loop, as the termination condition depends on
+        // returning to the initial edge.
+        let initial_edge = self
+            .dcel
+            .face_edges(absorbing_face)
+            .find(|edge| !edges.contains(edge))
+            .unwrap();
+
         let perimeter_edges: Vec<EdgeId> = self
             .dcel
-            .circulate_edges_with_excludes(
-                self.dcel.full_edge(
-                    self.dcel
-                        .faces
-                        .get(&absorbing_face.id())
-                        .unwrap()
-                        .incident_half_edge
-                        .unwrap(),
-                ),
-                edges.clone(),
-            )
+            .circulate_edges_with_excludes(initial_edge, edges.clone())
             .collect();
 
         self.absorb_faces_over_edges_and_vertexes_in_perimeter(
@@ -404,5 +411,148 @@ impl<P: Point, VW: Into<P>, HEW, FW, VC, HEC, FC> RTreedDcel<P, VW, HEW, FW, VC,
         Rectangle::from_aabb(weights.into_iter().fold(AABB::new_empty(), |aabb, weight| {
             aabb.merged(&AABB::from_point(Into::<P>::into(weight)))
         }))
+    }
+}
+
+#[cfg(all(test, feature = "rstar", feature = "stable-vec"))]
+mod test {
+    use crate::{
+        EdgeId, FaceId, HalfEdgeId, RTreedStableDcel, StableDcel, VertexId, assert_face_boundary,
+        init_dcel_with_3x3_hex_mesh,
+    };
+
+    #[test]
+    fn test_merge_faces_around_vertex() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        dcel.merge_faces_around_vertex(VertexId::new(8));
+
+        // There are now eight faces in total: one unbounded and seven bounded.
+        assert_eq!(dcel.dcel.faces().num_elements(), 8);
+        assert_eq!(dcel.faces_rtree.size(), 7);
+
+        // Among the remaining faces, one is now a dodecagon, and the remaining
+        // six are hexagons.
+        assert_face_boundary!(dcel.dcel, 0, 0);
+        assert_face_boundary!(dcel.dcel, 1, 6);
+        // Face 2 does not exist.
+        assert_face_boundary!(dcel.dcel, 3, 6);
+        // Face 4 does not exist.
+        assert_face_boundary!(dcel.dcel, 5, 12);
+        assert_face_boundary!(dcel.dcel, 6, 6);
+        assert_face_boundary!(dcel.dcel, 7, 6);
+        assert_face_boundary!(dcel.dcel, 8, 6);
+        assert_face_boundary!(dcel.dcel, 9, 6);
+    }
+
+    #[test]
+    fn test_absorb_faces_around_vertex() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        dcel.absorb_faces_around_vertex(FaceId::new(2), VertexId::new(8));
+
+        // There are now eight faces in total: one unbounded and seven bounded.
+        assert_eq!(dcel.dcel.faces().num_elements(), 8);
+        assert_eq!(dcel.faces_rtree.size(), 7);
+
+        // Among the remaining faces, one is now a dodecagon, and the remaining
+        // six are hexagons.
+        assert_face_boundary!(dcel.dcel, 0, 0);
+        assert_face_boundary!(dcel.dcel, 1, 6);
+        assert_face_boundary!(dcel.dcel, 2, 12);
+        assert_face_boundary!(dcel.dcel, 3, 6);
+        // Face 4 does not exist.
+        // Face 5 does not exist.
+        assert_face_boundary!(dcel.dcel, 6, 6);
+        assert_face_boundary!(dcel.dcel, 7, 6);
+        assert_face_boundary!(dcel.dcel, 8, 6);
+        assert_face_boundary!(dcel.dcel, 9, 6);
+    }
+
+    #[test]
+    fn test_merge_faces_over_edge() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        dcel.merge_faces_over_edges_and_vertexes(
+            [FaceId::new(5), FaceId::new(6)],
+            [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
+            [],
+        );
+
+        assert_eq!(dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(dcel.faces_rtree.size(), 8);
+
+        assert_face_boundary!(dcel.dcel, 0, 0);
+        assert_face_boundary!(dcel.dcel, 1, 6);
+        assert_face_boundary!(dcel.dcel, 2, 6);
+        assert_face_boundary!(dcel.dcel, 3, 6);
+        assert_face_boundary!(dcel.dcel, 4, 6);
+        assert_face_boundary!(dcel.dcel, 5, 10);
+        // Face 6 does not exist.
+        assert_face_boundary!(dcel.dcel, 7, 6);
+        assert_face_boundary!(dcel.dcel, 8, 6);
+        assert_face_boundary!(dcel.dcel, 9, 6);
+    }
+
+    #[test]
+    fn test_absorb_face_into_face_over_edge() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        dcel.absorb_faces_over_edges_and_vertexes(
+            FaceId::new(6),
+            [FaceId::new(5)],
+            [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
+            [],
+        );
+
+        assert_eq!(dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(dcel.faces_rtree.size(), 8);
+
+        assert_face_boundary!(dcel.dcel, 0, 0);
+        assert_face_boundary!(dcel.dcel, 1, 6);
+        assert_face_boundary!(dcel.dcel, 2, 6);
+        assert_face_boundary!(dcel.dcel, 3, 6);
+        assert_face_boundary!(dcel.dcel, 4, 6);
+        // Face 5 does not exist.
+        assert_face_boundary!(dcel.dcel, 6, 10);
+        assert_face_boundary!(dcel.dcel, 7, 6);
+        assert_face_boundary!(dcel.dcel, 8, 6);
+        assert_face_boundary!(dcel.dcel, 9, 6);
+    }
+
+    #[test]
+    fn merge_two_faces() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
+
+        assert_eq!(dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(dcel.faces_rtree.size(), 8);
+
+        assert_face_boundary!(dcel.dcel, 0, 0);
+        assert_face_boundary!(dcel.dcel, 1, 6);
+        assert_face_boundary!(dcel.dcel, 2, 6);
+        assert_face_boundary!(dcel.dcel, 3, 6);
+        assert_face_boundary!(dcel.dcel, 4, 6);
+        assert_face_boundary!(dcel.dcel, 5, 6);
+        assert_face_boundary!(dcel.dcel, 6, 6);
+        assert_face_boundary!(dcel.dcel, 7, 10);
+        // Face 8 does not exist.
+        assert_face_boundary!(dcel.dcel, 9, 6);
+    }
+
+    #[test]
+    fn absorb_face_into_face() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
+
+        assert_eq!(dcel.dcel.faces().num_elements(), 9);
+        assert_eq!(dcel.faces_rtree.size(), 8);
+
+        assert_face_boundary!(dcel.dcel, 0, 0);
+        assert_face_boundary!(dcel.dcel, 1, 6);
+        assert_face_boundary!(dcel.dcel, 2, 6);
+        assert_face_boundary!(dcel.dcel, 3, 6);
+        assert_face_boundary!(dcel.dcel, 4, 6);
+        assert_face_boundary!(dcel.dcel, 5, 6);
+        assert_face_boundary!(dcel.dcel, 6, 6);
+        // Face 7 does not exist.
+        assert_face_boundary!(dcel.dcel, 8, 10);
+        assert_face_boundary!(dcel.dcel, 9, 6);
     }
 }
