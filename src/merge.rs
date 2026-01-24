@@ -241,7 +241,7 @@ mod test {
     }
 
     #[test]
-    fn test_absorb_faces_over_edge() {
+    fn test_absorb_face_into_face_over_edge() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         dcel.absorb_faces_over_edges_and_vertexes(
             FaceId::new(6),
@@ -259,6 +259,40 @@ mod test {
         assert_face_boundary!(&dcel, 6, 10);
         assert_face_boundary!(&dcel, 7, 6);
         assert_face_boundary!(&dcel, 8, 6);
+        assert_face_boundary!(&dcel, 9, 6);
+    }
+
+    #[test]
+    fn merge_two_faces() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
+        dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
+
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        assert_face_boundary!(&dcel, 2, 6);
+        assert_face_boundary!(&dcel, 3, 6);
+        assert_face_boundary!(&dcel, 4, 6);
+        assert_face_boundary!(&dcel, 5, 6);
+        assert_face_boundary!(&dcel, 6, 6);
+        assert_face_boundary!(&dcel, 7, 10);
+        // Face 8 does not exist.
+        assert_face_boundary!(&dcel, 9, 6);
+    }
+
+    #[test]
+    fn absorb_face_into_face() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
+        dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
+
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        assert_face_boundary!(&dcel, 2, 6);
+        assert_face_boundary!(&dcel, 3, 6);
+        assert_face_boundary!(&dcel, 4, 6);
+        assert_face_boundary!(&dcel, 5, 6);
+        assert_face_boundary!(&dcel, 6, 6);
+        // Face 7 does not exist.
+        assert_face_boundary!(&dcel, 8, 10);
         assert_face_boundary!(&dcel, 9, 6);
     }
 }
