@@ -92,14 +92,7 @@ impl<
         let faces = self.dcel.insert_mesh(face_polygons);
 
         for face in &faces {
-            self.add_face_with_edges_to_rtrees(
-                *face,
-                Self::rectangle_from_vertex_weights(
-                    self.dcel
-                        .face_vertexes(*face)
-                        .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
-                ),
-            );
+            self.add_face_with_edges_to_rtrees(*face);
         }
 
         faces
@@ -112,14 +105,7 @@ impl<
         let faces = self.dcel.insert_mesh_in_face(face_polygons);
 
         for face in &faces {
-            self.add_face_with_edges_to_rtrees(
-                *face,
-                Self::rectangle_from_vertex_weights(
-                    self.dcel
-                        .face_vertexes(*face)
-                        .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
-                ),
-            );
+            self.add_face_with_edges_to_rtrees(*face);
         }
 
         faces
@@ -139,7 +125,7 @@ impl<
     pub fn insert_polygon(&mut self, vertex_weights: impl IntoIterator<Item = VW>) -> FaceId {
         let vertex_weights: Vec<VW> = vertex_weights.into_iter().collect();
         let face = self.dcel.insert_polygon(vertex_weights.clone());
-        self.add_face_with_edges_to_rtrees(
+        self.add_face_with_edges_to_rtrees_with_bbox(
             face,
             Self::rectangle_from_vertex_weights(vertex_weights),
         );
@@ -157,7 +143,7 @@ impl<
         let face = self
             .dcel
             .insert_polygon_in_face(outer_face, vertex_weights.clone());
-        self.add_face_with_edges_to_rtrees(
+        self.add_face_with_edges_to_rtrees_with_bbox(
             face,
             Self::rectangle_from_vertex_weights(vertex_weights),
         );
@@ -189,7 +175,7 @@ impl<
             edge_weights,
             face_weight,
         );
-        self.add_face_with_edges_to_rtrees(
+        self.add_face_with_edges_to_rtrees_with_bbox(
             face,
             Self::rectangle_from_vertex_weights(vertex_weights),
         );
@@ -212,7 +198,7 @@ impl<
             edge_weights,
             face_weight,
         );
-        self.add_face_with_edges_to_rtrees(
+        self.add_face_with_edges_to_rtrees_with_bbox(
             face,
             Self::rectangle_from_vertex_weights(vertex_weights),
         );
@@ -415,14 +401,7 @@ impl<
         );
 
         // Insert the absorbing face back in the R-tree, with the updated bbox.
-        self.add_face_with_edges_to_rtrees(
-            absorbing_face,
-            Self::rectangle_from_vertex_weights(
-                self.dcel
-                    .face_vertexes(absorbing_face)
-                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
-            ),
-        );
+        self.add_face_to_rtree(absorbing_face);
     }
 }
 
@@ -436,9 +415,39 @@ impl<
     FC: Get<usize, Value = Face<FW>>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
-    fn add_face_with_edges_to_rtrees(&mut self, face: FaceId, face_rectangle: Rectangle<P>) {
+    fn add_face_to_rtree(&mut self, face: FaceId) {
+        self.add_face_to_rtree_with_bbox(
+            face,
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+        )
+    }
+
+    fn add_face_to_rtree_with_bbox(&mut self, face: FaceId, face_rectangle: Rectangle<P>) {
         self.faces_rtree
             .insert(GeomWithData::new(face_rectangle, face));
+    }
+
+    fn add_face_with_edges_to_rtrees(&mut self, face: FaceId) {
+        self.add_face_with_edges_to_rtrees_with_bbox(
+            face,
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+        )
+    }
+
+    fn add_face_with_edges_to_rtrees_with_bbox(
+        &mut self,
+        face: FaceId,
+        face_rectangle: Rectangle<P>,
+    ) {
+        self.add_face_to_rtree_with_bbox(face, face_rectangle);
 
         for edge in self.dcel.face_edges(face) {
             let endpoints = self.dcel.endpoints(edge);
@@ -664,6 +673,8 @@ mod test {
         assert_face_bbox_validity(&dcel, 8);
         assert_face_bbox_validity(&dcel, 9);
     }
+
+    // TODO: Triangulation tests.
 
     fn assert_face_bbox_validity(dcel: &RTreedStableDcel<(i32, i32)>, face: usize) {
         assert!(
