@@ -802,7 +802,8 @@ mod test {
     #[test]
     fn test_triangulate_around_vertex() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        let (new_faces, new_edges) = rtreed_dcel.triangulate_around_vertex(FaceId::new(5), (260, 125));
+        let (new_faces, new_edges) =
+            rtreed_dcel.triangulate_around_vertex(FaceId::new(5), (260, 125));
 
         assert_eq!(new_faces.len(), 5);
         assert_eq!(new_edges.len(), 6);
@@ -820,7 +821,8 @@ mod test {
 
         // The new edges are in the edges rtree.
         assert_eq!(
-            rtreed_dcel.edges_rtree
+            rtreed_dcel
+                .edges_rtree
                 .iter()
                 .filter(|e| new_edges.contains(&e.data))
                 .count(),
@@ -830,10 +832,12 @@ mod test {
         assert_face_bbox_validity(&rtreed_dcel, 5);
         for face in &new_faces {
             assert!(
-                rtreed_dcel.faces_rtree
+                rtreed_dcel
+                    .faces_rtree
                     .locate_in_envelope(
                         &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
-                            rtreed_dcel.dcel
+                            rtreed_dcel
+                                .dcel
                                 .face_vertexes(*face)
                                 .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
                         )
@@ -848,10 +852,12 @@ mod test {
 
     fn assert_face_bbox_validity(rtreed_dcel: &RTreedStableDcel<(i32, i32)>, face: usize) {
         assert!(
-            rtreed_dcel.faces_rtree
+            rtreed_dcel
+                .faces_rtree
                 .locate_in_envelope(
                     &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
-                        rtreed_dcel.dcel
+                        rtreed_dcel
+                            .dcel
                             .face_vertexes(FaceId::new(face))
                             .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
                     )
@@ -860,7 +866,8 @@ mod test {
                 .any(|&element| element
                     == GeomWithData::new(
                         RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
-                            rtreed_dcel.dcel
+                            rtreed_dcel
+                                .dcel
                                 .face_vertexes(FaceId::new(face))
                                 .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
                         ),
