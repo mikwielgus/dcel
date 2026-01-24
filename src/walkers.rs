@@ -471,8 +471,15 @@ impl FaceVertexesWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
-    Iterator for FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC>
+impl<
+    'a,
+    VW,
+    HEW,
+    FW,
+    VC: Get<usize, Value = Vertex<VW>>,
+    HEC: Get<usize, Value = HalfEdge<HEW>>,
+    FC,
+> Iterator for FaceVertexesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
 
@@ -508,8 +515,15 @@ impl FaceVertexesReverseWalker {
     }
 }
 
-impl<'a, VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
-    Iterator for FaceVertexesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+impl<
+    'a,
+    VW,
+    HEW,
+    FW,
+    VC: Get<usize, Value = Vertex<VW>>,
+    HEC: Get<usize, Value = HalfEdge<HEW>>,
+    FC,
+> Iterator for FaceVertexesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = VertexId;
 

@@ -133,13 +133,11 @@ macro_rules! assert_vertex_rim {
                 .collect::<Vec<HalfEdgeId>>()
         );
 
-        let vertex_rim_edges: Vec<EdgeId> =
-            $dcel.vertex_rim_edges(VertexId::new($id)).collect();
+        let vertex_rim_edges: Vec<EdgeId> = $dcel.vertex_rim_edges(VertexId::new($id)).collect();
         assert_eq!(vertex_rim_edges.len(), $count);
 
-        let vertex_rim_edges_reverse: Vec<EdgeId> = $dcel
-            .vertex_rim_edges_reverse(VertexId::new($id))
-            .collect();
+        let vertex_rim_edges_reverse: Vec<EdgeId> =
+            $dcel.vertex_rim_edges_reverse(VertexId::new($id)).collect();
         assert_eq!(
             vertex_rim_edges,
             vertex_rim_edges_reverse
@@ -181,9 +179,8 @@ macro_rules! assert_vertex_spokes_interspokes {
         let vertex_spokes: Vec<EdgeId> = $dcel.vertex_spokes(VertexId::new($id)).collect();
         assert_eq!(vertex_spokes.len(), $count);
 
-        let vertex_spokes_reverse: Vec<EdgeId> = $dcel
-            .vertex_spokes_reverse(VertexId::new($id))
-            .collect();
+        let vertex_spokes_reverse: Vec<EdgeId> =
+            $dcel.vertex_spokes_reverse(VertexId::new($id)).collect();
         assert_eq!(vertex_spokes.first(), vertex_spokes_reverse.first());
         assert_eq!(
             vertex_spokes.into_iter().skip(1).collect::<Vec<EdgeId>>(),
@@ -227,9 +224,8 @@ macro_rules! assert_face_boundary {
         let face_vertexes: Vec<VertexId> = $dcel.face_vertexes(FaceId::new($id)).collect();
         assert_eq!(face_vertexes.len(), $count);
 
-        let face_vertexes_reverse: Vec<VertexId> = $dcel
-            .face_vertexes_reverse(FaceId::new($id))
-            .collect();
+        let face_vertexes_reverse: Vec<VertexId> =
+            $dcel.face_vertexes_reverse(FaceId::new($id)).collect();
         assert_eq!(face_vertexes.first(), face_vertexes_reverse.first());
         assert_eq!(
             face_vertexes.into_iter().skip(1).collect::<Vec<VertexId>>(),
@@ -240,13 +236,11 @@ macro_rules! assert_face_boundary {
                 .collect::<Vec<VertexId>>()
         );
 
-        let face_half_edges: Vec<HalfEdgeId> =
-            $dcel.face_half_edges(FaceId::new($id)).collect();
+        let face_half_edges: Vec<HalfEdgeId> = $dcel.face_half_edges(FaceId::new($id)).collect();
         assert_eq!(face_half_edges.len(), $count);
 
-        let face_half_edges_reverse: Vec<HalfEdgeId> = $dcel
-            .face_half_edges_reverse(FaceId::new($id))
-            .collect();
+        let face_half_edges_reverse: Vec<HalfEdgeId> =
+            $dcel.face_half_edges_reverse(FaceId::new($id)).collect();
         assert_eq!(face_half_edges.first(), face_half_edges_reverse.first());
         assert_eq!(
             face_half_edges
@@ -263,8 +257,7 @@ macro_rules! assert_face_boundary {
         let face_edges: Vec<EdgeId> = $dcel.face_edges(FaceId::new($id)).collect();
         assert_eq!(face_edges.len(), $count);
 
-        let face_edges_reverse: Vec<EdgeId> =
-            $dcel.face_edges_reverse(FaceId::new($id)).collect();
+        let face_edges_reverse: Vec<EdgeId> = $dcel.face_edges_reverse(FaceId::new($id)).collect();
         assert_eq!(face_edges.first(), face_edges_reverse.first());
         assert_eq!(
             face_edges.into_iter().skip(1).collect::<Vec<EdgeId>>(),
