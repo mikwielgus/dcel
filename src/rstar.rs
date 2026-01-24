@@ -396,12 +396,33 @@ impl<
             ));
         }
 
+        // Remove the absorbing face from the R-tree before its shape changes,
+        // which would invalidate its bbox and make it impossible to access.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face_to_absorb)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            absorbing_face,
+        ));
+
         self.dcel.absorb_faces_over_edges_and_vertexes_in_perimeter(
             absorbing_face,
             faces_to_absorb,
             edges_to_remove,
             vertexes_to_remove,
             perimeter_edges,
+        );
+
+        // Insert the absorbing face back in the R-tree, with new bbox.
+        self.add_face_with_edges_to_rtrees(
+            face,
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
         );
     }
 }
