@@ -204,23 +204,6 @@ impl<
 
         face
     }
-
-    fn add_face_with_edges_to_rtrees(&mut self, face: FaceId, face_rectangle: Rectangle<P>) {
-        self.faces_rtree
-            .insert(GeomWithData::new(face_rectangle, face));
-
-        for edge in self.dcel.face_edges(face) {
-            let endpoints = self.dcel.endpoints(edge);
-
-            self.edges_rtree.insert(GeomWithData::new(
-                Rectangle::from_corners(
-                    self.dcel.vertex_weight(endpoints.0).clone().into(),
-                    self.dcel.vertex_weight(endpoints.1).clone().into(),
-                ),
-                edge,
-            ));
-        }
-    }
 }
 
 impl<
@@ -397,11 +380,12 @@ impl<
         }
 
         // Remove the absorbing face from the R-tree before its shape changes,
-        // which would invalidate its bbox and make it impossible to access.
+        // which would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(face_to_absorb)
+                    .face_vertexes(absorbing_face)
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
             absorbing_face,
@@ -415,15 +399,43 @@ impl<
             perimeter_edges,
         );
 
-        // Insert the absorbing face back in the R-tree, with new bbox.
+        // Insert the absorbing face back in the R-tree, with the updated bbox.
         self.add_face_with_edges_to_rtrees(
-            face,
+            absorbing_face,
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(face)
+                    .face_vertexes(absorbing_face)
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
         );
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
+    HEW,
+    FW,
+    VC: Get<usize, Value = Vertex<VW>>,
+    HEC: Get<usize, Value = HalfEdge<HEW>>,
+    FC: Get<usize, Value = Face<FW>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    fn add_face_with_edges_to_rtrees(&mut self, face: FaceId, face_rectangle: Rectangle<P>) {
+        self.faces_rtree
+            .insert(GeomWithData::new(face_rectangle, face));
+
+        for edge in self.dcel.face_edges(face) {
+            let endpoints = self.dcel.endpoints(edge);
+
+            self.edges_rtree.insert(GeomWithData::new(
+                Rectangle::from_corners(
+                    Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
+                    Into::<P>::into(self.dcel.vertex_weight(endpoints.1).clone()),
+                ),
+                edge,
+            ));
+        }
     }
 }
 
@@ -437,6 +449,8 @@ impl<P: Point, VW: Into<P>, HEW, FW, VC, HEC, FC> RTreedDcel<P, VW, HEW, FW, VC,
 
 #[cfg(all(test, feature = "rstar", feature = "stable-vec"))]
 mod test {
+    use rstar::{RTreeObject, primitives::GeomWithData};
+
     use crate::{
         EdgeId, FaceId, HalfEdgeId, RTreedStableDcel, StableDcel, VertexId, assert_face_boundary,
         init_dcel_with_3x3_hex_mesh,
@@ -463,6 +477,15 @@ mod test {
         assert_face_boundary!(dcel.dcel, 7, 6);
         assert_face_boundary!(dcel.dcel, 8, 6);
         assert_face_boundary!(dcel.dcel, 9, 6);
+
+        assert_face_bbox_validity(&dcel, 1);
+        // Face 2 does not exist.
+        assert_face_bbox_validity(&dcel, 3);
+        // Face 4 does not exist.
+        assert_face_bbox_validity(&dcel, 6);
+        assert_face_bbox_validity(&dcel, 7);
+        assert_face_bbox_validity(&dcel, 8);
+        assert_face_bbox_validity(&dcel, 9);
     }
 
     #[test]
@@ -486,6 +509,16 @@ mod test {
         assert_face_boundary!(dcel.dcel, 7, 6);
         assert_face_boundary!(dcel.dcel, 8, 6);
         assert_face_boundary!(dcel.dcel, 9, 6);
+
+        assert_face_bbox_validity(&dcel, 1);
+        assert_face_bbox_validity(&dcel, 2);
+        assert_face_bbox_validity(&dcel, 3);
+        // Face 4 does not exist.
+        // Face 5 does not exist.
+        assert_face_bbox_validity(&dcel, 6);
+        assert_face_bbox_validity(&dcel, 7);
+        assert_face_bbox_validity(&dcel, 8);
+        assert_face_bbox_validity(&dcel, 9);
     }
 
     #[test]
@@ -510,6 +543,16 @@ mod test {
         assert_face_boundary!(dcel.dcel, 7, 6);
         assert_face_boundary!(dcel.dcel, 8, 6);
         assert_face_boundary!(dcel.dcel, 9, 6);
+
+        assert_face_bbox_validity(&dcel, 1);
+        assert_face_bbox_validity(&dcel, 2);
+        assert_face_bbox_validity(&dcel, 3);
+        assert_face_bbox_validity(&dcel, 4);
+        assert_face_bbox_validity(&dcel, 5);
+        // Face 6 does not exist.
+        assert_face_bbox_validity(&dcel, 7);
+        assert_face_bbox_validity(&dcel, 8);
+        assert_face_bbox_validity(&dcel, 9);
     }
 
     #[test]
@@ -535,6 +578,16 @@ mod test {
         assert_face_boundary!(dcel.dcel, 7, 6);
         assert_face_boundary!(dcel.dcel, 8, 6);
         assert_face_boundary!(dcel.dcel, 9, 6);
+
+        assert_face_bbox_validity(&dcel, 1);
+        assert_face_bbox_validity(&dcel, 2);
+        assert_face_bbox_validity(&dcel, 3);
+        assert_face_bbox_validity(&dcel, 4);
+        // Face 5 does not exist.
+        assert_face_bbox_validity(&dcel, 6);
+        assert_face_bbox_validity(&dcel, 7);
+        assert_face_bbox_validity(&dcel, 8);
+        assert_face_bbox_validity(&dcel, 9);
     }
 
     #[test]
@@ -555,6 +608,16 @@ mod test {
         assert_face_boundary!(dcel.dcel, 7, 10);
         // Face 8 does not exist.
         assert_face_boundary!(dcel.dcel, 9, 6);
+
+        assert_face_bbox_validity(&dcel, 1);
+        assert_face_bbox_validity(&dcel, 2);
+        assert_face_bbox_validity(&dcel, 3);
+        assert_face_bbox_validity(&dcel, 4);
+        assert_face_bbox_validity(&dcel, 5);
+        assert_face_bbox_validity(&dcel, 6);
+        assert_face_bbox_validity(&dcel, 7);
+        // Face 8 does not exist.
+        assert_face_bbox_validity(&dcel, 9);
     }
 
     #[test]
@@ -575,5 +638,38 @@ mod test {
         // Face 7 does not exist.
         assert_face_boundary!(dcel.dcel, 8, 10);
         assert_face_boundary!(dcel.dcel, 9, 6);
+
+        assert_face_bbox_validity(&dcel, 1);
+        assert_face_bbox_validity(&dcel, 2);
+        assert_face_bbox_validity(&dcel, 3);
+        assert_face_bbox_validity(&dcel, 4);
+        assert_face_bbox_validity(&dcel, 5);
+        assert_face_bbox_validity(&dcel, 6);
+        // Face 7 does not exist.
+        assert_face_bbox_validity(&dcel, 8);
+        assert_face_bbox_validity(&dcel, 9);
+    }
+
+    fn assert_face_bbox_validity(dcel: &RTreedStableDcel<(i32, i32)>, face: usize) {
+        assert!(
+            dcel.faces_rtree
+                .locate_in_envelope(
+                    &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
+                        dcel.dcel
+                            .face_vertexes(FaceId::new(face))
+                            .map(|vertex| dcel.dcel.vertex_weight(vertex).clone()),
+                    )
+                    .envelope(),
+                )
+                .any(|&element| element
+                    == GeomWithData::new(
+                        RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
+                            dcel.dcel
+                                .face_vertexes(FaceId::new(face))
+                                .map(|vertex| dcel.dcel.vertex_weight(vertex).clone()),
+                        ),
+                        FaceId::new(face)
+                    ))
+        );
     }
 }
