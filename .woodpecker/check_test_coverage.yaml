@@ -3,15 +3,13 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
 steps:
-  check_formatting:
+  check_test_coverage:
     image: rust
     environment:
       RUST_BACKTRACE: 1
       CARGO_TERM_COLOR: always
     commands:
       - cargo install cargo-llvm-cov
-      - cargo llvm-cov --all-features --all-targets --fail-under-lines 100 -- src/walkers.rs
-      - cargo llvm-cov --all-features --all-targets --fail-under-lines 90 -- src/iter.rs
-      - cargo llvm-cov --all-features --all-targets --fail-under-lines 60
+      - cargo llvm-cov --all-features --all-targets --fail-under-lines 70
     when:
       event: [pull_request, push, tag]
