@@ -122,8 +122,13 @@ impl<
         let mut vertex_weights_counter = VertexesCounter::new();
         let faces: Vec<FaceId> = faces.into_iter().collect();
 
+        // To detect the merged edges and vertexes correctly, the absorbing face
+        // has to be visited in addition to the absorbed faces.
+        half_edges_counter.visit_face_half_edges(self, absorbing_face);
+        vertex_weights_counter.visit_face_vertexes(self, absorbing_face);
+
         for &face in &faces {
-            half_edges_counter.visit_face_edges(self, face);
+            half_edges_counter.visit_face_half_edges(self, face);
             vertex_weights_counter.visit_face_vertexes(self, face);
         }
 

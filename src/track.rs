@@ -9,6 +9,7 @@ use maplike::Get;
 
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
 
+#[derive(Debug)]
 pub struct HalfEdgesCounter {
     map: BTreeMap<usize, usize>,
 }
@@ -114,16 +115,17 @@ impl HalfEdgesCounter {
     }
 
     pub fn is_inner_edge(&self, edge: EdgeId) -> bool {
-        self.half_edge_visit_count(edge.forward()) <= 0
-            || self.half_edge_visit_count(edge.backward()) <= 0
-    }
-
-    pub fn is_outer_edge(&self, edge: EdgeId) -> bool {
         self.half_edge_visit_count(edge.forward()) >= 1
             && self.half_edge_visit_count(edge.backward()) >= 1
     }
+
+    pub fn is_outer_edge(&self, edge: EdgeId) -> bool {
+        self.half_edge_visit_count(edge.forward()) <= 0
+            || self.half_edge_visit_count(edge.backward()) <= 0
+    }
 }
 
+#[derive(Debug)]
 pub struct VertexesCounter {
     map: BTreeMap<usize, usize>,
 }
