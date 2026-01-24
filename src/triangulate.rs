@@ -27,7 +27,7 @@ impl<
         &mut self,
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
-    ) -> Vec<FaceId> {
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
         let perimeter_vertex_count = self.face_vertexes(perimeter_face).count();
 
         self.triangulate_around_vertex_with_all_weights(
@@ -38,7 +38,11 @@ impl<
         )
     }
 
-    pub fn fan_triangulate(&mut self, perimeter_face: FaceId, apex: VertexId) -> Vec<FaceId> {
+    pub fn fan_triangulate(
+        &mut self,
+        perimeter_face: FaceId,
+        apex: VertexId,
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
         let fan_vertexes_count = self.face_vertexes(perimeter_face).count() - 1;
 
         self.fan_triangulate_with_all_weights(
@@ -65,7 +69,7 @@ impl<
         inner_vertex_weight: VW,
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) -> Vec<FaceId> {
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
         let inner_vertex = self.add_unwired_vertex(inner_vertex_weight);
         self.fan_triangulate_with_all_weights(
             perimeter_face,
@@ -81,7 +85,7 @@ impl<
         apex: VertexId,
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) -> Vec<FaceId> {
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
         let new_faces = self.add_unwired_triangulation_faces(perimeter_face, triangle_face_weights);
 
         let mut triangle_faces = vec![perimeter_face];
@@ -95,7 +99,7 @@ impl<
         );
         self.wire_triangulation_faces_edges_vertexes(perimeter_face, &inner_edges);
 
-        new_faces
+        (new_faces, inner_edges)
     }
 
     fn add_unwired_triangulation_faces(
