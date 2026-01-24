@@ -58,6 +58,21 @@ impl<
             faces_rtree: RTree::new(),
         }
     }
+
+    #[inline]
+    pub fn dcel(&self) -> &Dcel<VW, HEW, FW, VC, HEC, FC> {
+        &self.dcel
+    }
+
+    #[inline]
+    pub fn edges_rtree(&self) -> &RTree<GeomWithData<Rectangle<P>, EdgeId>> {
+        &self.edges_rtree
+    }
+
+    #[inline]
+    pub fn faces_rtree(&self) -> &RTree<GeomWithData<Rectangle<P>, FaceId>> {
+        &self.faces_rtree
+    }
 }
 
 impl<
