@@ -43,13 +43,13 @@ impl<
         perimeter_face: FaceId,
         apex: VertexId,
     ) -> (Vec<FaceId>, Vec<EdgeId>) {
-        let fan_vertexes_count = self.face_vertexes(perimeter_face).count() - 1;
+        let perimeter_vertex_count = self.face_vertexes(perimeter_face).count();
 
         self.fan_triangulate_with_all_weights(
             perimeter_face,
             apex,
-            std::iter::repeat_n(Default::default(), fan_vertexes_count),
-            std::iter::repeat_n(Default::default(), fan_vertexes_count),
+            std::iter::repeat_n(Default::default(), perimeter_vertex_count),
+            std::iter::repeat_n(Default::default(), perimeter_vertex_count),
         )
     }
 }
