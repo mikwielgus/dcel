@@ -408,6 +408,168 @@ impl<
 impl<
     P: Point,
     VW: Clone + Into<P>,
+    HEW: Clone + Default,
+    FW: Clone + Default,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    /// Partition a face into triangles by inserting a vertex inside and then
+    /// adding edges between it and the original face's vertexes.
+    ///
+    /// The original face is reused for the first triangle. New faces are
+    /// created for all the other triangles.
+    ///
+    /// Returns the new vertex id together with the face ids of all the new
+    /// triangles.
+    pub fn triangulate_around_vertex(
+        &mut self,
+        perimeter_face: FaceId,
+        inner_vertex_weight: VW,
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+        // The perimeter face id is reused as one of the triangulation faces.
+        // So, we need to remove it from the R-tree before its shape changes,
+        // as it would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(perimeter_face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            perimeter_face,
+        ));
+
+        let (new_faces, new_edges) = self
+            .dcel
+            .triangulate_around_vertex(perimeter_face, inner_vertex_weight);
+
+        // Insert the perimeter face back in the R-tree, with the updated bbox.
+        self.add_face_to_rtree(perimeter_face);
+
+        self.add_faces_to_rtree(new_faces.clone());
+        self.add_edges_to_rtree(new_edges.clone());
+
+        (new_faces, new_edges)
+    }
+
+    pub fn fan_triangulate(
+        &mut self,
+        perimeter_face: FaceId,
+        apex: VertexId,
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+        // The perimeter face id is reused as one of the triangulation faces.
+        // So, we need to remove it from the R-tree before its shape changes,
+        // as it would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(perimeter_face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            perimeter_face,
+        ));
+
+        let (new_faces, new_edges) = self.dcel.fan_triangulate(perimeter_face, apex);
+
+        // Insert the perimeter face back in the R-tree, with the updated bbox.
+        self.add_face_to_rtree(perimeter_face);
+
+        self.add_faces_to_rtree(new_faces.clone());
+        self.add_edges_to_rtree(new_edges.clone());
+
+        (new_faces, new_edges)
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
+    HEW: Clone,
+    FW: Clone,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn triangulate_around_vertex_with_all_weights(
+        &mut self,
+        perimeter_face: FaceId,
+        inner_vertex_weight: VW,
+        inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
+        triangle_face_weights: impl IntoIterator<Item = FW>,
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+        // The perimeter face id is reused as one of the triangulation faces.
+        // So, we need to remove it from the R-tree before its shape changes,
+        // as it would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(perimeter_face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            perimeter_face,
+        ));
+
+        let (new_faces, new_edges) = self.dcel.triangulate_around_vertex_with_all_weights(
+            perimeter_face,
+            inner_vertex_weight,
+            inner_edge_weights,
+            triangle_face_weights,
+        );
+
+        // Insert the perimeter face back in the R-tree, with the updated bbox.
+        self.add_face_to_rtree(perimeter_face);
+
+        self.add_faces_to_rtree(new_faces.clone());
+        self.add_edges_to_rtree(new_edges.clone());
+
+        (new_faces, new_edges)
+    }
+
+    pub fn fan_triangulate_with_all_weights(
+        &mut self,
+        perimeter_face: FaceId,
+        apex: VertexId,
+        inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
+        triangle_face_weights: impl IntoIterator<Item = FW>,
+    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+        // The perimeter face id is reused as one of the triangulation faces.
+        // So, we need to remove it from the R-tree before its shape changes,
+        // as it would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(perimeter_face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            perimeter_face,
+        ));
+
+        let (new_faces, new_edges) = self.dcel.fan_triangulate_with_all_weights(
+            perimeter_face,
+            apex,
+            inner_edge_weights,
+            triangle_face_weights,
+        );
+
+        // Insert the perimeter face back in the R-tree, with the updated bbox.
+        self.add_face_to_rtree(perimeter_face);
+
+        self.add_faces_to_rtree(new_faces.clone());
+        self.add_edges_to_rtree(new_edges.clone());
+
+        (new_faces, new_edges)
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
     HEW,
     FW,
     VC: Get<usize, Value = Vertex<VW>>,
@@ -415,6 +577,12 @@ impl<
     FC: Get<usize, Value = Face<FW>>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
+    fn add_faces_to_rtree(&mut self, faces: impl IntoIterator<Item = FaceId>) {
+        for face in faces {
+            self.add_face_to_rtree(face);
+        }
+    }
+
     fn add_face_to_rtree(&mut self, face: FaceId) {
         self.add_face_to_rtree_with_bbox(
             face,
@@ -448,8 +616,11 @@ impl<
         face_rectangle: Rectangle<P>,
     ) {
         self.add_face_to_rtree_with_bbox(face, face_rectangle);
+        self.add_edges_to_rtree(self.dcel.face_edges(face).collect::<Vec<EdgeId>>());
+    }
 
-        for edge in self.dcel.face_edges(face) {
+    fn add_edges_to_rtree(&mut self, edges: impl IntoIterator<Item = EdgeId>) {
+        for edge in edges {
             let endpoints = self.dcel.endpoints(edge);
 
             self.edges_rtree.insert(GeomWithData::new(

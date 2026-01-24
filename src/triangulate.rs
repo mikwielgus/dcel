@@ -91,15 +91,15 @@ impl<
         let mut triangle_faces = vec![perimeter_face];
         triangle_faces.extend(new_faces.clone());
 
-        let inner_edges = self.add_unwired_triangulation_edges(
+        let new_edges = self.add_unwired_triangulation_edges(
             perimeter_face,
             apex,
             &triangle_faces,
             inner_edge_weights,
         );
-        self.wire_triangulation_faces_edges_vertexes(perimeter_face, &inner_edges);
+        self.wire_triangulation_faces_edges_vertexes(perimeter_face, &new_edges);
 
-        (new_faces, inner_edges)
+        (new_faces, new_edges)
     }
 
     fn add_unwired_triangulation_faces(
