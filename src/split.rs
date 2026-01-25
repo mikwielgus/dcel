@@ -55,34 +55,54 @@ impl<
         face_to_split: FaceId,
         new_face_weight: FW,
     ) {
+        let from_incoming = self.vertex_inner_incoming_half_edge(from, face_to_split);
+        let from_outgoing = self.vertex_inner_outgoing_half_edge(from, face_to_split);
+        let to_incoming = self.vertex_inner_incoming_half_edge(to, face_to_split);
+        let to_outgoing = self.vertex_inner_outgoing_half_edge(to, face_to_split);
+
         let new_face = self.add_unwired_face(new_face_weight);
-        let (new_edges, last_vertex, last_edge_weight) = self.add_unwired_dangling_edge_chain(
+        let (mut new_edges, last_vertex, last_edge_weight) = self.add_unwired_dangling_edge_chain(
             from,
             vertex_weights,
             edge_weights,
             face_to_split,
             new_face,
         );
-        let final_edge = self.add_unwired_edge(
+        new_edges.push(self.add_unwired_edge(
             last_vertex,
             to,
             face_to_split,
             new_face,
             last_edge_weight.0,
             last_edge_weight.1,
-        );
+        ));
+
+        let mut face_to_split_edges = vec![];
+        face_to_split_edges.push(self.full_edge(from_incoming));
+        face_to_split_edges.extend(new_edges.iter().copied());
+        face_to_split_edges.push(self.full_edge(to_outgoing));
+
+        // TODO: No need to run the whole loop here actually.
+        let mut curr_half_edge = self.next_half_edge(to_outgoing);
+        while curr_half_edge != from_incoming {
+            face_to_split_edges.push(self.full_edge(curr_half_edge));
+            curr_half_edge = self.next_half_edge(curr_half_edge);
+        }
 
         let mut new_face_edges = vec![];
-        new_face_edges.push(self.vertex_prev_edge(from));
-        new_face_edges.extend(new_edges);
-        new_face_edges.push(final_edge);
-        new_face_edges.push(self.vertex_next_edge(to));
+        new_face_edges.push(self.full_edge(to_incoming));
+        new_face_edges.extend(new_edges.iter().rev().map(|edge| self.reverse_edge(*edge)));
+        new_face_edges.push(self.full_edge(from_outgoing));
 
+        // TODO: No need to run the whole loop here actually.
+        let mut curr_half_edge = self.next_half_edge(from_outgoing);
+        while curr_half_edge != to_incoming {
+            new_face_edges.push(self.full_edge(curr_half_edge));
+            curr_half_edge = self.next_half_edge(curr_half_edge);
+        }
+
+        self.wire_inner_half_edge_chain(face_to_split, &face_to_split_edges);
         self.wire_inner_half_edge_chain(new_face, &new_face_edges);
-        self.wire_inner_half_edge_chain(
-            face_to_split,
-            &self.face_edges(face_to_split).collect::<Vec<EdgeId>>(),
-        );
     }
 
     fn add_unwired_dangling_edge_chain(

@@ -75,7 +75,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     #[inline]
     pub fn vertex_inner_outgoing_half_edge(&self, vertex: VertexId, face: FaceId) -> HalfEdgeId {
         self.vertex_half_spokes(vertex)
-            .find(|half_edge| self.face_in_front(*half_edge) == face)
+            .find(|&half_edge| self.face_in_front(half_edge) == face)
             .unwrap()
     }
 
