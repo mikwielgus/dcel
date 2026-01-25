@@ -15,8 +15,8 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn split_face_by_edge(&mut self, from: VertexId, to: VertexId, split_face: FaceId) {
-        self.split_face_by_edge_chain(from, to, [], split_face);
+    pub fn split_face_by_edge(&mut self, from: VertexId, to: VertexId, face_to_split: FaceId) {
+        self.split_face_by_edge_chain(from, to, [], face_to_split);
     }
 
     pub fn split_face_by_edge_chain(
@@ -24,14 +24,14 @@ impl<
         from: VertexId,
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
-        split_face: FaceId,
+        face_to_split: FaceId,
     ) {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,
             vertex_weights,
             std::iter::repeat((HEW::default(), HEW::default())),
-            split_face,
+            face_to_split,
             FW::default(),
         );
     }
@@ -155,5 +155,77 @@ impl<
         );
 
         (dangling_edge, dangling_vertex)
+    }
+}
+
+#[cfg(all(test, feature = "stable-vec"))]
+mod test {
+    use crate::{FaceId, StableDcel, VertexId, assert_face_boundary, init_dcel_with_3x3_hex_mesh};
+
+    #[test]
+    fn test_split_face_by_edge() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
+        let face_to_split = FaceId::new(5);
+        let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
+
+        // Split face 5 in two with a single edge.
+        dcel.split_face_by_edge(
+            face_to_split_vertexes[0],
+            face_to_split_vertexes[3],
+            face_to_split,
+        );
+
+        // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(dcel.faces().num_elements(), 11);
+
+        // The original hexagon is now split into two quads.
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        assert_face_boundary!(&dcel, 2, 6);
+        assert_face_boundary!(&dcel, 3, 6);
+        assert_face_boundary!(&dcel, 4, 6);
+        // Second quad face.
+        assert_face_boundary!(&dcel, 5, 4);
+        assert_face_boundary!(&dcel, 6, 6);
+        assert_face_boundary!(&dcel, 7, 6);
+        assert_face_boundary!(&dcel, 8, 6);
+        assert_face_boundary!(&dcel, 9, 6);
+        // Second quad face.
+        assert_face_boundary!(&dcel, 10, 4);
+    }
+
+    #[test]
+    fn test_split_face_by_chain_of_two_edges() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
+        let face_to_split = FaceId::new(5);
+        let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
+
+        // Split face 5 in two with a chain of two edges, with their common
+        // point around the face's center.
+        dcel.split_face_by_edge_chain(
+            face_to_split_vertexes[0],
+            face_to_split_vertexes[3],
+            [(259, 150)],
+            face_to_split,
+        );
+
+        // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(dcel.faces().num_elements(), 11);
+
+        // The original hexagon is now split into two pentagons.
+
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        assert_face_boundary!(&dcel, 2, 6);
+        assert_face_boundary!(&dcel, 3, 6);
+        assert_face_boundary!(&dcel, 4, 6);
+        // First pentagon face.
+        assert_face_boundary!(&dcel, 5, 5);
+        assert_face_boundary!(&dcel, 6, 6);
+        assert_face_boundary!(&dcel, 7, 6);
+        assert_face_boundary!(&dcel, 8, 6);
+        assert_face_boundary!(&dcel, 9, 6);
+        // Second pentagon face.
+        assert_face_boundary!(&dcel, 10, 5);
     }
 }
