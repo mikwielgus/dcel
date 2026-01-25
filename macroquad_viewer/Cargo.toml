@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 dcel contributors
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "macroquad_viewer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dcel = { path = "..", features = ["stable-vec"] }
+macroquad = "0.4"
