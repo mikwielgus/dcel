@@ -15,6 +15,10 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn split_face_by_edge(&mut self, from: VertexId, to: VertexId, split_face: FaceId) {
+        self.split_face_by_edge_chain(from, to, [], split_face);
+    }
+
     pub fn split_face_by_edge_chain(
         &mut self,
         from: VertexId,
@@ -29,7 +33,7 @@ impl<
             std::iter::repeat((HEW::default(), HEW::default())),
             split_face,
             FW::default(),
-        )
+        );
     }
 }
 
@@ -48,7 +52,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
-        split_face: FaceId,
+        face_to_split: FaceId,
         new_face_weight: FW,
     ) {
         let new_face = self.add_unwired_face(new_face_weight);
@@ -56,24 +60,29 @@ impl<
             from,
             vertex_weights,
             edge_weights,
-            split_face,
+            face_to_split,
             new_face,
         );
-        self.add_unwired_edge(
+        let final_edge = self.add_unwired_edge(
             last_vertex,
             to,
-            split_face,
+            face_to_split,
             new_face,
             last_edge_weight.0,
             last_edge_weight.1,
         );
 
-        let mut edges = vec![];
-        edges.push(self.vertex_prev_edge(from));
-        edges.extend(new_edges);
-        edges.push(self.vertex_next_edge(to));
+        let mut new_face_edges = vec![];
+        new_face_edges.push(self.vertex_prev_edge(from));
+        new_face_edges.extend(new_edges);
+        new_face_edges.push(final_edge);
+        new_face_edges.push(self.vertex_next_edge(to));
 
-        self.wire_inner_half_edge_chain(new_face, &edges);
+        self.wire_inner_half_edge_chain(new_face, &new_face_edges);
+        self.wire_inner_half_edge_chain(
+            face_to_split,
+            &self.face_edges(face_to_split).collect::<Vec<EdgeId>>(),
+        );
     }
 
     fn add_unwired_dangling_edge_chain(
