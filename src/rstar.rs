@@ -400,8 +400,128 @@ impl<
             perimeter_edges,
         );
 
-        // Insert the absorbing face back in the R-tree, with the updated bbox.
+        // Insert the absorbing face back in the R-tree now that its bbox is
+        // done changing.
         self.add_face_to_rtree(absorbing_face);
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
+    HEW: Clone + Default,
+    FW: Clone + Default,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn split_face_by_edge(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        face_to_split: FaceId,
+    ) -> FaceId {
+        // Remove the face to split from the R-tree before its shape changes,
+        // which would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face_to_split)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            face_to_split,
+        ));
+
+        let new_face = self.dcel.split_face_by_edge(from, to, face_to_split);
+        self.add_face_to_rtree(new_face);
+
+        // Insert the split face back in the R-tree now that its bbox is done
+        // changing.
+        self.add_face_to_rtree(face_to_split);
+
+        new_face
+    }
+
+    pub fn split_face_by_edge_chain(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        vertex_weights: impl IntoIterator<Item = VW>,
+        face_to_split: FaceId,
+    ) -> FaceId {
+        // Remove the face to split from the R-tree before its shape changes,
+        // which would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face_to_split)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            face_to_split,
+        ));
+
+        let new_face = self
+            .dcel
+            .split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
+        self.add_face_to_rtree(new_face);
+
+        // Insert the split face back in the R-tree now that its bbox is done
+        // changing.
+        self.add_face_to_rtree(face_to_split);
+
+        new_face
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
+    HEW: Clone,
+    FW: Clone,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn split_face_by_edge_chain_with_all_weights(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        vertex_weights: impl IntoIterator<Item = VW>,
+        edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
+        face_to_split: FaceId,
+        new_face_weight: FW,
+    ) -> FaceId {
+        // Remove the face to split from the R-tree before its shape changes,
+        // which would otherwise invalidate its bbox and make it impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face_to_split)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            face_to_split,
+        ));
+
+        let new_face = self.dcel.split_face_by_edge_chain_with_all_weights(
+            from,
+            to,
+            vertex_weights,
+            edge_weights,
+            face_to_split,
+            new_face_weight,
+        );
+        self.add_face_to_rtree(new_face);
+
+        // Insert the split face back in the R-tree now that its bbox is done
+        // changing.
+        self.add_face_to_rtree(face_to_split);
+
+        new_face
     }
 }
 
@@ -522,7 +642,8 @@ impl<
 
         let (new_faces, new_edges) = triangulate_fn(&mut self.dcel);
 
-        // Insert the perimeter face back in the R-tree, with the updated bbox.
+        // Insert the perimeter face back in the R-tree now that its bbox is
+        // done changing.
         self.add_face_to_rtree(perimeter_face);
 
         self.add_faces_to_rtree(new_faces.clone());
