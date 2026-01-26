@@ -921,6 +921,99 @@ mod test {
     }
 
     #[test]
+    fn test_split_face_by_edge() {
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        let face_to_split = FaceId::new(5);
+        let face_to_split_vertexes: Vec<VertexId> =
+            rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
+
+        // Split face 5 in two with a single edge.
+        rtreed_dcel.split_face_by_edge(
+            face_to_split_vertexes[0],
+            face_to_split_vertexes[3],
+            face_to_split,
+        );
+
+        // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
+
+        // The original hexagon is now split into two quads.
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 6);
+        // Second quad face.
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 4);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
+        // Second quad face.
+        assert_face_boundary!(&rtreed_dcel.dcel, 10, 4);
+
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 4);
+        assert_face_bbox_validity(&rtreed_dcel, 5);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 10);
+    }
+
+    #[test]
+    fn test_split_face_by_chain_of_two_edges() {
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        let face_to_split = FaceId::new(5);
+        let face_to_split_vertexes: Vec<VertexId> =
+            rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
+
+        // Split face 5 in two with a chain of two edges, with their common
+        // point around the face's center.
+        rtreed_dcel.split_face_by_edge_chain(
+            face_to_split_vertexes[0],
+            face_to_split_vertexes[3],
+            [(259, 150)],
+            face_to_split,
+        );
+
+        // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
+
+        // The original hexagon is now split into two pentagons.
+
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 6);
+        // First pentagon face.
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 5);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
+        // Second pentagon face.
+        assert_face_boundary!(rtreed_dcel.dcel, 10, 5);
+
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 4);
+        assert_face_bbox_validity(&rtreed_dcel, 5);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 10);
+    }
+
+    #[test]
     fn test_triangulate_around_vertex() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let (new_faces, new_edges) =
