@@ -155,6 +155,63 @@ impl<
 impl<
     P: Point,
     VW: Clone + Into<P>,
+    HEW: Clone + Default,
+    FW: Clone + Default,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> FaceId {
+        self.split_face_by_edge(from, to, self.dcel.vertexes_common_face(from, to).unwrap())
+    }
+
+    pub fn insert_edge_chain(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        vertex_weights: impl IntoIterator<Item = VW>,
+    ) -> FaceId {
+        self.split_face_by_edge_chain(
+            from,
+            to,
+            vertex_weights,
+            self.dcel.vertexes_common_face(from, to).unwrap(),
+        )
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
+    HEW: Clone,
+    FW: Clone + Default,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
+    fn insert_edge_chain_with_edge_weights(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        vertex_weights: impl IntoIterator<Item = VW>,
+        edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
+    ) -> FaceId {
+        self.split_face_by_edge_chain_with_all_weights(
+            from,
+            to,
+            vertex_weights,
+            edge_weights,
+            self.dcel.vertexes_common_face(from, to).unwrap(),
+            FW::default(),
+        )
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
     HEW: Clone,
     FW: Clone,
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,

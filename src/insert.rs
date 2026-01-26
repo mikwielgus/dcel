@@ -324,8 +324,8 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) {
-        self.split_face_by_edge(from, to, self.vertexes_common_face(from, to).unwrap());
+    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> FaceId {
+        self.split_face_by_edge(from, to, self.vertexes_common_face(from, to).unwrap())
     }
 
     pub fn insert_edge_chain(
