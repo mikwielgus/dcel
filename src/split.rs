@@ -15,8 +15,13 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn split_face_by_edge(&mut self, from: VertexId, to: VertexId, face_to_split: FaceId) {
-        self.split_face_by_edge_chain(from, to, [], face_to_split);
+    pub fn split_face_by_edge(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        face_to_split: FaceId,
+    ) -> FaceId {
+        self.split_face_by_edge_chain(from, to, [], face_to_split)
     }
 
     pub fn split_face_by_edge_chain(
@@ -25,7 +30,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         face_to_split: FaceId,
-    ) {
+    ) -> FaceId {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,
@@ -33,7 +38,7 @@ impl<
             std::iter::repeat((HEW::default(), HEW::default())),
             face_to_split,
             FW::default(),
-        );
+        )
     }
 }
 
@@ -54,7 +59,7 @@ impl<
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_to_split: FaceId,
         new_face_weight: FW,
-    ) {
+    ) -> FaceId {
         let from_incoming = self.vertex_inner_incoming_half_edge(from, face_to_split);
         let from_outgoing = self.vertex_inner_outgoing_half_edge(from, face_to_split);
         let to_incoming = self.vertex_inner_incoming_half_edge(to, face_to_split);
@@ -103,6 +108,8 @@ impl<
 
         self.wire_inner_half_edge_chain(face_to_split, &face_to_split_edges);
         self.wire_inner_half_edge_chain(new_face, &new_face_edges);
+
+        new_face
     }
 
     fn add_unwired_dangling_edge_chain(
