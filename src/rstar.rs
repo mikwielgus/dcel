@@ -437,9 +437,9 @@ impl<
             ));
         }
 
-        // Remove the absorbing face from the R-tree before its shape changes,
-        // which would otherwise invalidate its bbox and make it impossible to
-        // access anymore.
+        // Remove the absorbing face from the faces R-tree before its shape
+        // changes, which would otherwise invalidate its bbox and make it
+        // impossible to access anymore.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
@@ -479,9 +479,9 @@ impl<
         to: VertexId,
         face_to_split: FaceId,
     ) -> FaceId {
-        // Remove the face to split from the R-tree before its shape changes,
-        // which would otherwise invalidate its bbox and make it impossible to
-        // access anymore.
+        // Remove the face to split from the faces R-tree before its shape
+        // changes, which would otherwise invalidate its bbox and make it
+        // impossible to access anymore.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
@@ -494,8 +494,8 @@ impl<
         let new_face = self.dcel.split_face_by_edge(from, to, face_to_split);
         self.add_face_to_rtree(new_face);
 
-        // Insert the split face back in the R-tree now that its bbox is done
-        // changing.
+        // Insert the split face back in the faces R-tree now that its bbox is
+        // done changing.
         self.add_face_to_rtree(face_to_split);
 
         new_face
@@ -508,9 +508,9 @@ impl<
         vertex_weights: impl IntoIterator<Item = VW>,
         face_to_split: FaceId,
     ) -> FaceId {
-        // Remove the face to split from the R-tree before its shape changes,
-        // which would otherwise invalidate its bbox and make it impossible to
-        // access anymore.
+        // Remove the face to split from the faces R-tree before its shape
+        // changes, which would otherwise invalidate its bbox and make it
+        // impossible to access anymore.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
@@ -525,8 +525,8 @@ impl<
             .split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
         self.add_face_to_rtree(new_face);
 
-        // Insert the split face back in the R-tree now that its bbox is done
-        // changing.
+        // Insert the split face back in the faces R-tree now that its bbox is
+        // done changing.
         self.add_face_to_rtree(face_to_split);
 
         new_face
@@ -574,8 +574,8 @@ impl<
         );
         self.add_face_to_rtree(new_face);
 
-        // Insert the split face back in the R-tree now that its bbox is done
-        // changing.
+        // Insert the split face back in the faces R-tree now that its bbox is
+        // done changing.
         self.add_face_to_rtree(face_to_split);
 
         new_face
@@ -685,9 +685,9 @@ impl<
         F: FnOnce(&mut Dcel<VW, HEW, FW, VC, HEC, FC>) -> (Vec<FaceId>, Vec<EdgeId>),
     {
         // The perimeter face id is reused as one of the triangulation faces.
-        // So, we need to remove it from the R-tree before its shape changes,
-        // as it would otherwise invalidate its bbox and make it impossible to
-        // access anymore.
+        // So, we need to remove it from the faces R-tree before its shape
+        // changes, as it would otherwise invalidate its bbox and make it
+        // impossible to access anymore.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
@@ -699,8 +699,8 @@ impl<
 
         let (new_faces, new_edges) = triangulate_fn(&mut self.dcel);
 
-        // Insert the perimeter face back in the R-tree now that its bbox is
-        // done changing.
+        // Insert the perimeter face back in the faces R-tree now that its bbox
+        // is done changing.
         self.add_face_to_rtree(perimeter_face);
 
         self.add_faces_to_rtree(new_faces.clone());
@@ -782,6 +782,62 @@ mod test {
         EdgeId, FaceId, HalfEdgeId, RTreedStableDcel, VertexId, assert_face_boundary,
         init_dcel_with_3x3_hex_mesh,
     };
+
+    #[test]
+    fn test_insert_polygon() {
+        let mut rtreed_dcel = RTreedStableDcel::<(i32, i32)>::new();
+        let face = rtreed_dcel.insert_polygon([(0, 0), (10, 0), (10, 10), (0, 10)]);
+
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 2);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 1);
+        assert_eq!(rtreed_dcel.edges_rtree.size(), 4);
+
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, face.id(), 4);
+
+        assert_face_bbox_validity(&rtreed_dcel, face.id());
+    }
+
+    #[test]
+    fn test_insert_edge() {
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        let face_to_split = FaceId::new(5);
+        let face_to_split_vertexes: Vec<VertexId> =
+            rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
+
+        // Split face 5 in two with a single edge.
+        rtreed_dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
+
+        // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
+
+        // The original hexagon is now split into two quads.
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 6);
+        // First quad face.
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 4);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
+        // Second quad face.
+        assert_face_boundary!(&rtreed_dcel.dcel, 10, 4);
+
+        assert_face_bbox_validity(&rtreed_dcel, 1);
+        assert_face_bbox_validity(&rtreed_dcel, 2);
+        assert_face_bbox_validity(&rtreed_dcel, 3);
+        assert_face_bbox_validity(&rtreed_dcel, 4);
+        assert_face_bbox_validity(&rtreed_dcel, 5);
+        assert_face_bbox_validity(&rtreed_dcel, 6);
+        assert_face_bbox_validity(&rtreed_dcel, 7);
+        assert_face_bbox_validity(&rtreed_dcel, 8);
+        assert_face_bbox_validity(&rtreed_dcel, 9);
+        assert_face_bbox_validity(&rtreed_dcel, 10);
+    }
 
     #[test]
     fn test_merge_faces_around_vertex() {
