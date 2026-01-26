@@ -15,13 +15,13 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn split_edge_by_vertex(&mut self, edge: EdgeId, vertex: VW) -> EdgeId {
-        let (origin, _) = self.endpoints(edge);
-        let forward = edge.forward();
-        let backward = edge.backward();
+    pub fn split_edge_by_vertex(&mut self, edge_to_split: EdgeId, vertex: VW) -> EdgeId {
+        let (origin, _) = self.endpoints(edge_to_split);
+        let forward = edge_to_split.forward();
+        let backward = edge_to_split.backward();
         let face = self.face_in_front(forward);
         let twin_face = self.face_in_front(backward);
-        let (forward_weight, backward_weight) = self.edge_weights(edge);
+        let (forward_weight, backward_weight) = self.edge_weights(edge_to_split);
         let (forward_weight, backward_weight) = (forward_weight.clone(), backward_weight.clone());
 
         let new_vertex = self.add_unwired_vertex(vertex);
@@ -63,17 +63,7 @@ impl<
 
         new_edge
     }
-}
 
-impl<
-    VW: Clone,
-    HEW: Clone + Default,
-    FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> Dcel<VW, HEW, FW, VC, HEC, FC>
-{
     pub fn split_face_by_edge(
         &mut self,
         from: VertexId,

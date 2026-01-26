@@ -473,6 +473,30 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn split_edge_by_vertex(&mut self, edge_to_split: EdgeId, vertex: VW) -> EdgeId {
+        let original_endpoints = self.dcel.endpoints(edge_to_split);
+
+        // Remove the edge to split from the edges R-tree before its shape
+        // changes, which would otherwise invalidate its bbox and make it
+        // impossible to access anymore.
+        self.edges_rtree.remove(&GeomWithData::new(
+            Rectangle::from_corners(
+                Into::<P>::into(self.dcel.vertex_weight(original_endpoints.0).clone()),
+                Into::<P>::into(self.dcel.vertex_weight(original_endpoints.1).clone()),
+            ),
+            edge_to_split,
+        ));
+
+        let new_edge = self.dcel.split_edge_by_vertex(edge_to_split, vertex);
+        self.add_edges_to_rtree([new_edge]);
+
+        // Insert the split edge back in the edges R-tree now that its bbox is
+        // done changing.
+        self.add_edges_to_rtree([edge_to_split]);
+
+        new_edge
+    }
+
     pub fn split_face_by_edge(
         &mut self,
         from: VertexId,
