@@ -67,35 +67,6 @@ fn point_in_polygon(point: Vec2, polygon: &[Vec2]) -> bool {
     inside
 }
 
-fn find_shared_face(
-    dcel: &StableDcel<(i32, i32)>,
-    first: VertexId,
-    second: VertexId,
-) -> Option<FaceId> {
-    for face_idx in dcel.faces().indices() {
-        let face = FaceId::new(face_idx);
-        if face == dcel.unbounded_face() || dcel.incident_half_edge(face).is_none() {
-            continue;
-        }
-
-        let mut has_first = false;
-        let mut has_second = false;
-        for vertex in dcel.face_vertexes(face) {
-            if vertex == first {
-                has_first = true;
-            }
-            if vertex == second {
-                has_second = true;
-            }
-            if has_first && has_second {
-                return Some(face);
-            }
-        }
-    }
-
-    None
-}
-
 #[macroquad::main("DCEL Viewer")]
 async fn main() {
     const HEX_MESH_3X3: [[[(i32, i32); 6]; 3]; 3] = [
@@ -277,9 +248,7 @@ async fn main() {
                         selected_vertex = None;
                     }
                     Some(selected) => {
-                        if let Some(face) = find_shared_face(&dcel, selected, vertex) {
-                            dcel.split_face_by_edge(selected, vertex, face);
-                        }
+                        dcel.insert_edge(selected, vertex);
                         selected_vertex = None;
                     }
                     None => {
