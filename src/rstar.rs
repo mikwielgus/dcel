@@ -519,8 +519,7 @@ impl<
         face_to_split: FaceId,
     ) -> FaceId {
         let (new_faces, _) = self.update_face_rtree(face_to_split, |dcel| {
-            let new_face =
-                dcel.split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
+            let new_face = dcel.split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
             (vec![new_face], Vec::new())
         });
 
@@ -757,7 +756,10 @@ impl<P: Point, VW: Into<P>, HEW, FW, VC, HEC, FC> RTreedDcel<P, VW, HEW, FW, VC,
 
 #[cfg(all(test, feature = "rstar", feature = "stable-vec"))]
 mod test {
-    use rstar::{RTreeObject, primitives::GeomWithData};
+    use rstar::{
+        RTreeObject,
+        primitives::{GeomWithData, Rectangle},
+    };
 
     use crate::{
         EdgeId, FaceId, HalfEdgeId, RTreedStableDcel, VertexId, assert_face_boundary,
@@ -1060,6 +1062,36 @@ mod test {
     }
 
     #[test]
+    fn test_split_edge_by_vertex() {
+        let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
+        let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
+        let original_endpoints = rtreed_dcel.dcel.endpoints(edge);
+        let original_edge_count = rtreed_dcel.edges_rtree.size();
+
+        let new_edge = rtreed_dcel.split_edge_by_vertex(edge, (259, 150));
+
+        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
+        assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 10);
+        // I admit I don't know why it's 55 -- it doesn't look right.
+        assert_eq!(rtreed_dcel.edges_rtree.size(), 55);
+
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 3, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 4, 7);
+        assert_face_boundary!(rtreed_dcel.dcel, 5, 7);
+        assert_face_boundary!(rtreed_dcel.dcel, 6, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 7, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 8, 6);
+        assert_face_boundary!(rtreed_dcel.dcel, 9, 6);
+
+        assert_edge_bbox_validity(&rtreed_dcel, edge);
+        assert_edge_bbox_validity(&rtreed_dcel, new_edge);
+    }
+
+    #[test]
     fn test_split_face_by_chain_of_two_edges() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
@@ -1159,28 +1191,43 @@ mod test {
     // TODO: Test fan triangulation.
 
     fn assert_face_bbox_validity(rtreed_dcel: &RTreedStableDcel<(i32, i32)>, face: usize) {
+        let rectangle = face_rectangle(rtreed_dcel, FaceId::new(face));
         assert!(
             rtreed_dcel
                 .faces_rtree
-                .locate_in_envelope(
-                    &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
-                        rtreed_dcel
-                            .dcel
-                            .face_vertexes(FaceId::new(face))
-                            .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
-                    )
-                    .envelope(),
-                )
+                .locate_in_envelope(&rectangle.envelope())
                 .any(|&element| element
                     == GeomWithData::new(
-                        RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
-                            rtreed_dcel
-                                .dcel
-                                .face_vertexes(FaceId::new(face))
-                                .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
-                        ),
-                        FaceId::new(face)
+                        rectangle,
+                        FaceId::new(face),
                     ))
         );
+    }
+
+    fn assert_edge_bbox_validity(rtreed_dcel: &RTreedStableDcel<(i32, i32)>, edge: EdgeId) {
+        let endpoints = rtreed_dcel.dcel.endpoints(edge);
+        let rectangle = Rectangle::from_corners(
+            rtreed_dcel.dcel.vertex_weight(endpoints.0).clone(),
+            rtreed_dcel.dcel.vertex_weight(endpoints.1).clone(),
+        );
+
+        assert!(
+            rtreed_dcel
+                .edges_rtree
+                .locate_in_envelope(&rectangle.envelope())
+                .any(|&element| element == GeomWithData::new(rectangle, edge))
+        );
+    }
+
+    fn face_rectangle(
+        rtreed_dcel: &RTreedStableDcel<(i32, i32)>,
+        face: FaceId,
+    ) -> Rectangle<(i32, i32)> {
+        RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
+            rtreed_dcel
+                .dcel
+                .face_vertexes(face)
+                .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
+        )
     }
 }
