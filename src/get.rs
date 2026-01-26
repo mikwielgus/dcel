@@ -86,6 +86,14 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     }
 
     #[inline]
+    pub fn vertexes_common_face(&self, vertex1: VertexId, vertex2: VertexId) -> Option<FaceId> {
+        let interspokes1: Vec<FaceId> = self.vertex_interspokes(vertex1).collect();
+
+        self.vertex_interspokes(vertex2)
+            .find(|interspoke| interspokes1.contains(interspoke))
+    }
+
+    #[inline]
     pub fn is_boundary_vertex(&self, vertex: VertexId) -> bool {
         self.vertex_spokes(vertex).any(|spoke| {
             self.face_in_front(spoke.forward()) == self.unbounded_face()
