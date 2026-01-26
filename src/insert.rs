@@ -372,9 +372,48 @@ impl<
 
 #[cfg(test)]
 mod test {
-    use crate::HalfEdgeId;
+    use crate::{HalfEdgeId, assert_face_boundary, init_dcel_with_3x3_hex_mesh};
 
     use super::*;
+
+    #[test]
+    fn test_insert_polygon() {
+        let mut dcel = Dcel::<(i32, i32)>::new();
+        let face = dcel.insert_polygon([(0, 0), (10, 0), (10, 10), (0, 10)]);
+
+        assert_eq!(dcel.faces().len(), 2);
+
+        assert_face_boundary!(dcel, 0, 0);
+        assert_face_boundary!(dcel, face.id(), 4);
+    }
+
+    #[test]
+    fn test_insert_edge() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
+        let face_to_split = FaceId::new(5);
+        let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
+
+        // Split face 5 in two with a single edge.
+        dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
+
+        // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(dcel.faces().len(), 11);
+
+        // The original hexagon is now split into two quads.
+        assert_face_boundary!(dcel, 0, 0);
+        assert_face_boundary!(dcel, 1, 6);
+        assert_face_boundary!(dcel, 2, 6);
+        assert_face_boundary!(dcel, 3, 6);
+        assert_face_boundary!(dcel, 4, 6);
+        // First quad face.
+        assert_face_boundary!(dcel, 5, 4);
+        assert_face_boundary!(dcel, 6, 6);
+        assert_face_boundary!(dcel, 7, 6);
+        assert_face_boundary!(dcel, 8, 6);
+        assert_face_boundary!(dcel, 9, 6);
+        // Second quad face.
+        assert_face_boundary!(dcel, 10, 4);
+    }
 
     #[test]
     fn test_insert_adjoined_squares() {
