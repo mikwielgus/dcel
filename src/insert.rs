@@ -315,6 +315,61 @@ impl<
     }
 }
 
+impl<
+    VW: Clone,
+    HEW: Clone + Default,
+    FW: Clone + Default,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) {
+        self.split_face_by_edge(from, to, self.vertexes_common_face(from, to).unwrap());
+    }
+
+    pub fn insert_edge_chain(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        vertex_weights: impl IntoIterator<Item = VW>,
+    ) -> FaceId {
+        self.split_face_by_edge_chain(
+            from,
+            to,
+            vertex_weights,
+            self.vertexes_common_face(from, to).unwrap(),
+        )
+    }
+}
+
+impl<
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone + Default,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn insert_edge_chain_with_edge_weights(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+        vertex_weights: impl IntoIterator<Item = VW>,
+        edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
+    ) -> FaceId {
+        self.split_face_by_edge_chain_with_all_weights(
+            from,
+            to,
+            vertex_weights,
+            edge_weights,
+            self.vertexes_common_face(from, to).unwrap(),
+            FW::default(),
+        )
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::HalfEdgeId;
