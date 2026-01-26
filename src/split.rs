@@ -15,6 +15,65 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn split_edge_by_vertex(&mut self, edge: EdgeId, vertex: VW) -> EdgeId {
+        let (origin, _) = self.endpoints(edge);
+        let forward = edge.forward();
+        let backward = edge.backward();
+        let face = self.face_in_front(forward);
+        let twin_face = self.face_in_front(backward);
+        let (forward_weight, backward_weight) = self.edge_weights(edge);
+        let (forward_weight, backward_weight) = (forward_weight.clone(), backward_weight.clone());
+
+        let new_vertex = self.add_unwired_vertex(vertex);
+        let new_edge = self.add_unwired_edge(
+            origin,
+            new_vertex,
+            face,
+            twin_face,
+            forward_weight.clone(),
+            backward_weight.clone(),
+        );
+
+        // Retarget the original edge to start at the new vertex.
+        self.half_edges.insert(
+            forward.id(),
+            HalfEdge {
+                origin: new_vertex,
+                ..self.half_edges.get(&forward.id()).unwrap().clone()
+            },
+        );
+
+        let forward_prev = self.prev_half_edge(forward);
+        let backward_next = self.next_half_edge(backward);
+
+        // Insert the new edge in the forward face cycle.
+        self.link_subsequent_half_edges(forward_prev, new_edge.forward());
+        self.link_subsequent_half_edges(new_edge.forward(), forward);
+
+        // Insert the new edge in the backward face cycle.
+        self.link_subsequent_half_edges(backward, new_edge.backward());
+        self.link_subsequent_half_edges(new_edge.backward(), backward_next);
+
+        // Update the outgoing spokes of vertexes.
+        // XXX: Is this really needed?
+        self.link_vertex_with_half_edge(new_vertex, forward);
+        if self.outgoing_next_half_edge(origin) == forward {
+            self.link_vertex_with_half_edge(origin, new_edge.forward());
+        }
+
+        new_edge
+    }
+}
+
+impl<
+    VW: Clone,
+    HEW: Clone + Default,
+    FW: Clone + Default,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
     pub fn split_face_by_edge(
         &mut self,
         from: VertexId,
