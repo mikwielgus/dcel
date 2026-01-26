@@ -226,7 +226,35 @@ impl<
 
 #[cfg(all(test, feature = "stable-vec"))]
 mod test {
-    use crate::{FaceId, StableDcel, VertexId, assert_face_boundary, init_dcel_with_3x3_hex_mesh};
+    use crate::{
+        EdgeId, FaceId, HalfEdgeId, StableDcel, VertexId, assert_face_boundary,
+        init_dcel_with_3x3_hex_mesh,
+    };
+
+    #[test]
+    fn test_split_edge_by_vertex() {
+        let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
+        let face = FaceId::new(5);
+        let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
+        let old_origin = dcel.origin(edge.forward());
+
+        let new_edge = dcel.split_edge_by_vertex(edge, (259, 150));
+
+        assert_eq!(dcel.vertexes().num_elements(), 31);
+        assert_eq!(dcel.half_edges().num_elements(), 78);
+        assert_eq!(dcel.faces().num_elements(), 10);
+
+        assert_face_boundary!(&dcel, 0, 0);
+        assert_face_boundary!(&dcel, 1, 6);
+        assert_face_boundary!(&dcel, 2, 6);
+        assert_face_boundary!(&dcel, 3, 6);
+        assert_face_boundary!(&dcel, 4, 7);
+        assert_face_boundary!(&dcel, 5, 7);
+        assert_face_boundary!(&dcel, 6, 6);
+        assert_face_boundary!(&dcel, 7, 6);
+        assert_face_boundary!(&dcel, 8, 6);
+        assert_face_boundary!(&dcel, 9, 6);
+    }
 
     #[test]
     fn test_split_face_by_edge() {
