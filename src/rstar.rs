@@ -1196,11 +1196,7 @@ mod test {
             rtreed_dcel
                 .faces_rtree
                 .locate_in_envelope(&rectangle.envelope())
-                .any(|&element| element
-                    == GeomWithData::new(
-                        rectangle,
-                        FaceId::new(face),
-                    ))
+                .any(|&element| element == GeomWithData::new(rectangle, FaceId::new(face),))
         );
     }
 
