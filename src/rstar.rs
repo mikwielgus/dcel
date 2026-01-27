@@ -294,7 +294,7 @@ impl<
                     .face_vertexes(self.dcel.face_in_front(edge.forward()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
-            absorbing_face,
+            self.dcel.face_in_front(edge.forward()),
         ));
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
@@ -302,7 +302,7 @@ impl<
                     .face_vertexes(self.dcel.face_behind(edge.forward()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
-            absorbing_face,
+            self.dcel.face_behind(edge.forward()),
         ));
 
         let absorbing_face = self.dcel.remove_edge(edge);
