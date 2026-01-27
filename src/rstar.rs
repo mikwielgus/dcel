@@ -274,6 +274,42 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
+        let endpoints = self.dcel.endpoints(edge);
+
+        self.edges_rtree.remove(&GeomWithData::new(
+            Rectangle::from_corners(
+                Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
+                Into::<P>::into(self.dcel.vertex_weight(endpoints.1).clone()),
+            ),
+            edge,
+        ));
+
+        let removed_face = self.dcel.remove_edge(edge);
+
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(removed_face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            removed_face,
+        ));
+
+        removed_face
+    }
+}
+
+impl<
+    P: Point,
+    VW: Clone + Into<P>,
+    HEW: Clone,
+    FW: Clone,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+{
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
         let absorbing_face = self
             .dcel
@@ -821,6 +857,8 @@ mod test {
         assert_face_bbox_validity(&rtreed_dcel, 9);
         assert_face_bbox_validity(&rtreed_dcel, 10);
     }
+
+    // TODO: Test remove edge.
 
     #[test]
     fn test_merge_faces_around_vertex() {
