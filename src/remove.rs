@@ -1,0 +1,70 @@
+// SPDX-FileCopyrightText: 2026 dcel contributors
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
+use maplike::{Get, Insert, Remove, StableRemove};
+
+use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId};
+
+impl<
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone,
+    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
+    FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
+> Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
+        let absorbing_face = self.face_in_front(edge.forward());
+        let face_to_absorb = self.face_behind(edge.forward());
+
+        self.absorb_faces_over_edges_and_vertexes(absorbing_face, [face_to_absorb], [edge], []);
+
+        face_to_absorb
+    }
+}
+
+impl<VW, HEW, FW, VC: Remove<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    pub(crate) fn remove_orphaned_vertexes(
+        &mut self,
+        vertexes: impl IntoIterator<Item = VertexId>,
+    ) {
+        for vertex in vertexes.into_iter() {
+            self.remove_orphaned_vertex(vertex);
+        }
+    }
+
+    pub(crate) fn remove_orphaned_vertex(&mut self, vertex: VertexId) {
+        self.vertexes.remove(&vertex.id());
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC: Remove<usize, Value = HalfEdge<HEW>>, FC>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    pub(crate) fn remove_orphaned_edges(&mut self, edges: impl IntoIterator<Item = EdgeId>) {
+        for edge in edges.into_iter() {
+            self.remove_orphaned_edge(edge);
+        }
+    }
+
+    pub(crate) fn remove_orphaned_edge(&mut self, edge: EdgeId) {
+        self.half_edges.remove(&edge.forward().id());
+        self.half_edges.remove(&edge.backward().id());
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC, FC: Remove<usize>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    pub(crate) fn remove_orphaned_faces(&mut self, faces: impl IntoIterator<Item = FaceId>) {
+        for face in faces.into_iter() {
+            self.remove_orphaned_face(face);
+        }
+    }
+
+    pub(crate) fn remove_orphaned_face(&mut self, face: FaceId) {
+        self.faces.remove(&face.id());
+    }
+}
+
+// TODO: Tests.

@@ -6,6 +6,7 @@ mod get;
 mod insert;
 mod iter;
 mod merge;
+mod remove;
 mod split;
 mod track;
 mod triangulate;
@@ -288,18 +289,6 @@ impl<VW, HEW, FW, VC: Push<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW
     }
 }
 
-impl<VW, HEW, FW, VC: Remove<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    fn remove_vertexes(&mut self, vertexes: impl IntoIterator<Item = VertexId>) {
-        for vertex in vertexes.into_iter() {
-            self.remove_vertex(vertex);
-        }
-    }
-
-    fn remove_vertex(&mut self, vertex: VertexId) {
-        self.vertexes.remove(&vertex.id());
-    }
-}
-
 impl<VW: Clone, HEW, FW, VC: Get<usize, Value = Vertex<VW>> + Insert<usize>, HEC, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
@@ -371,21 +360,6 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
     }
 }
 
-impl<VW, HEW, FW, VC, HEC: Remove<usize, Value = HalfEdge<HEW>>, FC>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
-    fn remove_edges(&mut self, edges: impl IntoIterator<Item = EdgeId>) {
-        for edge in edges.into_iter() {
-            self.remove_edge(edge);
-        }
-    }
-
-    fn remove_edge(&mut self, edge: EdgeId) {
-        self.half_edges.remove(&edge.forward().id());
-        self.half_edges.remove(&edge.backward().id());
-    }
-}
-
 impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
@@ -417,18 +391,6 @@ impl<VW, HEW, FW, VC, HEC, FC: Push<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, 
             incident_half_edge: None,
             weight,
         }))
-    }
-}
-
-impl<VW, HEW, FW, VC, HEC, FC: Remove<usize>> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    fn remove_faces(&mut self, faces: impl IntoIterator<Item = FaceId>) {
-        for face in faces.into_iter() {
-            self.remove_face(face);
-        }
-    }
-
-    fn remove_face(&mut self, face: FaceId) {
-        self.faces.remove(&face.id());
     }
 }
 

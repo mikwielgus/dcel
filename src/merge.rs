@@ -147,9 +147,9 @@ impl<
         vertexes_to_remove: impl IntoIterator<Item = VertexId>,
         perimeter_edges: &[EdgeId],
     ) {
-        self.remove_faces(faces_to_absorb);
-        self.remove_edges(edges_to_remove);
-        self.remove_vertexes(vertexes_to_remove);
+        self.remove_orphaned_faces(faces_to_absorb);
+        self.remove_orphaned_edges(edges_to_remove);
+        self.remove_orphaned_vertexes(vertexes_to_remove);
 
         self.wire_inner_half_edge_chain(absorbing_face, perimeter_edges);
     }
