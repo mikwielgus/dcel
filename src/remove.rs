@@ -21,7 +21,7 @@ impl<
 
         self.absorb_faces_over_edges_and_vertexes(absorbing_face, [face_to_absorb], [edge], []);
 
-        face_to_absorb
+        absorbing_face
     }
 }
 

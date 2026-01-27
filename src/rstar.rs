@@ -285,18 +285,33 @@ impl<
             edge,
         ));
 
-        let removed_face = self.dcel.remove_edge(edge);
-
+        // Remove the absorbing and absorbed faces from the faces R-tree before
+        // they shape change, which would otherwise invalidate their bboxes and
+        // make them impossible to access anymore.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(removed_face)
+                    .face_vertexes(self.dcel.face_in_front(edge.forward()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
-            removed_face,
+            absorbing_face,
+        ));
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(self.dcel.face_behind(edge.forward()))
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            absorbing_face,
         ));
 
-        removed_face
+        let absorbing_face = self.dcel.remove_edge(edge);
+
+        // Insert the absorbing face back in the R-tree now that its bbox is
+        // done changing.
+        self.add_face_to_rtree(absorbing_face);
+
+        absorbing_face
     }
 }
 
