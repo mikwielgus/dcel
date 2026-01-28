@@ -164,8 +164,8 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     SpokesWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     SpokesIter
 );
@@ -176,12 +176,13 @@ impl SpokesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.turn_edge(self.curr_edge?);
+        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
         )
+        .map(|half_edge| dcel.full_edge(half_edge))
     }
 }
 
@@ -198,8 +199,8 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     SpokesReverseWalker {
-        initial_edge: EdgeId,
-        curr_edge: Option<EdgeId>,
+        initial_half_edge: HalfEdgeId,
+        curr_half_edge: Option<HalfEdgeId>,
     },
     SpokesReverseIter
 );
@@ -210,12 +211,13 @@ impl SpokesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        let next_edge = dcel.turn_back_edge(self.curr_edge?);
+        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
 
         std::mem::replace(
-            &mut self.curr_edge,
-            (next_edge != self.initial_edge).then_some(next_edge),
+            &mut self.curr_half_edge,
+            (next_half_edge != self.initial_half_edge).then_some(next_half_edge),
         )
+        .map(|half_edge| dcel.full_edge(half_edge))
     }
 }
 
