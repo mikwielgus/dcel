@@ -356,7 +356,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
             },
         );
 
-        EdgeId(forward_half_edge, backward_half_edge)
+        EdgeId::new(forward_half_edge, backward_half_edge)
     }
 }
 
