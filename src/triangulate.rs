@@ -180,9 +180,9 @@ impl<
             self.wire_inner_half_edge_chain(
                 triangle_face,
                 &[
-                    self.full_edge(perimeter_half_edge),
-                    self.full_edge(next_inner_edge.forward()),
-                    self.full_edge(inner_edge.backward()),
+                    perimeter_half_edge,
+                    next_inner_edge.forward(),
+                    inner_edge.backward(),
                 ],
             );
         }

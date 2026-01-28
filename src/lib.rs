@@ -225,15 +225,15 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn wire_inner_half_edge_chain(&mut self, face: FaceId, edges: &[EdgeId]) {
-        let edges_circular_tuple_windows = edges
+    fn wire_inner_half_edge_chain(&mut self, face: FaceId, half_edges: &[HalfEdgeId]) {
+        let half_edges_circular_tuple_windows = half_edges
             .iter()
-            .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
+            .zip(half_edges.iter().skip(1).chain(half_edges.iter().take(1)));
 
-        for (edge, next_edge) in edges_circular_tuple_windows {
-            self.link_vertex_with_half_edge(self.origin(edge.forward()), edge.forward());
-            self.link_subsequent_half_edges(edge.forward(), next_edge.forward());
-            self.link_face_with_half_edge(face, edge.forward());
+        for (&half_edge, &next_half_edge) in half_edges_circular_tuple_windows {
+            self.link_vertex_with_half_edge(self.origin(half_edge), half_edge);
+            self.link_subsequent_half_edges(half_edge, next_half_edge);
+            self.link_face_with_half_edge(face, half_edge);
         }
     }
 

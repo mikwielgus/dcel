@@ -4,7 +4,7 @@
 
 use maplike::{Get, Insert, Push};
 
-use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId};
+use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
 
 impl<
     VW: Clone,
@@ -155,8 +155,20 @@ impl<
             curr_half_edge = self.next_half_edge(curr_half_edge);
         }
 
-        self.wire_inner_half_edge_chain(face_to_split, &face_to_split_edges);
-        self.wire_inner_half_edge_chain(new_face, &new_face_edges);
+        self.wire_inner_half_edge_chain(
+            face_to_split,
+            &face_to_split_edges
+                .iter()
+                .map(|edge| edge.forward())
+                .collect::<Vec<HalfEdgeId>>(),
+        );
+        self.wire_inner_half_edge_chain(
+            new_face,
+            &new_face_edges
+                .iter()
+                .map(|edge| edge.forward())
+                .collect::<Vec<HalfEdgeId>>(),
+        );
 
         new_face
     }

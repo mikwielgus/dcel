@@ -337,10 +337,10 @@ impl<
         let initial_edge = self.dcel.full_edge(initial_half_edge);
 
         let inner_edges: Vec<EdgeId> = self.dcel.spokes(initial_edge).collect();
-        let perimeter_edges: Vec<EdgeId> = self
+        let perimeter_half_edges: Vec<HalfEdgeId> = self
             .dcel
-            .vertex_rim_edges(inner_vertex)
-            .collect::<Vec<EdgeId>>();
+            .vertex_rim_half_edges(inner_vertex)
+            .collect::<Vec<HalfEdgeId>>();
 
         self.absorb_faces_over_edges_and_vertexes_in_perimeter(
             absorbing_face,
@@ -350,7 +350,7 @@ impl<
                 .collect::<Vec<FaceId>>(),
             inner_edges,
             [inner_vertex],
-            &perimeter_edges,
+            &perimeter_half_edges,
         );
     }
 
@@ -379,20 +379,24 @@ impl<
         vertexes: impl IntoIterator<Item = VertexId>,
     ) {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
+        let excluded_half_edges: Vec<HalfEdgeId> = edges
+            .iter()
+            .flat_map(|edge| [edge.forward(), edge.backward()])
+            .collect();
 
-        // Find an initial edge that is not in the excluded list. Otherwise, the
-        // circulator could end up starting from an excluded edge, which would
+        // Find an initial half-edge that is not in the excluded list. Otherwise,
+        // the circulator could end up starting from an excluded half-edge, which would
         // result in an infinite loop, as the termination condition depends on
         // returning to the initial edge.
-        let initial_edge = self
+        let initial_half_edge = self
             .dcel
-            .face_edges(absorbing_face)
-            .find(|edge| !edges.contains(edge))
+            .face_half_edges(absorbing_face)
+            .find(|half_edge| !excluded_half_edges.contains(half_edge))
             .unwrap();
 
-        let perimeter_edges: Vec<EdgeId> = self
+        let perimeter_half_edges: Vec<HalfEdgeId> = self
             .dcel
-            .circulate_edges_with_excludes(initial_edge, edges.clone())
+            .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges.clone())
             .collect();
 
         self.absorb_faces_over_edges_and_vertexes_in_perimeter(
@@ -400,7 +404,7 @@ impl<
             faces,
             edges,
             vertexes,
-            &perimeter_edges,
+            &perimeter_half_edges,
         );
     }
 
@@ -450,7 +454,8 @@ impl<
                 .collect::<Vec<VertexId>>(),
             &half_edges_counter
                 .outer_edges(&self.dcel)
-                .collect::<Vec<EdgeId>>(),
+                .map(|edge| edge.forward())
+                .collect::<Vec<HalfEdgeId>>(),
         );
     }
 
@@ -460,7 +465,7 @@ impl<
         faces_to_absorb: impl IntoIterator<Item = FaceId>,
         edges_to_remove: impl IntoIterator<Item = EdgeId>,
         vertexes_to_remove: impl IntoIterator<Item = VertexId>,
-        perimeter_edges: &[EdgeId],
+        perimeter_half_edges: &[HalfEdgeId],
     ) {
         let faces_to_absorb: Vec<FaceId> = faces_to_absorb.into_iter().collect();
         let edges_to_remove: Vec<EdgeId> = edges_to_remove.into_iter().collect();
@@ -505,7 +510,7 @@ impl<
             faces_to_absorb,
             edges_to_remove,
             vertexes_to_remove,
-            perimeter_edges,
+            perimeter_half_edges,
         );
 
         // Insert the absorbing face back in the R-tree now that its bbox is
