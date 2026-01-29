@@ -25,7 +25,7 @@ impl<
         let (forward_weight, backward_weight) = (forward_weight.clone(), backward_weight.clone());
 
         let new_vertex = self.add_unwired_vertex(vertex);
-        let new_edge = self.add_unwired_edge(
+        let (new_forward, new_backward) = self.add_unwired_edge(
             origin,
             new_vertex,
             face,
@@ -33,6 +33,7 @@ impl<
             forward_weight.clone(),
             backward_weight.clone(),
         );
+        let new_edge = EdgeId::new(new_forward, new_backward);
 
         // Retarget the original edge to start at the new vertex.
         self.half_edges.insert(
@@ -122,14 +123,15 @@ impl<
             face_to_split,
             new_face,
         );
-        new_edges.push(self.add_unwired_edge(
+        let (forward, backward) = self.add_unwired_edge(
             last_vertex,
             to,
             face_to_split,
             new_face,
             last_edge_weight.0,
             last_edge_weight.1,
-        ));
+        );
+        new_edges.push(EdgeId::new(forward, backward));
 
         let mut face_to_split_edges = vec![];
         face_to_split_edges.push(self.full_edge(from_incoming));
@@ -213,7 +215,7 @@ impl<
         twin_face: FaceId,
     ) -> (EdgeId, VertexId) {
         let dangling_vertex = self.add_unwired_vertex(dangling_vertex_weight);
-        let dangling_edge = self.add_unwired_edge(
+        let (forward, backward) = self.add_unwired_edge(
             from,
             dangling_vertex,
             face,
@@ -221,6 +223,7 @@ impl<
             edge_weight.0,
             edge_weight.1,
         );
+        let dangling_edge = EdgeId::new(forward, backward);
 
         (dangling_edge, dangling_vertex)
     }

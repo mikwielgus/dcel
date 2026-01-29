@@ -148,14 +148,15 @@ impl<
                 triangle_faces[i - 1]
             };
 
-            edges.push(self.add_unwired_edge(
+            let (forward, backward) = self.add_unwired_edge(
                 perimeter_vertex,
                 inner_vertex,
                 prev_face,
                 triangle_faces[i],
                 weight,
                 twin_weight,
-            ));
+            );
+            edges.push(EdgeId::new(forward, backward));
 
             i += 1;
         }

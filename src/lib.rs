@@ -324,7 +324,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
         twin_face: FaceId,
         weight: HEW,
         twin_weight: HEW,
-    ) -> EdgeId {
+    ) -> (HalfEdgeId, HalfEdgeId) {
         let forward_half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
             origin,
             // Uninitialized as edge 0 before until the twin is created in the next few lines of this method.
@@ -366,7 +366,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
             },
         );
 
-        EdgeId::new(forward_half_edge, backward_half_edge)
+        (forward_half_edge, backward_half_edge)
     }
 }
 

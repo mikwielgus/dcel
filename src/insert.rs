@@ -222,14 +222,15 @@ impl<
                 reused_edge
             } else {
                 // There is no preexisting shared edge. Add a new one.
-                self.add_unwired_edge(
+                let (forward, backward) = self.add_unwired_edge(
                     from_vertex,
                     to_vertex,
                     new_face,
                     outer_face,
                     forward_half_edge_weight,
                     backward_half_edge_weight,
-                )
+                );
+                EdgeId::new(forward, backward)
             };
 
             edges_tracker.visit_vertexes_edge(from_vertex, to_vertex, edge.forward());
@@ -311,7 +312,7 @@ impl<
         for ((from_vertex, to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
             vertexes_circular_tuple_windows.zip(edge_weights)
         {
-            let edge = self.add_unwired_edge(
+            let (forward, backward) = self.add_unwired_edge(
                 *from_vertex,
                 *to_vertex,
                 new_face,
@@ -319,6 +320,7 @@ impl<
                 forward_half_edge_weight,
                 backward_half_edge_weight,
             );
+            let edge = EdgeId::new(forward, backward);
             edges.push(edge);
         }
 
