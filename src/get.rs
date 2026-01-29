@@ -131,11 +131,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     }
 
     #[inline]
-    pub fn reverse_edge(&self, edge: EdgeId) -> EdgeId {
-        EdgeId::new(edge.backward(), edge.forward())
-    }
-
-    #[inline]
     pub fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
         self.half_edges.get(&half_edge.id()).unwrap().face
     }

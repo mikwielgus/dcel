@@ -131,44 +131,49 @@ impl<
             last_edge_weight.0,
             last_edge_weight.1,
         );
-        new_edges.push(EdgeId::new(forward, backward));
+        new_edges.push((forward, backward));
 
-        let mut face_to_split_edges = vec![];
-        face_to_split_edges.push(self.full_edge(from_incoming));
-        face_to_split_edges.extend(new_edges.iter().copied());
-        face_to_split_edges.push(self.full_edge(to_outgoing));
+        let mut face_to_split_directed_edges: Vec<(HalfEdgeId, HalfEdgeId)> = vec![];
+        face_to_split_directed_edges.push((from_incoming, self.twin(from_incoming)));
+        face_to_split_directed_edges.extend(new_edges.iter().copied());
+        face_to_split_directed_edges.push((to_outgoing, self.twin(to_outgoing)));
 
         // TODO: No need to run the whole loop here actually.
         let mut curr_half_edge = self.next_half_edge(to_outgoing);
         while curr_half_edge != from_incoming {
-            face_to_split_edges.push(self.full_edge(curr_half_edge));
+            face_to_split_directed_edges.push((curr_half_edge, self.twin(curr_half_edge)));
             curr_half_edge = self.next_half_edge(curr_half_edge);
         }
 
-        let mut new_face_edges = vec![];
-        new_face_edges.push(self.full_edge(to_incoming));
-        new_face_edges.extend(new_edges.iter().rev().map(|edge| self.reverse_edge(*edge)));
-        new_face_edges.push(self.full_edge(from_outgoing));
+        let mut new_face_directed_edges: Vec<(HalfEdgeId, HalfEdgeId)> = vec![];
+        new_face_directed_edges.push((to_incoming, self.twin(to_incoming)));
+        new_face_directed_edges.extend(
+            new_edges
+                .iter()
+                .rev()
+                .map(|(forward, backward)| (*backward, *forward)),
+        );
+        new_face_directed_edges.push((from_outgoing, self.twin(from_outgoing)));
 
         // TODO: No need to run the whole loop here actually.
         let mut curr_half_edge = self.next_half_edge(from_outgoing);
         while curr_half_edge != to_incoming {
-            new_face_edges.push(self.full_edge(curr_half_edge));
+            new_face_directed_edges.push((curr_half_edge, self.twin(curr_half_edge)));
             curr_half_edge = self.next_half_edge(curr_half_edge);
         }
 
         self.wire_inner_half_edge_chain(
             face_to_split,
-            &face_to_split_edges
+            &face_to_split_directed_edges
                 .iter()
-                .map(|edge| edge.forward())
+                .map(|(forward, _)| *forward)
                 .collect::<Vec<HalfEdgeId>>(),
         );
         self.wire_inner_half_edge_chain(
             new_face,
-            &new_face_edges
+            &new_face_directed_edges
                 .iter()
-                .map(|edge| edge.forward())
+                .map(|(forward, _)| *forward)
                 .collect::<Vec<HalfEdgeId>>(),
         );
 
@@ -182,7 +187,7 @@ impl<
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face: FaceId,
         twin_face: FaceId,
-    ) -> (Vec<EdgeId>, VertexId, (HEW, HEW)) {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, VertexId, (HEW, HEW)) {
         let mut edge_weights = edge_weights.into_iter();
         let mut edges = vec![];
         let mut last_vertex = from;
@@ -210,20 +215,20 @@ impl<
         &mut self,
         from: VertexId,
         dangling_vertex_weight: VW,
-        edge_weight: (HEW, HEW),
+        edge_weights: (HEW, HEW),
         face: FaceId,
         twin_face: FaceId,
-    ) -> (EdgeId, VertexId) {
+    ) -> ((HalfEdgeId, HalfEdgeId), VertexId) {
         let dangling_vertex = self.add_unwired_vertex(dangling_vertex_weight);
         let (forward, backward) = self.add_unwired_edge(
             from,
             dangling_vertex,
             face,
             twin_face,
-            edge_weight.0,
-            edge_weight.1,
+            edge_weights.0,
+            edge_weights.1,
         );
-        let dangling_edge = EdgeId::new(forward, backward);
+        let dangling_edge = (forward, backward);
 
         (dangling_edge, dangling_vertex)
     }
