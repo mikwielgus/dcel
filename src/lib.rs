@@ -237,36 +237,46 @@ impl<
         }
     }
 
-    fn wire_outer_half_edge_chain_circularly(&mut self, edges: &[EdgeId]) {
-        let edges_circular_tuple_windows = edges
-            .iter()
-            .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
+    fn wire_outer_half_edge_chain_circularly(&mut self, outer_half_edges: &[HalfEdgeId]) {
+        let outer_half_edges_circular_tuple_windows = outer_half_edges.iter().zip(
+            outer_half_edges
+                .iter()
+                .skip(1)
+                .chain(outer_half_edges.iter().take(1)),
+        );
 
-        for (edge, next_edge) in edges_circular_tuple_windows {
-            self.link_subsequent_half_edges(edge.backward(), next_edge.backward());
+        for (&outer_half_edge, &next_outer_half_edge) in outer_half_edges_circular_tuple_windows {
+            self.link_subsequent_half_edges(outer_half_edge, next_outer_half_edge);
         }
     }
 
-    fn wire_outer_half_edge_chain_adjoiningly(&mut self, outer_face: FaceId, edges: &[EdgeId]) {
-        let edges_circular_tuple_windows = edges
-            .iter()
-            .zip(edges.iter().skip(1).chain(edges.iter().take(1)));
+    fn wire_outer_half_edge_chain_adjoiningly(
+        &mut self,
+        outer_face: FaceId,
+        outer_half_edges: &[HalfEdgeId],
+    ) {
+        let outer_half_edges_circular_tuple_windows = outer_half_edges.iter().zip(
+            outer_half_edges
+                .iter()
+                .skip(1)
+                .chain(outer_half_edges.iter().take(1)),
+        );
 
-        for (edge, next_edge) in edges_circular_tuple_windows {
-            let is_edge_outward = self.face_behind(edge.forward()) == outer_face;
-            let is_next_edge_outward = self.face_behind(next_edge.forward()) == outer_face;
+        for (&outer_half_edge, &next_outer_half_edge) in outer_half_edges_circular_tuple_windows {
+            let is_edge_outward = self.face_in_front(outer_half_edge) == outer_face;
+            let is_next_edge_outward = self.face_in_front(next_outer_half_edge) == outer_face;
 
             if is_edge_outward && is_next_edge_outward {
-                self.link_subsequent_half_edges(next_edge.backward(), edge.backward());
+                self.link_subsequent_half_edges(next_outer_half_edge, outer_half_edge);
             } else if !is_edge_outward && is_next_edge_outward {
                 self.link_subsequent_half_edges(
-                    next_edge.backward(),
-                    self.turn_half_edge(edge.backward()),
+                    next_outer_half_edge,
+                    self.turn_half_edge(outer_half_edge),
                 );
             } else if is_edge_outward && !is_next_edge_outward {
                 self.link_subsequent_half_edges(
-                    self.twin(self.turn_back_half_edge(next_edge.forward())),
-                    edge.backward(),
+                    self.twin(self.turn_back_half_edge(self.twin(next_outer_half_edge))),
+                    outer_half_edge,
                 );
             } else {
                 // Both subsequent edges are pre-existing, so they are already
@@ -364,9 +374,6 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usi
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_subsequent_half_edges(&mut self, half_edge: HalfEdgeId, next_half_edge: HalfEdgeId) {
-        // Link the forward (inner) half-edge of `edge` with the forward
-        // half-edge of `next_edge`.
-        // half_edge.next := next_half_edge
         self.half_edges.insert(
             half_edge.id(),
             HalfEdge {
@@ -374,7 +381,6 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usi
                 ..self.half_edges.get(&half_edge.id()).unwrap().clone()
             },
         );
-        // next_half_edge.prev := half_edge
         self.half_edges.insert(
             next_half_edge.id(),
             HalfEdge {

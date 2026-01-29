@@ -152,7 +152,10 @@ impl<
             edge_weights,
         );
 
-        self.wire_outer_half_edge_chain_adjoiningly(outer_face, &edges);
+        self.wire_outer_half_edge_chain_adjoiningly(
+            outer_face,
+            &edges.iter().map(|edge| edge.backward()).collect::<Vec<_>>(),
+        );
         self.wire_inner_half_edge_chain(
             new_face,
             &edges.iter().map(|edge| edge.forward()).collect::<Vec<_>>(),
@@ -271,7 +274,9 @@ impl<
         let vertexes = self.add_unwired_polygon_vertexes(vertex_weights);
         let edges = self.add_unwired_polygon_edges(&vertexes, new_face, outer_face, edge_weights);
 
-        self.wire_outer_half_edge_chain_circularly(&edges);
+        self.wire_outer_half_edge_chain_circularly(
+            &edges.iter().map(|edge| edge.backward()).collect::<Vec<_>>(),
+        );
         self.wire_inner_half_edge_chain(
             new_face,
             &edges.iter().map(|edge| edge.forward()).collect::<Vec<_>>(),
