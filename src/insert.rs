@@ -7,7 +7,7 @@ use std::hash::Hash;
 use maplike::{Get, Insert, Push};
 
 use crate::{
-    Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId,
+    Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
     track::{EdgesTracker, VertexTracker},
 };
 
@@ -154,11 +154,11 @@ impl<
 
         self.wire_outer_half_edge_chain_adjoiningly(
             outer_face,
-            &edges.iter().map(|edge| edge.backward()).collect::<Vec<_>>(),
+            &edges.iter().map(|(_, backward)| *backward).collect::<Vec<_>>(),
         );
         self.wire_inner_half_edge_chain(
             new_face,
-            &edges.iter().map(|edge| edge.forward()).collect::<Vec<_>>(),
+            &edges.iter().map(|(forward, _)| *forward).collect::<Vec<_>>(),
         );
 
         new_face
@@ -190,12 +190,12 @@ impl<
         new_face: FaceId,
         outer_face: FaceId,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
-    ) -> Vec<EdgeId> {
+    ) -> Vec<(HalfEdgeId, HalfEdgeId)> {
         let vertexes_circular_tuple_windows = vertexes
             .iter()
             .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
 
-        let mut edges = vec![];
+        let mut edges: Vec<(HalfEdgeId, HalfEdgeId)> = vec![];
 
         for ((&from_vertex, &to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
             vertexes_circular_tuple_windows.zip(edge_weights)
@@ -204,16 +204,17 @@ impl<
                 edges_tracker.vertexes_half_edge(to_vertex, from_vertex)
             {
                 // Reuse already existing shared edge.
-                let reused_edge = self.full_edge(self.twin(existing_half_edge));
+                let forward = self.twin(existing_half_edge);
+                let reused_edge = (forward, existing_half_edge);
 
                 // Make the forward half-edge point to the new face.
                 self.half_edges.insert(
-                    reused_edge.forward().id(),
+                    forward.id(),
                     HalfEdge {
                         face: new_face,
                         ..self
                             .half_edges
-                            .get(&reused_edge.forward().id())
+                            .get(&forward.id())
                             .unwrap()
                             .clone()
                     },
@@ -230,10 +231,10 @@ impl<
                     forward_half_edge_weight,
                     backward_half_edge_weight,
                 );
-                EdgeId::new(forward, backward)
+                (forward, backward)
             };
 
-            edges_tracker.visit_vertexes_edge(from_vertex, to_vertex, edge.forward());
+            edges_tracker.visit_vertexes_edge(from_vertex, to_vertex, edge.0);
             edges.push(edge);
         }
 
