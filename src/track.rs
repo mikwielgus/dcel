@@ -101,9 +101,16 @@ impl HalfEdgesCounter {
     pub fn outer_edges<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
-    ) -> impl Iterator<Item = EdgeId> {
-        self.visited_edges::<VW, HEW, FW, VC, HEC, FC>(dcel)
-            .filter(|edge| self.is_outer_edge(*edge))
+    ) -> impl Iterator<Item = (HalfEdgeId, HalfEdgeId)> {
+        self.visited_half_edges().filter_map(move |half_edge| {
+            let twin = dcel.twin(half_edge);
+
+            if self.half_edge_visit_count(twin) == 0 {
+                Some((half_edge, twin))
+            } else {
+                None
+            }
+        })
     }
 
     pub fn edge_visit_count(&self, edge: EdgeId) -> usize {
