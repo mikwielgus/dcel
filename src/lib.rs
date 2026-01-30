@@ -35,7 +35,7 @@ pub use walkers::{
     SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
 };
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct VertexId(usize);
 
 impl VertexId {
@@ -50,7 +50,7 @@ impl VertexId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct HalfEdgeId(usize);
 
 impl HalfEdgeId {
