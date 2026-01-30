@@ -151,7 +151,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 {
     #[inline]
     pub fn vertex_spokes(&self, vertex: VertexId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.spokes(self.vertex_next_edge(vertex))
+        self.spokes(self.outgoing_next_half_edge(vertex))
     }
 
     #[inline]
@@ -159,7 +159,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.spokes_reverse(self.vertex_next_edge(vertex))
+        self.spokes_reverse(self.outgoing_next_half_edge(vertex))
     }
 }
 
@@ -211,10 +211,13 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn spokes(&self, initial_edge: EdgeId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+    pub fn spokes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesWalker {
-            initial_half_edge: initial_edge.forward(),
-            curr_half_edge: Some(initial_edge.forward()),
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }
@@ -222,11 +225,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn spokes_reverse(
         &self,
-        initial_edge: EdgeId,
+        initial_half_edge: HalfEdgeId,
     ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesReverseWalker {
-            initial_half_edge: initial_edge.forward(),
-            curr_half_edge: Some(initial_edge.forward()),
+            initial_half_edge,
+            curr_half_edge: Some(initial_half_edge),
         }
         .iter(self)
     }

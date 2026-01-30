@@ -25,9 +25,8 @@ impl<
 
     pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
         let initial_half_edge = self.outgoing_next_half_edge(inner_vertex);
-        let initial_edge = self.full_edge(initial_half_edge);
 
-        let inner_edges: Vec<EdgeId> = self.spokes(initial_edge).collect();
+        let inner_edges: Vec<EdgeId> = self.spokes(initial_half_edge).collect();
         let perimeter_half_edges: Vec<HalfEdgeId> = self
             .vertex_rim_half_edges(inner_vertex)
             .collect::<Vec<HalfEdgeId>>();
@@ -133,14 +132,14 @@ impl<
             vertex_weights_counter
                 .visited_vertexes()
                 .filter(|&vertex| {
-                    self.spokes_reverse(self.vertex_next_edge(vertex))
+                    self.spokes_reverse(self.outgoing_next_half_edge(vertex))
                         .all(|edge| half_edges_counter.is_inner_edge(edge))
                 })
                 // PERF: Needless collect?
                 .collect::<Vec<VertexId>>(),
             &half_edges_counter
                 .outer_edges(self)
-                .map(|edge| edge.forward())
+                .map(|(half_edge, _)| half_edge)
                 .collect::<Vec<HalfEdgeId>>(),
         );
     }

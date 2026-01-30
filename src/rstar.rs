@@ -334,9 +334,8 @@ impl<
 
     pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
         let initial_half_edge = self.dcel.outgoing_next_half_edge(inner_vertex);
-        let initial_edge = self.dcel.full_edge(initial_half_edge);
 
-        let inner_edges: Vec<EdgeId> = self.dcel.spokes(initial_edge).collect();
+        let inner_edges: Vec<EdgeId> = self.dcel.spokes(initial_half_edge).collect();
         let perimeter_half_edges: Vec<HalfEdgeId> = self
             .dcel
             .vertex_rim_half_edges(inner_vertex)
@@ -447,14 +446,14 @@ impl<
                 .visited_vertexes()
                 .filter(|&vertex| {
                     self.dcel
-                        .spokes_reverse(self.dcel.vertex_next_edge(vertex))
+                        .spokes_reverse(self.dcel.outgoing_next_half_edge(vertex))
                         .all(|edge| half_edges_counter.is_inner_edge(edge))
                 })
                 // PERF: Needless collect?
                 .collect::<Vec<VertexId>>(),
             &half_edges_counter
                 .outer_edges(&self.dcel)
-                .map(|edge| edge.forward())
+                .map(|(half_edge, _)| half_edge)
                 .collect::<Vec<HalfEdgeId>>(),
         );
     }
