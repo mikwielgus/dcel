@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use std::collections::BTreeSet;
 use std::hash::Hash;
 
 use maplike::{Get, Insert, Push, StableRemove};
@@ -90,9 +91,16 @@ impl<
         face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
     ) -> Vec<FaceId> {
         let faces = self.dcel.insert_mesh(face_polygons);
+        let mut deduplicating_edge_set = BTreeSet::new();
 
         for face in &faces {
-            self.add_face_with_edges_to_rtrees(*face);
+            self.add_face_to_rtree(*face);
+
+            for edge in self.dcel.face_edges(*face).collect::<Vec<EdgeId>>() {
+                if !deduplicating_edge_set.insert(edge) {
+                    self.add_edge_to_rtree(edge);
+                }
+            }
         }
 
         faces
@@ -103,9 +111,16 @@ impl<
         face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
     ) -> Vec<FaceId> {
         let faces = self.dcel.insert_mesh_in_face(face_polygons);
+        let mut deduplicating_edge_set = BTreeSet::new();
 
         for face in &faces {
-            self.add_face_with_edges_to_rtrees(*face);
+            self.add_face_to_rtree(*face);
+
+            for edge in self.dcel.face_edges(*face).collect::<Vec<EdgeId>>() {
+                if !deduplicating_edge_set.insert(edge) {
+                    self.add_edge_to_rtree(edge);
+                }
+            }
         }
 
         faces
@@ -788,16 +803,19 @@ impl<
 
     fn add_edges_to_rtree(&mut self, edges: impl IntoIterator<Item = EdgeId>) {
         for edge in edges {
-            let endpoints = self.dcel.endpoints(edge);
-
-            self.edges_rtree.insert(GeomWithData::new(
-                Rectangle::from_corners(
-                    Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
-                    Into::<P>::into(self.dcel.vertex_weight(endpoints.1).clone()),
-                ),
-                edge,
-            ));
+            self.add_edge_to_rtree(edge);
         }
+    }
+
+    fn add_edge_to_rtree(&mut self, edge: EdgeId) {
+        let endpoints = self.dcel.endpoints(edge);
+        self.edges_rtree.insert(GeomWithData::new(
+            Rectangle::from_corners(
+                Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
+                Into::<P>::into(self.dcel.vertex_weight(endpoints.1).clone()),
+            ),
+            edge,
+        ));
     }
 }
 
@@ -1130,8 +1148,7 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 10);
-        // I admit I don't know why it's 55 -- it doesn't look right.
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 55);
+        assert_eq!(rtreed_dcel.edges_rtree.size(), 17);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
@@ -1167,6 +1184,7 @@ mod test {
         // There are now eleven faces in total: one unbounded and ten bounded.
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
         assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
+        // TODO: Test number of elements here and further below.
 
         // The original hexagon is now split into two pentagons.
 
