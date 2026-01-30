@@ -97,7 +97,7 @@ impl<
             self.add_face_to_rtree(*face);
 
             for edge in self.dcel.face_edges(*face).collect::<Vec<EdgeId>>() {
-                if !deduplicating_edge_set.insert(edge) {
+                if deduplicating_edge_set.insert(edge) {
                     self.add_edge_to_rtree(edge);
                 }
             }
@@ -1148,7 +1148,7 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 10);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 17);
+        assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
         assert_eq!(rtreed_dcel.faces_rtree.size(), 9);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
