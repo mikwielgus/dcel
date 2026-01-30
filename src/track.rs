@@ -60,8 +60,8 @@ impl HalfEdgesCounter {
     }
 
     pub fn visit_edge(&mut self, edge: EdgeId) {
-        self.visit_half_edge(edge.forward());
-        self.visit_half_edge(edge.backward());
+        self.visit_half_edge(edge.lesser());
+        self.visit_half_edge(edge.greater());
     }
 
     pub fn visited_half_edges(&self) -> impl Iterator<Item = HalfEdgeId> {
@@ -114,7 +114,7 @@ impl HalfEdgesCounter {
     }
 
     pub fn edge_visit_count(&self, edge: EdgeId) -> usize {
-        self.half_edge_visit_count(edge.forward()) + self.half_edge_visit_count(edge.backward())
+        self.half_edge_visit_count(edge.lesser()) + self.half_edge_visit_count(edge.greater())
     }
 
     pub fn half_edge_visit_count(&self, half_edge: HalfEdgeId) -> usize {
@@ -122,13 +122,13 @@ impl HalfEdgesCounter {
     }
 
     pub fn is_inner_edge(&self, edge: EdgeId) -> bool {
-        self.half_edge_visit_count(edge.forward()) >= 1
-            && self.half_edge_visit_count(edge.backward()) >= 1
+        self.half_edge_visit_count(edge.lesser()) >= 1
+            && self.half_edge_visit_count(edge.greater()) >= 1
     }
 
     pub fn is_outer_edge(&self, edge: EdgeId) -> bool {
-        self.half_edge_visit_count(edge.forward()) <= 0
-            || self.half_edge_visit_count(edge.backward()) <= 0
+        self.half_edge_visit_count(edge.lesser()) <= 0
+            || self.half_edge_visit_count(edge.greater()) <= 0
     }
 }
 

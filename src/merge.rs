@@ -69,7 +69,7 @@ impl<
         let edges: Vec<EdgeId> = edges.into_iter().collect();
         let excluded_half_edges: Vec<HalfEdgeId> = edges
             .iter()
-            .flat_map(|edge| [edge.forward(), edge.backward()])
+            .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect();
 
         // Find an initial half-edge that is not in the excluded list. Otherwise,

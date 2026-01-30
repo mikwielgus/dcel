@@ -70,20 +70,20 @@ pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
 impl EdgeId {
     #[inline]
-    pub(crate) fn new(forward: HalfEdgeId, backward: HalfEdgeId) -> EdgeId {
+    pub(crate) fn new(half_edge1: HalfEdgeId, half_edge2: HalfEdgeId) -> EdgeId {
         Self(
-            std::cmp::min(forward, backward),
-            std::cmp::max(forward, backward),
+            std::cmp::min(half_edge1, half_edge2),
+            std::cmp::max(half_edge1, half_edge2),
         )
     }
 
     #[inline]
-    pub fn forward(self) -> HalfEdgeId {
+    pub fn lesser(self) -> HalfEdgeId {
         self.0
     }
 
     #[inline]
-    pub fn backward(self) -> HalfEdgeId {
+    pub fn greater(self) -> HalfEdgeId {
         self.1
     }
 }

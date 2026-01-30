@@ -16,8 +16,8 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
-        let absorbing_face = self.face_in_front(edge.forward());
-        let face_to_absorb = self.face_behind(edge.forward());
+        let absorbing_face = self.face_in_front(edge.lesser());
+        let face_to_absorb = self.face_behind(edge.lesser());
 
         self.absorb_faces_over_edges_and_vertexes(absorbing_face, [face_to_absorb], [edge], []);
 
@@ -50,8 +50,8 @@ impl<VW, HEW, FW, VC, HEC: Remove<usize, Value = HalfEdge<HEW>>, FC>
     }
 
     pub(crate) fn remove_orphaned_edge(&mut self, edge: EdgeId) {
-        self.half_edges.remove(&edge.forward().id());
-        self.half_edges.remove(&edge.backward().id());
+        self.half_edges.remove(&edge.lesser().id());
+        self.half_edges.remove(&edge.greater().id());
     }
 }
 

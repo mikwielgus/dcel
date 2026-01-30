@@ -90,8 +90,8 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     #[inline]
     pub fn is_boundary_vertex(&self, vertex: VertexId) -> bool {
         self.vertex_spokes(vertex).any(|spoke| {
-            self.face_in_front(spoke.forward()) == self.unbounded_face()
-                || self.face_in_front(spoke.backward()) == self.unbounded_face()
+            self.face_in_front(spoke.lesser()) == self.unbounded_face()
+                || self.face_in_front(spoke.greater()) == self.unbounded_face()
         })
     }
 }
@@ -111,7 +111,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 
     #[inline]
     pub fn endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
-        (self.origin(edge.forward()), self.origin(edge.backward()))
+        (self.origin(edge.lesser()), self.origin(edge.greater()))
     }
 
     #[inline]
@@ -137,8 +137,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
         (
-            self.face_in_front(edge.forward()),
-            self.face_behind(edge.backward()),
+            self.face_in_front(edge.lesser()),
+            self.face_behind(edge.greater()),
         )
     }
 
@@ -154,14 +154,14 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 
     #[inline]
     pub fn prev_edge(&self, edge: EdgeId) -> EdgeId {
-        let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().prev;
+        let next_forward_half_edge = self.half_edges.get(&edge.lesser().id()).unwrap().prev;
 
         self.full_edge(next_forward_half_edge)
     }
 
     #[inline]
     pub fn next_edge(&self, edge: EdgeId) -> EdgeId {
-        let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().next;
+        let next_forward_half_edge = self.half_edges.get(&edge.lesser().id()).unwrap().next;
 
         self.full_edge(next_forward_half_edge)
     }
@@ -178,12 +178,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 
     #[inline]
     pub fn turn_edge(&self, edge: EdgeId) -> EdgeId {
-        self.full_edge(self.turn_half_edge(edge.forward()))
+        self.full_edge(self.turn_half_edge(edge.lesser()))
     }
 
     #[inline]
     pub fn turn_back_edge(&self, edge: EdgeId) -> EdgeId {
-        self.full_edge(self.turn_back_half_edge(edge.forward()))
+        self.full_edge(self.turn_back_half_edge(edge.lesser()))
     }
 
     #[inline]
@@ -194,8 +194,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn edge_weights(&self, edge: EdgeId) -> (&HEW, &HEW) {
         (
-            self.half_edge_weight(edge.forward()),
-            self.half_edge_weight(edge.backward()),
+            self.half_edge_weight(edge.lesser()),
+            self.half_edge_weight(edge.greater()),
         )
     }
 }

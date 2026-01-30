@@ -77,7 +77,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         let initial_half_edge = self.next_half_edge(self.outgoing_next_half_edge(vertex));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
-            .flat_map(|edge| [edge.forward(), edge.backward()])
+            .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect::<Vec<HalfEdgeId>>();
 
         // Boundary vertexes do not have cycles circulating them.
@@ -102,7 +102,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         let initial_half_edge = self.prev_half_edge(self.incoming_next_half_edge(vertex));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
-            .flat_map(|edge| [edge.forward(), edge.backward()])
+            .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect::<Vec<HalfEdgeId>>();
 
         // Boundary vertexes do not have cycles circulating them.
@@ -269,10 +269,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         CirculateVertexesWithExcludesWalker {
             circulator: self
                 .circulate_half_edges_with_excludes(
-                    initial_edge.forward(),
+                    initial_edge.lesser(),
                     excluded_edges
                         .into_iter()
-                        .flat_map(|edge| [edge.forward(), edge.backward()]),
+                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
                 )
                 .walker(),
         }
@@ -288,10 +288,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         CirculateVertexesWithExcludesReverseWalker {
             circulator: self
                 .circulate_half_edges_with_excludes_reverse(
-                    initial_edge.forward(),
+                    initial_edge.lesser(),
                     excluded_edges
                         .into_iter()
-                        .flat_map(|edge| [edge.forward(), edge.backward()]),
+                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
                 )
                 .walker(),
         }
@@ -335,10 +335,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         CirculateEdgesWithExcludesWalker {
             circulator: self
                 .circulate_half_edges_with_excludes(
-                    initial_edge.forward(),
+                    initial_edge.lesser(),
                     excluded_edges
                         .into_iter()
-                        .flat_map(|edge| [edge.forward(), edge.backward()]),
+                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
                 )
                 .walker(),
         }
@@ -354,10 +354,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         CirculateEdgesWithExcludesReverseWalker {
             circulator: self
                 .circulate_half_edges_with_excludes_reverse(
-                    initial_edge.forward(),
+                    initial_edge.lesser(),
                     excluded_edges
                         .into_iter()
-                        .flat_map(|edge| [edge.forward(), edge.backward()]),
+                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
                 )
                 .walker(),
         }

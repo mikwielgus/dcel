@@ -17,8 +17,8 @@ impl<
 {
     pub fn split_edge_by_vertex(&mut self, edge_to_split: EdgeId, vertex: VW) -> EdgeId {
         let (origin, _) = self.endpoints(edge_to_split);
-        let forward = edge_to_split.forward();
-        let backward = edge_to_split.backward();
+        let forward = edge_to_split.lesser();
+        let backward = edge_to_split.greater();
         let face = self.face_in_front(forward);
         let twin_face = self.face_in_front(backward);
         let (forward_weight, backward_weight) = self.edge_weights(edge_to_split);
@@ -48,18 +48,18 @@ impl<
         let backward_next = self.next_half_edge(backward);
 
         // Insert the new edge in the forward face cycle.
-        self.link_subsequent_half_edges(forward_prev, new_edge.forward());
-        self.link_subsequent_half_edges(new_edge.forward(), forward);
+        self.link_subsequent_half_edges(forward_prev, new_edge.lesser());
+        self.link_subsequent_half_edges(new_edge.lesser(), forward);
 
         // Insert the new edge in the backward face cycle.
-        self.link_subsequent_half_edges(backward, new_edge.backward());
-        self.link_subsequent_half_edges(new_edge.backward(), backward_next);
+        self.link_subsequent_half_edges(backward, new_edge.greater());
+        self.link_subsequent_half_edges(new_edge.greater(), backward_next);
 
         // Update the outgoing spokes of vertexes.
         // XXX: Is this really needed?
         self.link_vertex_with_half_edge(new_vertex, forward);
         if self.outgoing_next_half_edge(origin) == forward {
-            self.link_vertex_with_half_edge(origin, new_edge.forward());
+            self.link_vertex_with_half_edge(origin, new_edge.lesser());
         }
 
         new_edge
@@ -246,7 +246,7 @@ mod test {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         let face = FaceId::new(5);
         let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
-        let old_origin = dcel.origin(edge.forward());
+        let old_origin = dcel.origin(edge.lesser());
 
         let new_edge = dcel.split_edge_by_vertex(edge, (259, 150));
 

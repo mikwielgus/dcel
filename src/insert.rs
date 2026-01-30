@@ -279,11 +279,11 @@ impl<
         let edges = self.add_unwired_polygon_edges(&vertexes, new_face, outer_face, edge_weights);
 
         self.wire_outer_half_edge_chain_circularly(
-            &edges.iter().map(|edge| edge.backward()).collect::<Vec<_>>(),
+            &edges.iter().map(|edge| edge.greater()).collect::<Vec<_>>(),
         );
         self.wire_inner_half_edge_chain(
             new_face,
-            &edges.iter().map(|edge| edge.forward()).collect::<Vec<_>>(),
+            &edges.iter().map(|edge| edge.lesser()).collect::<Vec<_>>(),
         );
 
         new_face

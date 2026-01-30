@@ -291,18 +291,18 @@ impl<
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(self.dcel.face_in_front(edge.forward()))
+                    .face_vertexes(self.dcel.face_in_front(edge.lesser()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
-            self.dcel.face_in_front(edge.forward()),
+            self.dcel.face_in_front(edge.lesser()),
         ));
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(self.dcel.face_behind(edge.forward()))
+                    .face_vertexes(self.dcel.face_behind(edge.lesser()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
-            self.dcel.face_behind(edge.forward()),
+            self.dcel.face_behind(edge.lesser()),
         ));
 
         let absorbing_face = self.dcel.remove_edge(edge);
@@ -380,7 +380,7 @@ impl<
         let edges: Vec<EdgeId> = edges.into_iter().collect();
         let excluded_half_edges: Vec<HalfEdgeId> = edges
             .iter()
-            .flat_map(|edge| [edge.forward(), edge.backward()])
+            .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect();
 
         // Find an initial half-edge that is not in the excluded list. Otherwise,
