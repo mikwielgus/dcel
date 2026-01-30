@@ -156,7 +156,7 @@ impl<
                 weight,
                 twin_weight,
             );
-            edges.push(EdgeId::new(forward, backward));
+            edges.push(self.full_edge(forward));
 
             i += 1;
         }

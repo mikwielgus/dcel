@@ -154,11 +154,17 @@ impl<
 
         self.wire_outer_half_edge_chain_adjoiningly(
             outer_face,
-            &edges.iter().map(|(_, backward)| *backward).collect::<Vec<_>>(),
+            &edges
+                .iter()
+                .map(|(_, backward)| *backward)
+                .collect::<Vec<_>>(),
         );
         self.wire_inner_half_edge_chain(
             new_face,
-            &edges.iter().map(|(forward, _)| *forward).collect::<Vec<_>>(),
+            &edges
+                .iter()
+                .map(|(forward, _)| *forward)
+                .collect::<Vec<_>>(),
         );
 
         new_face
@@ -212,11 +218,7 @@ impl<
                     forward.id(),
                     HalfEdge {
                         face: new_face,
-                        ..self
-                            .half_edges
-                            .get(&forward.id())
-                            .unwrap()
-                            .clone()
+                        ..self.half_edges.get(&forward.id()).unwrap().clone()
                     },
                 );
 
@@ -313,7 +315,7 @@ impl<
         for ((from_vertex, to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
             vertexes_circular_tuple_windows.zip(edge_weights)
         {
-            let (forward, backward) = self.add_unwired_edge(
+            let (forward, _) = self.add_unwired_edge(
                 *from_vertex,
                 *to_vertex,
                 new_face,
@@ -321,8 +323,7 @@ impl<
                 forward_half_edge_weight,
                 backward_half_edge_weight,
             );
-            let edge = EdgeId::new(forward, backward);
-            edges.push(edge);
+            edges.push(self.full_edge(forward));
         }
 
         edges

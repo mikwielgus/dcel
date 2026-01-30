@@ -25,7 +25,7 @@ impl<
         let (forward_weight, backward_weight) = (forward_weight.clone(), backward_weight.clone());
 
         let new_vertex = self.add_unwired_vertex(vertex);
-        let (new_forward, new_backward) = self.add_unwired_edge(
+        let (new_forward, _) = self.add_unwired_edge(
             origin,
             new_vertex,
             face,
@@ -33,7 +33,7 @@ impl<
             forward_weight.clone(),
             backward_weight.clone(),
         );
-        let new_edge = EdgeId::new(new_forward, new_backward);
+        let new_edge = self.full_edge(new_forward);
 
         // Retarget the original edge to start at the new vertex.
         self.half_edges.insert(
