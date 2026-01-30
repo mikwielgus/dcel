@@ -48,10 +48,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 
     #[inline]
     pub fn vertex_next_edge(&self, vertex: VertexId) -> EdgeId {
-        EdgeId::new(
-            self.outgoing_next_half_edge(vertex),
-            self.incoming_next_half_edge(vertex),
-        )
+        self.full_edge(self.outgoing_next_half_edge(vertex))
     }
 
     #[inline]
@@ -66,10 +63,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 
     #[inline]
     pub fn vertex_prev_edge(&self, vertex: VertexId) -> EdgeId {
-        EdgeId::new(
-            self.incoming_prev_half_edge(vertex),
-            self.outgoing_prev_half_edge(vertex),
-        )
+        self.full_edge(self.incoming_prev_half_edge(vertex))
     }
 
     #[inline]
@@ -161,25 +155,15 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn prev_edge(&self, edge: EdgeId) -> EdgeId {
         let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().prev;
-        let next_backward_half_edge = self
-            .half_edges
-            .get(&next_forward_half_edge.id())
-            .unwrap()
-            .twin;
 
-        EdgeId::new(next_forward_half_edge, next_backward_half_edge)
+        self.full_edge(next_forward_half_edge)
     }
 
     #[inline]
     pub fn next_edge(&self, edge: EdgeId) -> EdgeId {
         let next_forward_half_edge = self.half_edges.get(&edge.forward().id()).unwrap().next;
-        let next_backward_half_edge = self
-            .half_edges
-            .get(&next_forward_half_edge.id())
-            .unwrap()
-            .twin;
 
-        EdgeId::new(next_forward_half_edge, next_backward_half_edge)
+        self.full_edge(next_forward_half_edge)
     }
 
     #[inline]
