@@ -65,13 +65,16 @@ impl HalfEdgeId {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
 impl EdgeId {
     #[inline]
-    pub fn new(forward: HalfEdgeId, backward: HalfEdgeId) -> EdgeId {
-        Self(forward, backward)
+    pub(crate) fn new(forward: HalfEdgeId, backward: HalfEdgeId) -> EdgeId {
+        Self(
+            std::cmp::min(forward, backward),
+            std::cmp::max(forward, backward),
+        )
     }
 
     #[inline]
