@@ -15,7 +15,7 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn split_edge_by_vertex(&mut self, edge_to_split: EdgeId, vertex: VW) -> EdgeId {
+    pub fn split_edge_by_vertex(&mut self, edge_to_split: EdgeId, vertex: VW) -> (VertexId, EdgeId) {
         let (origin, _) = self.endpoints(edge_to_split);
         let forward = edge_to_split.lesser();
         let backward = edge_to_split.greater();
@@ -62,7 +62,7 @@ impl<
             self.link_vertex_with_half_edge(origin, new_edge.lesser());
         }
 
-        new_edge
+        (new_vertex, new_edge)
     }
 
     pub fn split_face_by_edge(
@@ -259,7 +259,7 @@ mod test {
         let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
         let old_origin = dcel.origin(edge.lesser());
 
-        let new_edge = dcel.split_edge_by_vertex(edge, (259, 150));
+        let (_new_vertex, new_edge) = dcel.split_edge_by_vertex(edge, (259, 150));
 
         assert_eq!(dcel.vertexes().num_elements(), 31);
         assert_eq!(dcel.half_edges().num_elements(), 78);

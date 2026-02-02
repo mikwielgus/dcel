@@ -543,7 +543,11 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn split_edge_by_vertex(&mut self, edge_to_split: EdgeId, vertex: VW) -> EdgeId {
+    pub fn split_edge_by_vertex(
+        &mut self,
+        edge_to_split: EdgeId,
+        vertex: VW,
+    ) -> (VertexId, EdgeId) {
         let original_endpoints = self.dcel.endpoints(edge_to_split);
 
         // Remove the edge to split from the edges R-tree before its shape
@@ -557,14 +561,14 @@ impl<
             edge_to_split,
         ));
 
-        let new_edge = self.dcel.split_edge_by_vertex(edge_to_split, vertex);
+        let (new_vertex, new_edge) = self.dcel.split_edge_by_vertex(edge_to_split, vertex);
         self.add_edges_to_rtree([new_edge]);
 
         // Insert the split edge back in the edges R-tree now that its bbox is
         // done changing.
         self.add_edges_to_rtree([edge_to_split]);
 
-        new_edge
+        (new_vertex, new_edge)
     }
 
     pub fn split_face_by_edge(
@@ -1157,7 +1161,7 @@ mod test {
         let original_endpoints = rtreed_dcel.dcel.endpoints(edge);
         let original_edge_count = rtreed_dcel.edges_rtree.size();
 
-        let new_edge = rtreed_dcel.split_edge_by_vertex(edge, (259, 150));
+        let (_new_vertex, new_edge) = rtreed_dcel.split_edge_by_vertex(edge, (259, 150));
 
         assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
