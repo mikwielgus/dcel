@@ -177,7 +177,7 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> FaceId {
+    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> (EdgeId, FaceId) {
         self.split_face_by_edge(from, to, self.dcel.vertexes_common_face(from, to).unwrap())
     }
 
@@ -186,7 +186,7 @@ impl<
         from: VertexId,
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
-    ) -> FaceId {
+    ) -> (Vec<EdgeId>, FaceId) {
         self.split_face_by_edge_chain(
             from,
             to,
@@ -212,7 +212,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
-    ) -> FaceId {
+    ) -> (Vec<EdgeId>, FaceId) {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,
@@ -572,13 +572,13 @@ impl<
         from: VertexId,
         to: VertexId,
         face_to_split: FaceId,
-    ) -> FaceId {
-        let (new_faces, _) = self.update_face_rtree(face_to_split, |dcel| {
-            let new_face = dcel.split_face_by_edge(from, to, face_to_split);
-            (vec![new_face], Vec::new())
+    ) -> (EdgeId, FaceId) {
+        let (new_edges, new_faces) = self.update_face_rtree(face_to_split, |dcel| {
+            let (new_edge, new_face) = dcel.split_face_by_edge(from, to, face_to_split);
+            (vec![new_edge], vec![new_face])
         });
 
-        new_faces[0]
+        (new_edges[0], new_faces[0])
     }
 
     pub fn split_face_by_edge_chain(
@@ -587,13 +587,14 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         face_to_split: FaceId,
-    ) -> FaceId {
-        let (new_faces, _) = self.update_face_rtree(face_to_split, |dcel| {
-            let new_face = dcel.split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
-            (vec![new_face], Vec::new())
+    ) -> (Vec<EdgeId>, FaceId) {
+        let (new_edges, new_faces) = self.update_face_rtree(face_to_split, |dcel| {
+            let (new_edges, new_face) =
+                dcel.split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
+            (new_edges, vec![new_face])
         });
 
-        new_faces[0]
+        (new_edges, new_faces[0])
     }
 }
 
@@ -615,9 +616,9 @@ impl<
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_to_split: FaceId,
         new_face_weight: FW,
-    ) -> FaceId {
-        let (new_faces, _) = self.update_face_rtree(face_to_split, |dcel| {
-            let new_face = dcel.split_face_by_edge_chain_with_all_weights(
+    ) -> (Vec<EdgeId>, FaceId) {
+        let (new_edges, new_faces) = self.update_face_rtree(face_to_split, |dcel| {
+            let (new_edges, new_face) = dcel.split_face_by_edge_chain_with_all_weights(
                 from,
                 to,
                 vertex_weights,
@@ -625,10 +626,10 @@ impl<
                 face_to_split,
                 new_face_weight,
             );
-            (vec![new_face], Vec::new())
+            (new_edges, vec![new_face])
         });
 
-        new_faces[0]
+        (new_edges, new_faces[0])
     }
 }
 
@@ -649,12 +650,13 @@ impl<
     /// created for all the other triangles.
     ///
     /// Returns the new vertex id together with the ids of all the newly created
-    /// faces and edges (the reused already existing face and edges are not
+    /// edges and faces (the reused already existing edges and face are not
+    /// included).
     pub fn triangulate_face_around_point(
         &mut self,
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
-    ) -> (VertexId, Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (VertexId, Vec<EdgeId>, Vec<FaceId>) {
         let mut result = (VertexId::new(0), vec![], vec![]);
 
         self.update_face_rtree(perimeter_face, |dcel| {
@@ -670,7 +672,7 @@ impl<
         &mut self,
         perimeter_face: FaceId,
         apex: VertexId,
-    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (Vec<EdgeId>, Vec<FaceId>) {
         self.update_face_rtree(perimeter_face, |dcel| {
             dcel.fan_triangulate(perimeter_face, apex)
         })
@@ -693,7 +695,7 @@ impl<
         inner_vertex_weight: VW,
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) -> (VertexId, Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (VertexId, Vec<EdgeId>, Vec<FaceId>) {
         let mut result = (VertexId::new(0), vec![], vec![]);
 
         self.update_face_rtree(perimeter_face, |dcel| {
@@ -715,7 +717,7 @@ impl<
         apex: VertexId,
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (Vec<EdgeId>, Vec<FaceId>) {
         self.update_face_rtree(perimeter_face, |dcel| {
             dcel.fan_triangulate_with_all_weights(
                 perimeter_face,
@@ -741,9 +743,9 @@ impl<
         &mut self,
         face_to_update: FaceId,
         mutate_fn: F,
-    ) -> (Vec<FaceId>, Vec<EdgeId>)
+    ) -> (Vec<EdgeId>, Vec<FaceId>)
     where
-        F: FnOnce(&mut Dcel<VW, HEW, FW, VC, HEC, FC>) -> (Vec<FaceId>, Vec<EdgeId>),
+        F: FnOnce(&mut Dcel<VW, HEW, FW, VC, HEC, FC>) -> (Vec<EdgeId>, Vec<FaceId>),
     {
         // The updated face id is reused as one of the new faces. So, we need
         // to remove it from the faces R-tree before its shape changes, as it
@@ -758,7 +760,7 @@ impl<
             face_to_update,
         ));
 
-        let (new_faces, new_edges) = mutate_fn(&mut self.dcel);
+        let (new_edges, new_faces) = mutate_fn(&mut self.dcel);
 
         // Insert the updated face back in the faces R-tree now that its bbox
         // is done changing.
@@ -767,7 +769,7 @@ impl<
         self.add_faces_to_rtree(new_faces.clone());
         self.add_edges_to_rtree(new_edges.clone());
 
-        (new_faces, new_edges)
+        (new_edges, new_faces)
     }
 
     fn add_faces_to_rtree(&mut self, faces: impl IntoIterator<Item = FaceId>) {
@@ -873,7 +875,8 @@ mod test {
             rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
-        rtreed_dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
+        let (_new_edge, _new_face) =
+            rtreed_dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
 
         // There are now eleven faces in total: one unbounded and ten bounded.
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
@@ -1110,7 +1113,7 @@ mod test {
             rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
-        rtreed_dcel.split_face_by_edge(
+        let (_new_edge, _new_face) = rtreed_dcel.split_face_by_edge(
             face_to_split_vertexes[0],
             face_to_split_vertexes[3],
             face_to_split,
@@ -1186,7 +1189,7 @@ mod test {
 
         // Split face 5 in two with a chain of two edges, with their common
         // point around the face's center.
-        rtreed_dcel.split_face_by_edge_chain(
+        let (_new_edges, _new_face) = rtreed_dcel.split_face_by_edge_chain(
             face_to_split_vertexes[0],
             face_to_split_vertexes[3],
             [(259, 150)],
@@ -1229,7 +1232,7 @@ mod test {
     #[test]
     fn test_triangulate_face_around_point() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        let (inner_vertex, new_faces, new_edges) =
+        let (_inner_vertex, new_edges, new_faces) =
             rtreed_dcel.triangulate_face_around_point(FaceId::new(5), (260, 125));
 
         assert_eq!(new_faces.len(), 5);

@@ -339,7 +339,7 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> FaceId {
+    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> (EdgeId, FaceId) {
         self.split_face_by_edge(from, to, self.vertexes_common_face(from, to).unwrap())
     }
 
@@ -348,7 +348,7 @@ impl<
         from: VertexId,
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
-    ) -> FaceId {
+    ) -> (Vec<EdgeId>, FaceId) {
         self.split_face_by_edge_chain(
             from,
             to,
@@ -373,7 +373,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
-    ) -> FaceId {
+    ) -> (Vec<EdgeId>, FaceId) {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,
@@ -409,7 +409,8 @@ mod test {
         let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
-        dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
+        let (_new_edge, _new_face) =
+            dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
 
         // There are now eleven faces in total: one unbounded and ten bounded.
         assert_eq!(dcel.faces().len(), 11);

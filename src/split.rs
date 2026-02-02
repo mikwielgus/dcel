@@ -70,8 +70,14 @@ impl<
         from: VertexId,
         to: VertexId,
         face_to_split: FaceId,
-    ) -> FaceId {
-        self.split_face_by_edge_chain(from, to, [], face_to_split)
+    ) -> (EdgeId, FaceId) {
+        let (mut new_edges, new_face) =
+            self.split_face_by_edge_chain(from, to, [], face_to_split);
+        let new_edge = new_edges
+            .pop()
+            .expect("split_face_by_edge should create exactly one edge");
+
+        (new_edge, new_face)
     }
 
     pub fn split_face_by_edge_chain(
@@ -80,7 +86,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         face_to_split: FaceId,
-    ) -> FaceId {
+    ) -> (Vec<EdgeId>, FaceId) {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,
@@ -109,7 +115,7 @@ impl<
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_to_split: FaceId,
         new_face_weight: FW,
-    ) -> FaceId {
+    ) -> (Vec<EdgeId>, FaceId) {
         let from_incoming = self.vertex_inner_incoming_half_edge(from, face_to_split);
         let from_outgoing = self.vertex_inner_outgoing_half_edge(from, face_to_split);
         let to_incoming = self.vertex_inner_incoming_half_edge(to, face_to_split);
@@ -177,7 +183,12 @@ impl<
                 .collect::<Vec<HalfEdgeId>>(),
         );
 
-        new_face
+        let new_edges = new_edges
+            .iter()
+            .map(|(forward, backward)| EdgeId::new(*forward, *backward))
+            .collect();
+
+        (new_edges, new_face)
     }
 
     fn add_unwired_dangling_edge_chain(
@@ -273,7 +284,7 @@ mod test {
         let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
-        dcel.split_face_by_edge(
+        let (_new_edge, _new_face) = dcel.split_face_by_edge(
             face_to_split_vertexes[0],
             face_to_split_vertexes[3],
             face_to_split,
@@ -306,7 +317,7 @@ mod test {
 
         // Split face 5 in two with a chain of two edges, with their common
         // point around the face's center.
-        dcel.split_face_by_edge_chain(
+        let (_new_edges, _new_face) = dcel.split_face_by_edge_chain(
             face_to_split_vertexes[0],
             face_to_split_vertexes[3],
             [(259, 150)],
