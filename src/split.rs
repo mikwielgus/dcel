@@ -15,7 +15,11 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn split_edge_by_vertex(&mut self, edge_to_split: EdgeId, vertex: VW) -> (VertexId, EdgeId) {
+    pub fn split_edge_by_vertex(
+        &mut self,
+        edge_to_split: EdgeId,
+        vertex: VW,
+    ) -> (VertexId, EdgeId) {
         let (origin, _) = self.endpoints(edge_to_split);
         let forward = edge_to_split.lesser();
         let backward = edge_to_split.greater();
@@ -71,8 +75,7 @@ impl<
         to: VertexId,
         face_to_split: FaceId,
     ) -> (EdgeId, FaceId) {
-        let (mut new_edges, new_face) =
-            self.split_face_by_edge_chain(from, to, [], face_to_split);
+        let (mut new_edges, new_face) = self.split_face_by_edge_chain(from, to, [], face_to_split);
         let new_edge = new_edges
             .pop()
             .expect("split_face_by_edge should create exactly one edge");
