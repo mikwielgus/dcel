@@ -648,16 +648,22 @@ impl<
     /// The original face is reused for the first triangle. New faces are
     /// created for all the other triangles.
     ///
-    /// Returns the new vertex id together with the face ids of all the new
-    /// triangles.
-    pub fn triangulate_around_vertex(
+    /// Returns the new vertex id together with the ids of all the newly created
+    /// faces and edges (the reused already existing face and edges are not
+    pub fn triangulate_face_around_point(
         &mut self,
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
-    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (VertexId, Vec<FaceId>, Vec<EdgeId>) {
+        let mut result = (VertexId::new(0), vec![], vec![]);
+
         self.update_face_rtree(perimeter_face, |dcel| {
-            dcel.triangulate_around_vertex(perimeter_face, inner_vertex_weight)
-        })
+            result = dcel.triangulate_face_around_point(perimeter_face, inner_vertex_weight);
+
+            (result.1.clone(), result.2.clone())
+        });
+
+        result
     }
 
     pub fn fan_triangulate(
@@ -681,21 +687,26 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn triangulate_around_vertex_with_all_weights(
+    pub fn triangulate_face_around_point_with_all_weights(
         &mut self,
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (VertexId, Vec<FaceId>, Vec<EdgeId>) {
+        let mut result = (VertexId::new(0), vec![], vec![]);
+
         self.update_face_rtree(perimeter_face, |dcel| {
-            dcel.triangulate_around_vertex_with_all_weights(
+            result = dcel.triangulate_face_around_point_with_all_weights(
                 perimeter_face,
                 inner_vertex_weight,
                 inner_edge_weights,
                 triangle_face_weights,
-            )
-        })
+            );
+            (result.1.clone(), result.2.clone())
+        });
+
+        result
     }
 
     pub fn fan_triangulate_with_all_weights(
@@ -1216,10 +1227,10 @@ mod test {
     }
 
     #[test]
-    fn test_triangulate_around_vertex() {
+    fn test_triangulate_face_around_point() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        let (new_faces, new_edges) =
-            rtreed_dcel.triangulate_around_vertex(FaceId::new(5), (260, 125));
+        let (inner_vertex, new_faces, new_edges) =
+            rtreed_dcel.triangulate_face_around_point(FaceId::new(5), (260, 125));
 
         assert_eq!(new_faces.len(), 5);
         assert_eq!(new_edges.len(), 6);

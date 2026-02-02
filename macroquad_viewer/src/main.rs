@@ -282,7 +282,7 @@ async fn main() {
 
                 if let Some(face) = target_face {
                     let weight = (world_point.x.round() as i32, world_point.y.round() as i32);
-                    dcel.triangulate_around_vertex(face, weight);
+                    dcel.triangulate_face_around_point(face, weight);
                 }
             }
         }

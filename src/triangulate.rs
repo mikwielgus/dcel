@@ -21,16 +21,17 @@ impl<
     /// The original face is reused for the first triangle. New faces are
     /// created for all the other triangles.
     ///
-    /// Returns the new vertex id together with the face ids of all the new
-    /// triangles.
-    pub fn triangulate_around_vertex(
+    /// Returns the new vertex id together with the ids of all the newly created
+    /// faces and edges (the reused already existing face and edges are not
+    /// included).
+    pub fn triangulate_face_around_point(
         &mut self,
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
-    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (VertexId, Vec<FaceId>, Vec<EdgeId>) {
         let perimeter_vertex_count = self.face_vertexes(perimeter_face).count();
 
-        self.triangulate_around_vertex_with_all_weights(
+        self.triangulate_face_around_point_with_all_weights(
             perimeter_face,
             inner_vertex_weight,
             std::iter::repeat_n(Default::default(), perimeter_vertex_count),
@@ -63,20 +64,22 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn triangulate_around_vertex_with_all_weights(
+    pub fn triangulate_face_around_point_with_all_weights(
         &mut self,
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         triangle_face_weights: impl IntoIterator<Item = FW>,
-    ) -> (Vec<FaceId>, Vec<EdgeId>) {
+    ) -> (VertexId, Vec<FaceId>, Vec<EdgeId>) {
         let inner_vertex = self.add_unwired_vertex(inner_vertex_weight);
-        self.fan_triangulate_with_all_weights(
+        let (new_faces, new_edges) = self.fan_triangulate_with_all_weights(
             perimeter_face,
             inner_vertex,
             inner_edge_weights,
             triangle_face_weights,
-        )
+        );
+
+        (inner_vertex, new_faces, new_edges)
     }
 
     pub fn fan_triangulate_with_all_weights(
@@ -148,7 +151,7 @@ impl<
                 triangle_faces[i - 1]
             };
 
-            let (forward, backward) = self.add_unwired_edge(
+            let (forward, _backward) = self.add_unwired_edge(
                 perimeter_vertex,
                 inner_vertex,
                 prev_face,
