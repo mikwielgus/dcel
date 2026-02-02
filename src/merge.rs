@@ -173,6 +173,8 @@ mod test {
         dcel.merge_faces_around_vertex(VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
+        assert_eq!(dcel.vertexes().num_elements(), 29);
+        assert_eq!(dcel.half_edges().num_elements(), 70);
         assert_eq!(dcel.faces().num_elements(), 8);
 
         // Among the remaining faces, one is now a dodecagon, and the remaining
@@ -195,6 +197,8 @@ mod test {
         dcel.absorb_faces_around_vertex(FaceId::new(2), VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
+        assert_eq!(dcel.vertexes().num_elements(), 29);
+        assert_eq!(dcel.half_edges().num_elements(), 70);
         assert_eq!(dcel.faces().num_elements(), 8);
 
         // Among the remaining faces, one is now a dodecagon, and the remaining
@@ -220,6 +224,8 @@ mod test {
             [],
         );
 
+        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 
         assert_face_boundary!(&dcel, 0, 0);
@@ -244,6 +250,8 @@ mod test {
             [],
         );
 
+        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 
         assert_face_boundary!(&dcel, 0, 0);
@@ -263,6 +271,8 @@ mod test {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
 
+        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 
         assert_face_boundary!(&dcel, 0, 0);
@@ -282,6 +292,8 @@ mod test {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
 
+        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 
         assert_face_boundary!(&dcel, 0, 0);

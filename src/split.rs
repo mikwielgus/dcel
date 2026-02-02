@@ -291,6 +291,8 @@ mod test {
         );
 
         // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.half_edges().num_elements(), 78);
         assert_eq!(dcel.faces().num_elements(), 11);
 
         // The original hexagon is now split into two quads.
@@ -325,6 +327,8 @@ mod test {
         );
 
         // There are now eleven faces in total: one unbounded and ten bounded.
+        assert_eq!(dcel.vertexes().num_elements(), 31);
+        assert_eq!(dcel.half_edges().num_elements(), 80);
         assert_eq!(dcel.faces().num_elements(), 11);
 
         // The original hexagon is now split into two pentagons.
