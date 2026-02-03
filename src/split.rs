@@ -74,7 +74,7 @@ impl<
         from: VertexId,
         to: VertexId,
         face_to_split: FaceId,
-    ) -> (EdgeId, FaceId) {
+    ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
         let (mut new_edges, new_face) = self.split_face_by_edge_chain(from, to, [], face_to_split);
         let new_edge = new_edges
             .pop()
@@ -89,7 +89,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         face_to_split: FaceId,
-    ) -> (Vec<EdgeId>, FaceId) {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,
@@ -118,7 +118,7 @@ impl<
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_to_split: FaceId,
         new_face_weight: FW,
-    ) -> (Vec<EdgeId>, FaceId) {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         let from_incoming = self.vertex_inner_incoming_half_edge(from, face_to_split);
         let from_outgoing = self.vertex_inner_outgoing_half_edge(from, face_to_split);
         let to_incoming = self.vertex_inner_incoming_half_edge(to, face_to_split);
@@ -185,11 +185,6 @@ impl<
                 .map(|(forward, _)| *forward)
                 .collect::<Vec<HalfEdgeId>>(),
         );
-
-        let new_edges = new_edges
-            .iter()
-            .map(|(forward, backward)| EdgeId::new(*forward, *backward))
-            .collect();
 
         (new_edges, new_face)
     }

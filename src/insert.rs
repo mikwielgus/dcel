@@ -339,7 +339,11 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> (EdgeId, FaceId) {
+    pub fn insert_edge(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+    ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
         self.split_face_by_edge(from, to, self.vertexes_common_face(from, to).unwrap())
     }
 
@@ -348,7 +352,7 @@ impl<
         from: VertexId,
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
-    ) -> (Vec<EdgeId>, FaceId) {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         self.split_face_by_edge_chain(
             from,
             to,
@@ -373,7 +377,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
-    ) -> (Vec<EdgeId>, FaceId) {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,

@@ -177,7 +177,11 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn insert_edge(&mut self, from: VertexId, to: VertexId) -> (EdgeId, FaceId) {
+    pub fn insert_edge(
+        &mut self,
+        from: VertexId,
+        to: VertexId,
+    ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
         self.split_face_by_edge(from, to, self.dcel.vertexes_common_face(from, to).unwrap())
     }
 
@@ -186,7 +190,7 @@ impl<
         from: VertexId,
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
-    ) -> (Vec<EdgeId>, FaceId) {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         self.split_face_by_edge_chain(
             from,
             to,
@@ -212,7 +216,7 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
-    ) -> (Vec<EdgeId>, FaceId) {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         self.split_face_by_edge_chain_with_all_weights(
             from,
             to,
@@ -576,13 +580,17 @@ impl<
         from: VertexId,
         to: VertexId,
         face_to_split: FaceId,
-    ) -> (EdgeId, FaceId) {
-        let (new_edges, new_faces) = self.update_face_rtree(face_to_split, |dcel| {
+    ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
+        let mut result = ((HalfEdgeId::new(0), HalfEdgeId::new(0)), FaceId::new(0));
+
+        self.update_face_rtree(face_to_split, |dcel| {
             let (new_edge, new_face) = dcel.split_face_by_edge(from, to, face_to_split);
-            (vec![new_edge], vec![new_face])
+            let edge_id = EdgeId::new(new_edge.0, new_edge.1);
+            result = (new_edge, new_face);
+            (vec![edge_id], vec![new_face])
         });
 
-        (new_edges[0], new_faces[0])
+        result
     }
 
     pub fn split_face_by_edge_chain(
@@ -591,14 +599,21 @@ impl<
         to: VertexId,
         vertex_weights: impl IntoIterator<Item = VW>,
         face_to_split: FaceId,
-    ) -> (Vec<EdgeId>, FaceId) {
-        let (new_edges, new_faces) = self.update_face_rtree(face_to_split, |dcel| {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
+        let mut result = (vec![], FaceId::new(0));
+
+        self.update_face_rtree(face_to_split, |dcel| {
             let (new_edges, new_face) =
                 dcel.split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
-            (new_edges, vec![new_face])
+            let edge_ids = new_edges
+                .iter()
+                .map(|(forward, backward)| EdgeId::new(*forward, *backward))
+                .collect::<Vec<_>>();
+            result = (new_edges, new_face);
+            (edge_ids, vec![new_face])
         });
 
-        (new_edges, new_faces[0])
+        result
     }
 }
 
@@ -620,8 +635,10 @@ impl<
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         face_to_split: FaceId,
         new_face_weight: FW,
-    ) -> (Vec<EdgeId>, FaceId) {
-        let (new_edges, new_faces) = self.update_face_rtree(face_to_split, |dcel| {
+    ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
+        let mut result = (vec![], FaceId::new(0));
+
+        self.update_face_rtree(face_to_split, |dcel| {
             let (new_edges, new_face) = dcel.split_face_by_edge_chain_with_all_weights(
                 from,
                 to,
@@ -630,10 +647,15 @@ impl<
                 face_to_split,
                 new_face_weight,
             );
-            (new_edges, vec![new_face])
+            let edge_ids = new_edges
+                .iter()
+                .map(|(forward, backward)| EdgeId::new(*forward, *backward))
+                .collect::<Vec<_>>();
+            result = (new_edges, new_face);
+            (edge_ids, vec![new_face])
         });
 
-        (new_edges, new_faces[0])
+        result
     }
 }
 
