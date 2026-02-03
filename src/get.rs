@@ -80,6 +80,17 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     }
 
     #[inline]
+    pub fn vertexes_half_edge(&self, from: VertexId, to: VertexId) -> Option<HalfEdgeId> {
+        self.vertex_half_spokes(from)
+            .find(|&half_edge| self.origin(self.twin(half_edge)) == to)
+    }
+
+    #[inline]
+    pub fn vertexes_edge(&self, from: VertexId, to: VertexId) -> Option<EdgeId> {
+        Some(self.full_edge(self.vertexes_half_edge(from, to)?))
+    }
+
+    #[inline]
     pub fn vertexes_common_face(&self, vertex1: VertexId, vertex2: VertexId) -> Option<FaceId> {
         let interspokes1: Vec<FaceId> = self.vertex_interspokes(vertex1).collect();
 
