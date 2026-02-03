@@ -325,44 +325,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         }
         .iter(self)
     }
-
-    #[inline]
-    pub fn circulate_edges_with_excludes(
-        &self,
-        initial_edge: EdgeId,
-        excluded_edges: impl IntoIterator<Item = EdgeId>,
-    ) -> CirculateEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CirculateEdgesWithExcludesWalker {
-            circulator: self
-                .circulate_half_edges_with_excludes(
-                    initial_edge.lesser(),
-                    excluded_edges
-                        .into_iter()
-                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
-                )
-                .walker(),
-        }
-        .iter(self)
-    }
-
-    #[inline]
-    pub fn circulate_edges_with_excludes_reverse(
-        &self,
-        initial_edge: EdgeId,
-        excluded_edges: impl IntoIterator<Item = EdgeId>,
-    ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        CirculateEdgesWithExcludesReverseWalker {
-            circulator: self
-                .circulate_half_edges_with_excludes_reverse(
-                    initial_edge.lesser(),
-                    excluded_edges
-                        .into_iter()
-                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
-                )
-                .walker(),
-        }
-        .iter(self)
-    }
 }
 
 impl<
