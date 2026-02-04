@@ -5,7 +5,7 @@
 use maplike::Get;
 
 use crate::{
-    Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
+    Dcel, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
     walkers::{
         CirculateEdgesWithExcludesIter, CirculateEdgesWithExcludesReverseIter,
         CirculateEdgesWithExcludesReverseWalker, CirculateEdgesWithExcludesWalker,
@@ -263,17 +263,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn circulate_vertexes_with_excludes(
         &self,
-        initial_edge: EdgeId,
-        excluded_edges: impl IntoIterator<Item = EdgeId>,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
     ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CirculateVertexesWithExcludesWalker {
             circulator: self
-                .circulate_half_edges_with_excludes(
-                    initial_edge.lesser(),
-                    excluded_edges
-                        .into_iter()
-                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
-                )
+                .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
                 .walker(),
         }
         .iter(self)
@@ -282,17 +277,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn circulate_vertexes_with_excludes_reverse(
         &self,
-        initial_edge: EdgeId,
-        excluded_edges: impl IntoIterator<Item = EdgeId>,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
     ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CirculateVertexesWithExcludesReverseWalker {
             circulator: self
-                .circulate_half_edges_with_excludes_reverse(
-                    initial_edge.lesser(),
-                    excluded_edges
-                        .into_iter()
-                        .flat_map(|edge| [edge.lesser(), edge.greater()]),
-                )
+                .circulate_half_edges_with_excludes_reverse(initial_half_edge, excluded_half_edges)
                 .walker(),
         }
         .iter(self)
