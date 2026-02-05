@@ -213,8 +213,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         initial_half_edge: HalfEdgeId,
     ) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
+            half_spokes: HalfSpokesWalker {
+                initial_half_edge,
+                curr_half_edge: Some(initial_half_edge),
+            },
         }
         .iter(self)
     }
@@ -225,8 +227,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         initial_half_edge: HalfEdgeId,
     ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesReverseWalker {
-            initial_half_edge,
-            curr_half_edge: Some(initial_half_edge),
+            half_spokes: HalfSpokesReverseWalker {
+                initial_half_edge,
+                curr_half_edge: Some(initial_half_edge),
+            },
         }
         .iter(self)
     }
