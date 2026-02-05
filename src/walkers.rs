@@ -164,7 +164,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     SpokesWalker {
-        half_spokes: HalfSpokesWalker,
+        circulator: HalfSpokesWalker,
     },
     SpokesIter
 );
@@ -175,7 +175,7 @@ impl SpokesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        self.half_spokes
+        self.circulator
             .next(dcel)
             .map(|half_edge| dcel.full_edge(half_edge))
     }
@@ -194,7 +194,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 
 create_walker_and_iter!(
     SpokesReverseWalker {
-        half_spokes: HalfSpokesReverseWalker,
+        circulator: HalfSpokesReverseWalker,
     },
     SpokesReverseIter
 );
@@ -205,7 +205,7 @@ impl SpokesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<EdgeId> {
-        self.half_spokes
+        self.circulator
             .next(dcel)
             .map(|half_edge| dcel.full_edge(half_edge))
     }
@@ -428,6 +428,166 @@ impl CirculateEdgesWithExcludesReverseWalker {
 
 impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     for CirculateEdgesWithExcludesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculateHalfSpokesWalker {
+        circulator: CirculateHalfEdgesWithExcludesWalker,
+        half_spokes_walker: HalfSpokesWalker,
+        prev_half_edge: Option<HalfEdgeId>,
+    },
+    CirculateHalfSpokesIter
+);
+
+impl CirculateHalfSpokesWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        loop {
+            while let Some(candidate_half_spoke) = self.half_spokes_walker.next(dcel) {
+                if !self
+                    .circulator
+                    .excluded_half_edges
+                    .contains(&candidate_half_spoke)
+                    && self
+                        .prev_half_edge
+                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                    && self
+                        .circulator
+                        .curr_half_edge
+                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                {
+                    return Some(candidate_half_spoke);
+                }
+            }
+
+            self.prev_half_edge = Some(self.circulator.next(dcel)?);
+            self.half_spokes_walker = dcel.half_spokes(self.circulator.curr_half_edge?).walker();
+        }
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
+    for CirculateHalfSpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculateHalfSpokesReverseWalker {
+        circulator: CirculateHalfEdgesWithExcludesWalker,
+        half_spokes_walker: HalfSpokesWalker,
+        prev_half_edge: Option<HalfEdgeId>,
+    },
+    CirculateHalfSpokesReverseIter
+);
+
+impl CirculateHalfSpokesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<HalfEdgeId> {
+        loop {
+            while let Some(candidate_half_spoke) = self.half_spokes_walker.next(dcel) {
+                if !self
+                    .circulator
+                    .excluded_half_edges
+                    .contains(&candidate_half_spoke)
+                    && self
+                        .prev_half_edge
+                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                    && self
+                        .circulator
+                        .curr_half_edge
+                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                {
+                    return Some(candidate_half_spoke);
+                }
+            }
+
+            self.prev_half_edge = Some(self.circulator.next(dcel)?);
+            self.half_spokes_walker = dcel.half_spokes(self.circulator.curr_half_edge?).walker();
+        }
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
+    for CirculateHalfSpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = HalfEdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculateSpokesWalker {
+        circulator: CirculateHalfSpokesWalker,
+    },
+    CirculateSpokesIter
+);
+
+impl CirculateSpokesWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        self.circulator
+            .next(dcel)
+            .map(|half_spoke| dcel.full_edge(half_spoke))
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
+    for CirculateSpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = EdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculateSpokesReverseWalker {
+        circulator: HalfSpokesReverseWalker,
+    },
+    CirculateSpokesReverseIter
+);
+
+impl CirculateSpokesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<EdgeId> {
+        self.circulator
+            .next(dcel)
+            .map(|half_spoke| dcel.full_edge(half_spoke))
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
+    for CirculateSpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
 

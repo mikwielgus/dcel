@@ -11,6 +11,8 @@ use crate::{
         CirculateEdgesWithExcludesReverseWalker, CirculateEdgesWithExcludesWalker,
         CirculateHalfEdgesWithExcludesIter, CirculateHalfEdgesWithExcludesReverseIter,
         CirculateHalfEdgesWithExcludesReverseWalker, CirculateHalfEdgesWithExcludesWalker,
+        CirculateHalfSpokesIter, CirculateHalfSpokesReverseIter, CirculateHalfSpokesReverseWalker,
+        CirculateHalfSpokesWalker, CirculateSpokesIter, CirculateSpokesWalker,
         CirculateVertexesWithExcludesIter, CirculateVertexesWithExcludesReverseIter,
         CirculateVertexesWithExcludesReverseWalker, CirculateVertexesWithExcludesWalker,
         HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker,
@@ -213,7 +215,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         initial_half_edge: HalfEdgeId,
     ) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesWalker {
-            half_spokes: HalfSpokesWalker {
+            circulator: HalfSpokesWalker {
                 initial_half_edge,
                 curr_half_edge: Some(initial_half_edge),
             },
@@ -227,7 +229,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         initial_half_edge: HalfEdgeId,
     ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         SpokesReverseWalker {
-            half_spokes: HalfSpokesReverseWalker {
+            circulator: HalfSpokesReverseWalker {
                 initial_half_edge,
                 curr_half_edge: Some(initial_half_edge),
             },
@@ -389,6 +391,72 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
             circulator: self
                 .circulate_half_edges_with_excludes_reverse(initial_half_edge, excluded_half_edges)
                 .walker(),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulate_half_spokes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateHalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateHalfSpokesWalker {
+            circulator: self
+                .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
+                .walker(),
+            half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
+            prev_half_edge: None,
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulate_half_spokes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateHalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateHalfSpokesReverseWalker {
+            circulator: self
+                .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
+                .walker(),
+            half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
+            prev_half_edge: None,
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulate_spokes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateSpokesWalker {
+            circulator: CirculateHalfSpokesWalker {
+                circulator: self
+                    .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
+                    .walker(),
+                half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
+                prev_half_edge: None,
+            },
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulate_spokes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateHalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateHalfSpokesReverseWalker {
+            circulator: self
+                .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
+                .walker(),
+            half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
+            prev_half_edge: None,
         }
         .iter(self)
     }
