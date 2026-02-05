@@ -30,8 +30,7 @@ pub use rstar::{RTreedDcel, RTreedStableDcel};
 use maplike::{Get, Insert, Push};
 
 pub use walkers::{
-    FaceEdgesIter, FaceEdgesWalker, FaceHalfEdgesIter, FaceHalfEdgesWalker, HalfSpokesIter,
-    HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker, SpokesIter,
+    HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker, SpokesIter,
     SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
 };
 

@@ -13,12 +13,9 @@ use crate::{
         CirculateHalfEdgesWithExcludesReverseWalker, CirculateHalfEdgesWithExcludesWalker,
         CirculateVertexesWithExcludesIter, CirculateVertexesWithExcludesReverseIter,
         CirculateVertexesWithExcludesReverseWalker, CirculateVertexesWithExcludesWalker,
-        FaceEdgesIter, FaceEdgesReverseIter, FaceEdgesReverseWalker, FaceEdgesWalker,
-        FaceHalfEdgesIter, FaceHalfEdgesReverseIter, FaceHalfEdgesReverseWalker,
-        FaceHalfEdgesWalker, FaceVertexesIter, FaceVertexesReverseIter, FaceVertexesReverseWalker,
-        FaceVertexesWalker, HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker,
-        HalfSpokesWalker, InterspokesIter, InterspokesReverseIter, InterspokesReverseWalker,
-        InterspokesWalker, SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
+        HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker,
+        InterspokesIter, InterspokesReverseIter, InterspokesReverseWalker, InterspokesWalker,
+        SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
     },
 };
 
@@ -359,8 +356,11 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub fn face_vertexes(&self, face: FaceId) -> FaceVertexesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        FaceVertexesWalker {
+    pub fn face_vertexes(
+        &self,
+        face: FaceId,
+    ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateVertexesWithExcludesWalker {
             circulator: self.face_half_edges(face).walker(),
         }
         .iter(self)
@@ -370,8 +370,8 @@ impl<
     pub fn face_vertexes_reverse(
         &self,
         face: FaceId,
-    ) -> FaceVertexesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        FaceVertexesReverseWalker {
+    ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateVertexesWithExcludesReverseWalker {
             circulator: self.face_half_edges_reverse(face).walker(),
         }
         .iter(self)
@@ -380,17 +380,21 @@ impl<
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn face_half_edges(&self, face: FaceId) -> FaceHalfEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+    pub fn face_half_edges(
+        &self,
+        face: FaceId,
+    ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
         if face == self.unbounded_face() {
-            return FaceHalfEdgesWalker {
+            return CirculateHalfEdgesWithExcludesWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
                 // Setting `curr_edge` to None makes the iterator produce no
                 // elements.
                 curr_half_edge: None,
+                excluded_half_edges: vec![],
             }
             .iter(self);
         }
@@ -402,9 +406,10 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
             .incident_half_edge
             .unwrap();
 
-        FaceHalfEdgesWalker {
+        CirculateHalfEdgesWithExcludesWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
+            excluded_half_edges: vec![],
         }
         .iter(self)
     }
@@ -413,17 +418,18 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
     pub fn face_half_edges_reverse(
         &self,
         face: FaceId,
-    ) -> FaceHalfEdgesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+    ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
         if face == self.unbounded_face() {
-            return FaceHalfEdgesReverseWalker {
+            return CirculateHalfEdgesWithExcludesReverseWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
                 // Setting `curr_edge` to None makes the iterator produce no
                 // elements.
                 curr_half_edge: None,
+                excluded_half_edges: vec![],
             }
             .iter(self);
         }
@@ -435,9 +441,10 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
             .incident_half_edge
             .unwrap();
 
-        FaceHalfEdgesReverseWalker {
+        CirculateHalfEdgesWithExcludesReverseWalker {
             initial_half_edge,
             curr_half_edge: Some(initial_half_edge),
+            excluded_half_edges: vec![],
         }
         .iter(self)
     }
@@ -447,8 +454,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub fn face_edges(&self, face: FaceId) -> FaceEdgesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        FaceEdgesWalker {
+    pub fn face_edges(
+        &self,
+        face: FaceId,
+    ) -> CirculateEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateEdgesWithExcludesWalker {
             circulator: self.face_half_edges(face).walker(),
         }
         .iter(self)
@@ -458,8 +468,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
     pub fn face_edges_reverse(
         &self,
         face: FaceId,
-    ) -> FaceEdgesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        FaceEdgesReverseWalker {
+    ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateEdgesWithExcludesReverseWalker {
             circulator: self.face_half_edges_reverse(face).walker(),
         }
         .iter(self)
