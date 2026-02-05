@@ -344,6 +344,50 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         }
         .iter(self)
     }
+
+    #[inline]
+    pub fn circulate_edges(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> CirculateEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        self.circulate_edges_with_excludes(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn circulate_edges_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+    ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        self.circulate_edges_with_excludes_reverse(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn circulate_edges_with_excludes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateEdgesWithExcludesWalker {
+            circulator: self
+                .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
+                .walker(),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulate_edges_with_excludes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateEdgesWithExcludesReverseWalker {
+            circulator: self
+                .circulate_half_edges_with_excludes_reverse(initial_half_edge, excluded_half_edges)
+                .walker(),
+        }
+        .iter(self)
+    }
 }
 
 impl<
