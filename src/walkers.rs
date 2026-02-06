@@ -441,7 +441,7 @@ create_walker_and_iter!(
     CirculationHalfSpokesWalker {
         circulator: CirculateHalfEdgesWithExcludesWalker,
         half_spokes_walker: HalfSpokesWalker,
-        prev_half_edge: Option<HalfEdgeId>,
+        prev_half_edge: HalfEdgeId,
     },
     CirculateHalfSpokesIter
 );
@@ -460,17 +460,21 @@ impl CirculationHalfSpokesWalker {
                     .contains(&candidate_half_spoke)
                     && self
                         .prev_half_edge
-                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                        != candidate_half_spoke
+                        && dcel.twin(candidate_half_spoke) != self.prev_half_edge
                     && self
                         .circulator
                         .curr_half_edge
-                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                        .is_none_or(|half_edge| {
+                            candidate_half_spoke != half_edge
+                                && dcel.twin(candidate_half_spoke) != half_edge
+                        })
                 {
                     return Some(candidate_half_spoke);
                 }
             }
 
-            self.prev_half_edge = Some(self.circulator.next(dcel)?);
+            self.prev_half_edge = self.circulator.next(dcel)?;
             self.half_spokes_walker = dcel.half_spokes(self.circulator.curr_half_edge?).walker();
         }
     }
@@ -491,7 +495,7 @@ create_walker_and_iter!(
     CirculationHalfSpokesReverseWalker {
         circulator: CirculateHalfEdgesWithExcludesReverseWalker,
         half_spokes_walker: HalfSpokesWalker,
-        prev_half_edge: Option<HalfEdgeId>,
+        prev_half_edge: HalfEdgeId,
     },
     CirculateHalfSpokesReverseIter
 );
@@ -510,17 +514,21 @@ impl CirculationHalfSpokesReverseWalker {
                     .contains(&candidate_half_spoke)
                     && self
                         .prev_half_edge
-                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                        != candidate_half_spoke
+                        && dcel.twin(candidate_half_spoke) != self.prev_half_edge
                     && self
                         .circulator
                         .curr_half_edge
-                        .is_none_or(|half_edge| candidate_half_spoke != half_edge)
+                        .is_none_or(|half_edge| {
+                            candidate_half_spoke != half_edge
+                                && dcel.twin(candidate_half_spoke) != half_edge
+                        })
                 {
                     return Some(candidate_half_spoke);
                 }
             }
 
-            self.prev_half_edge = Some(self.circulator.next(dcel)?);
+            self.prev_half_edge = self.circulator.next(dcel)?;
             self.half_spokes_walker = dcel.half_spokes(self.circulator.curr_half_edge?).walker();
         }
     }

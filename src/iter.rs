@@ -413,7 +413,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                 .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
                 .walker(),
             half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-            prev_half_edge: None,
+            prev_half_edge: self.prev_half_edge(initial_half_edge),
         }
         .iter(self)
     }
@@ -432,7 +432,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                 )
                 .walker(),
             half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-            prev_half_edge: None,
+            prev_half_edge: self.next_half_edge(initial_half_edge),
         }
         .iter(self)
     }
@@ -449,7 +449,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                     .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
                     .walker(),
                 half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-                prev_half_edge: None,
+                prev_half_edge: self.prev_half_edge(initial_half_edge),
             },
         }
         .iter(self)
@@ -470,7 +470,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                     )
                     .walker(),
                 half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-                prev_half_edge: None,
+                prev_half_edge: self.next_half_edge(initial_half_edge),
             },
         }
         .iter(self)
@@ -700,7 +700,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
                     initial_half_edge: HalfEdgeId::new(0),
                     curr_half_edge: None,
                 },
-                prev_half_edge: None,
+                prev_half_edge: HalfEdgeId::new(0),
             }
             .iter(self);
         };
@@ -730,7 +730,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
                     initial_half_edge: HalfEdgeId::new(0),
                     curr_half_edge: None,
                 },
-                prev_half_edge: None,
+                prev_half_edge: HalfEdgeId::new(0),
             }
             .iter(self);
         };
@@ -758,7 +758,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
                         initial_half_edge: HalfEdgeId::new(0),
                         curr_half_edge: None,
                     },
-                    prev_half_edge: None,
+                    prev_half_edge: HalfEdgeId::new(0),
                 },
             }
             .iter(self);
@@ -790,7 +790,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
                         initial_half_edge: HalfEdgeId::new(0),
                         curr_half_edge: None,
                     },
-                    prev_half_edge: None,
+                    prev_half_edge: HalfEdgeId::new(0),
                 },
             }
             .iter(self);
