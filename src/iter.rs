@@ -482,26 +482,28 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
     ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let excluded_half_edges = self
-            .circulation_spokes(initial_half_edge, excluded_half_edges)
+        let excluded_half_edges = excluded_half_edges.into_iter().collect::<Vec<HalfEdgeId>>();
+        let mut rim_excluded_half_edges = self
+            .circulation_spokes(initial_half_edge, excluded_half_edges.iter().copied())
             .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect::<Vec<HalfEdgeId>>();
+        rim_excluded_half_edges.extend(excluded_half_edges.iter().copied());
 
         let Some(initial_half_spoke) = self
-            .circulation_half_spokes(initial_half_edge, excluded_half_edges.clone())
+            .circulation_half_spokes(initial_half_edge, excluded_half_edges.iter().copied())
             .next()
         else {
             return CirculateHalfEdgesWithExcludesWalker {
                 initial_half_edge,
                 curr_half_edge: None,
-                excluded_half_edges,
+                excluded_half_edges: rim_excluded_half_edges,
             }
             .iter(self);
         };
 
         self.circulate_half_edges_with_excludes(
             self.next_half_edge(initial_half_spoke),
-            excluded_half_edges,
+            rim_excluded_half_edges,
         )
     }
 
@@ -511,26 +513,28 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
     ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let excluded_half_edges = self
-            .circulation_spokes_reverse(initial_half_edge, excluded_half_edges)
+        let excluded_half_edges = excluded_half_edges.into_iter().collect::<Vec<HalfEdgeId>>();
+        let mut rim_excluded_half_edges = self
+            .circulation_spokes_reverse(initial_half_edge, excluded_half_edges.iter().copied())
             .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect::<Vec<HalfEdgeId>>();
+        rim_excluded_half_edges.extend(excluded_half_edges.iter().copied());
 
         let Some(initial_half_spoke) = self
-            .circulation_half_spokes(initial_half_edge, excluded_half_edges.clone())
+            .circulation_half_spokes(initial_half_edge, excluded_half_edges.iter().copied())
             .next()
         else {
             return CirculateHalfEdgesWithExcludesReverseWalker {
                 initial_half_edge,
                 curr_half_edge: None,
-                excluded_half_edges,
+                excluded_half_edges: rim_excluded_half_edges,
             }
             .iter(self);
         };
 
         self.circulation_half_edges_with_excludes_reverse(
             self.twin(self.next_half_edge(initial_half_spoke)),
-            excluded_half_edges,
+            rim_excluded_half_edges,
         )
     }
 
