@@ -521,7 +521,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         rim_excluded_half_edges.extend(excluded_half_edges.iter().copied());
 
         let Some(initial_half_spoke) = self
-            .circulation_half_spokes(initial_half_edge, excluded_half_edges.iter().copied())
+            .circulation_half_spokes_reverse(initial_half_edge, excluded_half_edges.iter().copied())
             .next()
         else {
             return CirculateHalfEdgesWithExcludesReverseWalker {
@@ -533,7 +533,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         };
 
         self.circulation_half_edges_with_excludes_reverse(
-            self.twin(self.next_half_edge(initial_half_spoke)),
+            self.next_half_edge(initial_half_spoke),
             rim_excluded_half_edges,
         )
     }
@@ -559,6 +559,34 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
     ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CirculateEdgesWithExcludesReverseWalker {
+            circulator: self
+                .circulation_rim_half_edges_reverse(initial_half_edge, excluded_half_edges)
+                .walker(),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulation_rim_vertexes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateVertexesWithExcludesWalker {
+            circulator: self
+                .circulation_rim_half_edges(initial_half_edge, excluded_half_edges)
+                .walker(),
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulation_rim_vertexes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculateVertexesWithExcludesReverseWalker {
             circulator: self
                 .circulation_rim_half_edges_reverse(initial_half_edge, excluded_half_edges)
                 .walker(),
@@ -827,6 +855,31 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
     }
 
     #[inline]
+    pub fn face_rim_vertexes(
+        &self,
+        face: FaceId,
+    ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculateVertexesWithExcludesWalker {
+                circulator: CirculateHalfEdgesWithExcludesWalker {
+                    // Uninitialized half-edge.
+                    initial_half_edge: HalfEdgeId::new(0),
+                    // Setting `curr_edge` to None makes the iterator produce no
+                    // elements.
+                    curr_half_edge: None,
+                    excluded_half_edges: vec![],
+                },
+            }
+            .iter(self);
+        };
+
+        self.circulation_rim_vertexes(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
     pub fn face_rim_half_edges_reverse(
         &self,
         face: FaceId,
@@ -847,6 +900,31 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         };
 
         self.circulation_rim_half_edges_reverse(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_rim_vertexes_reverse(
+        &self,
+        face: FaceId,
+    ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculateVertexesWithExcludesReverseWalker {
+                circulator: CirculateHalfEdgesWithExcludesReverseWalker {
+                    // Uninitialized half-edge.
+                    initial_half_edge: HalfEdgeId::new(0),
+                    // Setting `curr_edge` to None makes the iterator produce no
+                    // elements.
+                    curr_half_edge: None,
+                    excluded_half_edges: vec![],
+                },
+            }
+            .iter(self);
+        };
+
+        self.circulation_rim_vertexes_reverse(initial_half_edge, std::iter::empty())
     }
 
     #[inline]

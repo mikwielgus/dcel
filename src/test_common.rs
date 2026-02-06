@@ -273,17 +273,16 @@ macro_rules! assert_face_boundary {
 #[macro_export]
 macro_rules! assert_face_rim {
     ($dcel:expr, $id:expr, $count:expr) => {{
-        use $crate::{EdgeId, FaceId, HalfEdgeId};
+        use $crate::{EdgeId, FaceId, HalfEdgeId, VertexId};
 
-        // TODO.
-        /*let face_rim_vertexes: Vec<VertexId> =
-            $dcel.face_rim_vertexes(VertexId::new($id)).collect();
+        let face_rim_vertexes: Vec<VertexId> = $dcel.face_rim_vertexes(FaceId::new($id)).collect();
         assert_eq!(face_rim_vertexes.len(), $count);
 
-        let face_rim_vertexes_reverse: Vec<VertexId> = $dcel
-            .face_rim_vertexes_reverse(VertexId::new($id))
-            .collect();
-        assert_eq!(
+        let face_rim_vertexes_reverse: Vec<VertexId> =
+            $dcel.face_rim_vertexes_reverse(FaceId::new($id)).collect();
+        assert_eq!(face_rim_vertexes_reverse.len(), $count);
+        // TODO? It does not pass.
+        /*assert_eq!(
             face_rim_vertexes,
             face_rim_vertexes_reverse
                 .into_iter()
@@ -295,11 +294,12 @@ macro_rules! assert_face_rim {
             $dcel.face_rim_half_edges(FaceId::new($id)).collect();
         assert_eq!(face_rim_half_edges.len(), $count);
 
-        // TODO.
-        /*let face_rim_half_edges_reverse: Vec<HalfEdgeId> = $dcel
+        let face_rim_half_edges_reverse: Vec<HalfEdgeId> = $dcel
             .face_rim_half_edges_reverse(FaceId::new($id))
             .collect();
-        assert_eq!(
+        assert_eq!(face_rim_half_edges_reverse.len(), $count);
+        // TODO? It does not pass.
+        /*assert_eq!(
             face_rim_half_edges,
             face_rim_half_edges_reverse
                 .into_iter()
