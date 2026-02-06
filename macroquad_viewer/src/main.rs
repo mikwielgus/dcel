@@ -178,6 +178,7 @@ async fn main() {
     let mut initialized = false;
     let mut last_drag_pos: Option<Vec2> = None;
     let mut selected_vertex: Option<VertexId> = None;
+    let mut selected_face: Option<FaceId> = None;
 
     loop {
         clear_background(BLACK);
@@ -257,6 +258,7 @@ async fn main() {
                 }
             } else {
                 selected_vertex = None;
+                selected_face = None;
                 let world_point = screen_to_world(mouse, scale, origin, pan);
                 let mut target_face: Option<FaceId> = None;
 
@@ -309,6 +311,36 @@ async fn main() {
             if let Some((vertex, _)) = nearest {
                 dcel.merge_faces_around_vertex(vertex);
                 selected_vertex = None;
+                selected_face = None;
+            } else {
+                let world_point = screen_to_world(mouse, scale, origin, pan);
+                let mut target_face: Option<FaceId> = None;
+
+                for face_idx in dcel.faces().indices() {
+                    let face = FaceId::new(face_idx);
+                    if face == dcel.unbounded_face() || dcel.incident_half_edge(face).is_none() {
+                        continue;
+                    }
+
+                    let face_vertices: Vec<Vec2> = dcel
+                        .face_vertexes(face)
+                        .map(|vertex| {
+                            let &(x, y) = dcel.vertex_weight(vertex);
+                            to_world(x, y)
+                        })
+                        .collect();
+
+                    if point_in_polygon(world_point, &face_vertices) {
+                        target_face = Some(face);
+                        break;
+                    }
+                }
+
+                selected_face = match (selected_face, target_face) {
+                    (Some(selected), Some(face)) if selected == face => None,
+                    (_, face) => face,
+                };
+                selected_vertex = None;
             }
         }
 
@@ -329,6 +361,18 @@ async fn main() {
         if let Some(vertex) = selected_vertex {
             let highlight = Color::new(0.9, 0.2, 0.2, 1.0);
             for edge in dcel.vertex_rim_edges(vertex) {
+                let (start_vertex, end_vertex) = dcel.endpoints(edge);
+                let &(sx, sy) = dcel.vertex_weight(start_vertex);
+                let &(ex, ey) = dcel.vertex_weight(end_vertex);
+                let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
+                let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
+                draw_line(start.x, start.y, end.x, end.y, 4.0, highlight);
+            }
+        }
+
+        if let Some(face) = selected_face {
+            let highlight = Color::new(0.2, 0.8, 0.3, 1.0);
+            for edge in dcel.face_spokes(face) {
                 let (start_vertex, end_vertex) = dcel.endpoints(edge);
                 let &(sx, sy) = dcel.vertex_weight(start_vertex);
                 let &(ex, ey) = dcel.vertex_weight(end_vertex);
