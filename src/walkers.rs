@@ -438,7 +438,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    CirculateHalfSpokesWalker {
+    CirculationHalfSpokesWalker {
         circulator: CirculateHalfEdgesWithExcludesWalker,
         half_spokes_walker: HalfSpokesWalker,
         prev_half_edge: Option<HalfEdgeId>,
@@ -446,7 +446,7 @@ create_walker_and_iter!(
     CirculateHalfSpokesIter
 );
 
-impl CirculateHalfSpokesWalker {
+impl CirculationHalfSpokesWalker {
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -488,15 +488,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    CirculateHalfSpokesReverseWalker {
-        circulator: CirculateHalfEdgesWithExcludesWalker,
+    CirculationHalfSpokesReverseWalker {
+        circulator: CirculateHalfEdgesWithExcludesReverseWalker,
         half_spokes_walker: HalfSpokesWalker,
         prev_half_edge: Option<HalfEdgeId>,
     },
     CirculateHalfSpokesReverseIter
 );
 
-impl CirculateHalfSpokesReverseWalker {
+impl CirculationHalfSpokesReverseWalker {
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -538,13 +538,13 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    CirculateSpokesWalker {
-        circulator: CirculateHalfSpokesWalker,
+    CirculationSpokesWalker {
+        circulator: CirculationHalfSpokesWalker,
     },
     CirculateSpokesIter
 );
 
-impl CirculateSpokesWalker {
+impl CirculationSpokesWalker {
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -568,13 +568,13 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    CirculateSpokesReverseWalker {
-        circulator: HalfSpokesReverseWalker,
+    CirculationSpokesReverseWalker {
+        circulator: CirculationHalfSpokesReverseWalker,
     },
     CirculateSpokesReverseIter
 );
 
-impl CirculateSpokesReverseWalker {
+impl CirculationSpokesReverseWalker {
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
