@@ -604,7 +604,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        if face == self.unbounded_face() {
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
             return CirculateHalfEdgesWithExcludesWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
@@ -614,14 +614,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
                 excluded_half_edges: vec![],
             }
             .iter(self);
-        }
-
-        let initial_half_edge = self
-            .faces
-            .get(&face.id())
-            .unwrap()
-            .incident_half_edge
-            .unwrap();
+        };
 
         CirculateHalfEdgesWithExcludesWalker {
             initial_half_edge,
@@ -639,7 +632,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        if face == self.unbounded_face() {
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
             return CirculateHalfEdgesWithExcludesReverseWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
@@ -649,14 +642,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
                 excluded_half_edges: vec![],
             }
             .iter(self);
-        }
-
-        let initial_half_edge = self
-            .faces
-            .get(&face.id())
-            .unwrap()
-            .incident_half_edge
-            .unwrap();
+        };
 
         CirculateHalfEdgesWithExcludesReverseWalker {
             initial_half_edge,
@@ -665,11 +651,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         }
         .iter(self)
     }
-}
 
-impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Value = Face<FW>>>
-    Dcel<VW, HEW, FW, VC, HEC, FC>
-{
     #[inline]
     pub fn face_edges(
         &self,
@@ -690,6 +672,227 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
             circulator: self.face_half_edges_reverse(face).walker(),
         }
         .iter(self)
+    }
+}
+
+impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Value = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    #[inline]
+    pub fn face_half_spokes(
+        &self,
+        face: FaceId,
+    ) -> CirculateHalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculationHalfSpokesWalker {
+                circulator: CirculateHalfEdgesWithExcludesWalker {
+                    // Uninitialized half-edge.
+                    initial_half_edge: HalfEdgeId::new(0),
+                    // Setting `curr_edge` to None makes the iterator produce no
+                    // elements.
+                    curr_half_edge: None,
+                    excluded_half_edges: vec![],
+                },
+                half_spokes_walker: HalfSpokesWalker {
+                    initial_half_edge: HalfEdgeId::new(0),
+                    curr_half_edge: None,
+                },
+                prev_half_edge: None,
+            }
+            .iter(self);
+        };
+
+        self.circulation_half_spokes(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_half_spokes_reverse(
+        &self,
+        face: FaceId,
+    ) -> CirculateHalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculationHalfSpokesReverseWalker {
+                circulator: CirculateHalfEdgesWithExcludesReverseWalker {
+                    // Uninitialized half-edge.
+                    initial_half_edge: HalfEdgeId::new(0),
+                    // Setting `curr_edge` to None makes the iterator produce no
+                    // elements.
+                    curr_half_edge: None,
+                    excluded_half_edges: vec![],
+                },
+                half_spokes_walker: HalfSpokesWalker {
+                    initial_half_edge: HalfEdgeId::new(0),
+                    curr_half_edge: None,
+                },
+                prev_half_edge: None,
+            }
+            .iter(self);
+        };
+
+        self.circulation_half_spokes_reverse(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_spokes(&self, face: FaceId) -> CirculateSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculationSpokesWalker {
+                circulator: CirculationHalfSpokesWalker {
+                    circulator: CirculateHalfEdgesWithExcludesWalker {
+                        // Uninitialized half-edge.
+                        initial_half_edge: HalfEdgeId::new(0),
+                        // Setting `curr_edge` to None makes the iterator produce no
+                        // elements.
+                        curr_half_edge: None,
+                        excluded_half_edges: vec![],
+                    },
+                    half_spokes_walker: HalfSpokesWalker {
+                        initial_half_edge: HalfEdgeId::new(0),
+                        curr_half_edge: None,
+                    },
+                    prev_half_edge: None,
+                },
+            }
+            .iter(self);
+        };
+
+        self.circulation_spokes(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_spokes_reverse(
+        &self,
+        face: FaceId,
+    ) -> CirculateSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculationSpokesReverseWalker {
+                circulator: CirculationHalfSpokesReverseWalker {
+                    circulator: CirculateHalfEdgesWithExcludesReverseWalker {
+                        // Uninitialized half-edge.
+                        initial_half_edge: HalfEdgeId::new(0),
+                        // Setting `curr_edge` to None makes the iterator produce no
+                        // elements.
+                        curr_half_edge: None,
+                        excluded_half_edges: vec![],
+                    },
+                    half_spokes_walker: HalfSpokesWalker {
+                        initial_half_edge: HalfEdgeId::new(0),
+                        curr_half_edge: None,
+                    },
+                    prev_half_edge: None,
+                },
+            }
+            .iter(self);
+        };
+
+        self.circulation_spokes_reverse(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_rim_half_edges(
+        &self,
+        face: FaceId,
+    ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculateHalfEdgesWithExcludesWalker {
+                // Uninitialized half-edge.
+                initial_half_edge: HalfEdgeId::new(0),
+                // Setting `curr_edge` to None makes the iterator produce no
+                // elements.
+                curr_half_edge: None,
+                excluded_half_edges: vec![],
+            }
+            .iter(self);
+        };
+
+        self.circulation_rim_half_edges(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_rim_half_edges_reverse(
+        &self,
+        face: FaceId,
+    ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculateHalfEdgesWithExcludesReverseWalker {
+                // Uninitialized half-edge.
+                initial_half_edge: HalfEdgeId::new(0),
+                // Setting `curr_edge` to None makes the iterator produce no
+                // elements.
+                curr_half_edge: None,
+                excluded_half_edges: vec![],
+            }
+            .iter(self);
+        };
+
+        self.circulation_rim_half_edges_reverse(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_rim_edges(
+        &self,
+        face: FaceId,
+    ) -> CirculateEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculateEdgesWithExcludesWalker {
+                circulator: CirculateHalfEdgesWithExcludesWalker {
+                    // Uninitialized half-edge.
+                    initial_half_edge: HalfEdgeId::new(0),
+                    // Setting `curr_edge` to None makes the iterator produce no
+                    // elements.
+                    curr_half_edge: None,
+                    excluded_half_edges: vec![],
+                },
+            }
+            .iter(self);
+        };
+
+        self.circulation_rim_edges(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
+    pub fn face_rim_edges_reverse(
+        &self,
+        face: FaceId,
+    ) -> CirculateEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculateEdgesWithExcludesReverseWalker {
+                circulator: CirculateHalfEdgesWithExcludesReverseWalker {
+                    // Uninitialized half-edge.
+                    initial_half_edge: HalfEdgeId::new(0),
+                    // Setting `curr_edge` to None makes the iterator produce no
+                    // elements.
+                    curr_half_edge: None,
+                    excluded_half_edges: vec![],
+                },
+            }
+            .iter(self);
+        };
+
+        self.circulation_rim_edges_reverse(initial_half_edge, std::iter::empty())
     }
 }
 
