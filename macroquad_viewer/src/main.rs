@@ -9,7 +9,9 @@
 
 use macroquad::prelude::*;
 
-use dcel::{FaceId, HalfEdgeId, StableDcel, VertexId};
+use std::time::Duration;
+
+use dcel::{EdgeId, FaceId, HalfEdgeId, StableDcel, VertexId};
 
 fn world_to_screen(p: Vec2, scale: f32, origin: Vec2, pan: Vec2) -> Vec2 {
     let p = p + pan;
@@ -179,6 +181,15 @@ async fn main() {
     let mut last_drag_pos: Option<Vec2> = None;
     let mut selected_vertex: Option<VertexId> = None;
     let mut selected_face: Option<FaceId> = None;
+    let mut rim_walk_face: Option<FaceId> = None;
+    let mut rim_walk_edges: Vec<EdgeId> = Vec::new();
+    let mut rim_walk_index: usize = 0;
+    let mut rim_walk_reverse = false;
+    let mut rim_walk_started = 0.0_f64;
+    let mut rim_walk_last_step = 0.0_f64;
+    let rim_walk_duration = 8.0_f64;
+    let rim_walk_step = 0.12_f64;
+    let rim_walk_delay = Duration::from_millis(40);
 
     loop {
         clear_background(BLACK);
@@ -251,6 +262,8 @@ async fn main() {
                     Some(selected) => {
                         dcel.insert_edge(selected, vertex);
                         selected_vertex = None;
+                        rim_walk_face = None;
+                        rim_walk_edges.clear();
                     }
                     None => {
                         selected_vertex = Some(vertex);
@@ -285,6 +298,8 @@ async fn main() {
                 if let Some(face) = target_face {
                     let weight = (world_point.x.round() as i32, world_point.y.round() as i32);
                     dcel.triangulate_face_around_point(face, weight);
+                    rim_walk_face = None;
+                    rim_walk_edges.clear();
                 }
             }
         }
@@ -292,27 +307,8 @@ async fn main() {
         if is_mouse_button_pressed(MouseButton::Right) {
             let (mx, my) = mouse_position();
             let mouse = vec2(mx, my);
-            let mut nearest: Option<(VertexId, f32)> = None;
-            let hit_radius = 10.0;
-
-            for vertex_idx in dcel.vertexes().indices() {
-                let vertex = VertexId::new(vertex_idx);
-                let &(x, y) = dcel.vertex_weight(vertex);
-                let world = to_world(x, y);
-                let screen = world_to_screen(world, scale, origin, pan);
-                let dist = screen.distance(mouse);
-                if dist <= hit_radius {
-                    if nearest.map_or(true, |(_, best)| dist < best) {
-                        nearest = Some((vertex, dist));
-                    }
-                }
-            }
-
-            if let Some((vertex, _)) = nearest {
-                dcel.merge_faces_around_vertex(vertex);
-                selected_vertex = None;
-                selected_face = None;
-            } else {
+            let mut handled_rim_walk = false;
+            if is_key_down(KeyCode::LeftShift) || is_key_down(KeyCode::RightShift) {
                 let world_point = screen_to_world(mouse, scale, origin, pan);
                 let mut target_face: Option<FaceId> = None;
 
@@ -336,11 +332,114 @@ async fn main() {
                     }
                 }
 
-                selected_face = match (selected_face, target_face) {
-                    (Some(selected), Some(face)) if selected == face => None,
-                    (_, face) => face,
-                };
-                selected_vertex = None;
+                if let Some(face) = target_face {
+                    if rim_walk_face == Some(face) {
+                        rim_walk_reverse = !rim_walk_reverse;
+                    } else {
+                        rim_walk_reverse = false;
+                    }
+                    rim_walk_face = Some(face);
+                    let max_edges = dcel.half_edges().indices().count();
+                    rim_walk_edges = dcel.face_rim_edges(face).take(max_edges).collect();
+                    rim_walk_index = if rim_walk_reverse && !rim_walk_edges.is_empty() {
+                        rim_walk_edges.len() - 1
+                    } else {
+                        0
+                    };
+                    rim_walk_started = get_time();
+                    rim_walk_last_step = rim_walk_started;
+                    selected_face = Some(face);
+                    selected_vertex = None;
+                    handled_rim_walk = true;
+                }
+            }
+            if !handled_rim_walk {
+                let mut nearest: Option<(VertexId, f32)> = None;
+                let hit_radius = 10.0;
+
+                for vertex_idx in dcel.vertexes().indices() {
+                    let vertex = VertexId::new(vertex_idx);
+                    let &(x, y) = dcel.vertex_weight(vertex);
+                    let world = to_world(x, y);
+                    let screen = world_to_screen(world, scale, origin, pan);
+                    let dist = screen.distance(mouse);
+                    if dist <= hit_radius {
+                        if nearest.map_or(true, |(_, best)| dist < best) {
+                            nearest = Some((vertex, dist));
+                        }
+                    }
+                }
+
+                if let Some((vertex, _)) = nearest {
+                    dcel.merge_faces_around_vertex(vertex);
+                    selected_vertex = None;
+                    selected_face = None;
+                    rim_walk_face = None;
+                    rim_walk_edges.clear();
+                } else {
+                    let world_point = screen_to_world(mouse, scale, origin, pan);
+                    let mut target_face: Option<FaceId> = None;
+
+                    for face_idx in dcel.faces().indices() {
+                        let face = FaceId::new(face_idx);
+                        if face == dcel.unbounded_face() || dcel.incident_half_edge(face).is_none()
+                        {
+                            continue;
+                        }
+
+                        let face_vertices: Vec<Vec2> = dcel
+                            .face_vertexes(face)
+                            .map(|vertex| {
+                                let &(x, y) = dcel.vertex_weight(vertex);
+                                to_world(x, y)
+                            })
+                            .collect();
+
+                        if point_in_polygon(world_point, &face_vertices) {
+                            target_face = Some(face);
+                            break;
+                        }
+                    }
+
+                    selected_face = match (selected_face, target_face) {
+                        (Some(selected), Some(face)) if selected == face => None,
+                        (_, face) => face,
+                    };
+                    selected_vertex = None;
+                    rim_walk_face = None;
+                    rim_walk_edges.clear();
+                }
+            }
+        }
+
+        if rim_walk_face.is_some() {
+            let now = get_time();
+            if now - rim_walk_started > rim_walk_duration {
+                rim_walk_face = None;
+                rim_walk_edges.clear();
+                rim_walk_reverse = false;
+            } else if rim_walk_edges.is_empty() {
+                rim_walk_face = None;
+                rim_walk_reverse = false;
+            } else if now - rim_walk_last_step > rim_walk_step {
+                if rim_walk_reverse {
+                    if rim_walk_index == 0 {
+                        rim_walk_face = None;
+                        rim_walk_edges.clear();
+                        rim_walk_reverse = false;
+                    } else {
+                        rim_walk_index -= 1;
+                        rim_walk_last_step = now;
+                    }
+                } else {
+                    if rim_walk_index + 1 >= rim_walk_edges.len() {
+                        rim_walk_face = None;
+                        rim_walk_edges.clear();
+                    } else {
+                        rim_walk_index += 1;
+                        rim_walk_last_step = now;
+                    }
+                }
             }
         }
 
@@ -380,6 +479,17 @@ async fn main() {
                 let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
                 draw_line(start.x, start.y, end.x, end.y, 4.0, highlight);
             }
+        }
+
+        if rim_walk_face.is_some() && !rim_walk_edges.is_empty() {
+            let edge = rim_walk_edges[rim_walk_index];
+            let highlight = Color::new(1.0, 0.85, 0.2, 1.0);
+            let (start_vertex, end_vertex) = dcel.endpoints(edge);
+            let &(sx, sy) = dcel.vertex_weight(start_vertex);
+            let &(ex, ey) = dcel.vertex_weight(end_vertex);
+            let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
+            let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
+            draw_line(start.x, start.y, end.x, end.y, 6.0, highlight);
         }
 
         for face_idx in dcel.faces().indices() {
@@ -504,6 +614,9 @@ async fn main() {
             }
         }
 
+        if rim_walk_face.is_some() {
+            std::thread::sleep(rim_walk_delay);
+        }
         next_frame().await;
     }
 }
