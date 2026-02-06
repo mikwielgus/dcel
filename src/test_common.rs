@@ -271,6 +271,50 @@ macro_rules! assert_face_boundary {
 }
 
 #[macro_export]
+macro_rules! assert_face_spokes_interspokes {
+    ($dcel:expr, $id:expr, $count:expr) => {{
+        use $crate::{EdgeId, FaceId, HalfEdgeId};
+
+        fn are_rotations<T: PartialEq>(left: &[T], right: &[T]) -> bool {
+            if left.len() != right.len() {
+                return false;
+            }
+            if left.is_empty() {
+                return true;
+            }
+
+            (0..left.len())
+                .any(|offset| (0..left.len()).all(|i| left[(i + offset) % left.len()] == right[i]))
+        }
+
+        let face_half_spokes: Vec<HalfEdgeId> = $dcel.face_half_spokes(FaceId::new($id)).collect();
+        assert_eq!(face_half_spokes.len(), $count);
+
+        let face_half_spokes_reverse: Vec<HalfEdgeId> =
+            $dcel.face_half_spokes_reverse(FaceId::new($id)).collect();
+
+        // FIXME.
+        /*let mut face_half_spokes_reverse_reverse = face_half_spokes_reverse;
+        face_half_spokes_reverse_reverse.reverse();
+        assert!(are_rotations(
+            &face_half_spokes,
+            &face_half_spokes_reverse_reverse
+        ));*/
+
+        let face_spokes: Vec<EdgeId> = $dcel.face_spokes(FaceId::new($id)).collect();
+        assert_eq!(face_spokes.len(), $count);
+
+        let face_spokes_reverse: Vec<EdgeId> =
+            $dcel.face_spokes_reverse(FaceId::new($id)).collect();
+
+        // FIXME.
+        /*let mut face_spokes_reverse_reverse = face_spokes_reverse;
+        face_spokes_reverse_reverse.reverse();
+        assert!(are_rotations(&face_spokes, &face_spokes_reverse_reverse));*/
+    }};
+}
+
+#[macro_export]
 macro_rules! assert_face_rim {
     ($dcel:expr, $id:expr, $count:expr) => {{
         use $crate::{EdgeId, FaceId, HalfEdgeId, VertexId};

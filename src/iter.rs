@@ -855,6 +855,29 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
     }
 
     #[inline]
+    pub fn face_rim_half_edges_reverse(
+        &self,
+        face: FaceId,
+    ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        // Unbounded face has no half-edges. Since the unbounded face is
+        // supposed to behave similarly to other faces, it is better to branch
+        // out here than to have the code below panic.
+        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+            return CirculateHalfEdgesWithExcludesReverseWalker {
+                // Uninitialized half-edge.
+                initial_half_edge: HalfEdgeId::new(0),
+                // Setting `curr_edge` to None makes the iterator produce no
+                // elements.
+                curr_half_edge: None,
+                excluded_half_edges: vec![],
+            }
+            .iter(self);
+        };
+
+        self.circulation_rim_half_edges_reverse(initial_half_edge, std::iter::empty())
+    }
+
+    #[inline]
     pub fn face_rim_vertexes(
         &self,
         face: FaceId,
@@ -877,29 +900,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         };
 
         self.circulation_rim_vertexes(initial_half_edge, std::iter::empty())
-    }
-
-    #[inline]
-    pub fn face_rim_half_edges_reverse(
-        &self,
-        face: FaceId,
-    ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        // Unbounded face has no half-edges. Since the unbounded face is
-        // supposed to behave similarly to other faces, it is better to branch
-        // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
-            return CirculateHalfEdgesWithExcludesReverseWalker {
-                // Uninitialized half-edge.
-                initial_half_edge: HalfEdgeId::new(0),
-                // Setting `curr_edge` to None makes the iterator produce no
-                // elements.
-                curr_half_edge: None,
-                excluded_half_edges: vec![],
-            }
-            .iter(self);
-        };
-
-        self.circulation_rim_half_edges_reverse(initial_half_edge, std::iter::empty())
     }
 
     #[inline]
@@ -981,8 +981,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
 #[cfg(test)]
 mod test {
     use crate::{
-        Dcel, assert_face_boundary, assert_face_rim, assert_vertex_rim,
-        assert_vertex_spokes_interspokes, init_dcel_with_3x3_hex_mesh,
+        Dcel, assert_face_boundary, assert_face_rim, assert_face_spokes_interspokes,
+        assert_vertex_rim, assert_vertex_spokes_interspokes, init_dcel_with_3x3_hex_mesh,
     };
 
     #[test]
@@ -1058,7 +1058,7 @@ mod test {
     }
 
     #[test]
-    fn test_face_boundary() {
+    fn test_face_boundaries() {
         let dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
 
         assert_face_boundary!(&dcel, 0, 0);
@@ -1071,6 +1071,22 @@ mod test {
         assert_face_boundary!(&dcel, 7, 6);
         assert_face_boundary!(&dcel, 8, 6);
         assert_face_boundary!(&dcel, 9, 6);
+    }
+
+    #[test]
+    fn test_face_spokes_interspokes() {
+        let dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
+
+        assert_face_spokes_interspokes!(&dcel, 0, 0);
+        assert_face_spokes_interspokes!(&dcel, 1, 3);
+        assert_face_spokes_interspokes!(&dcel, 2, 5);
+        assert_face_spokes_interspokes!(&dcel, 3, 4);
+        assert_face_spokes_interspokes!(&dcel, 4, 6);
+        assert_face_spokes_interspokes!(&dcel, 5, 6);
+        assert_face_spokes_interspokes!(&dcel, 6, 4);
+        assert_face_spokes_interspokes!(&dcel, 7, 3);
+        assert_face_spokes_interspokes!(&dcel, 8, 5);
+        assert_face_spokes_interspokes!(&dcel, 9, 4);
     }
 
     #[test]
