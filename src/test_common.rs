@@ -275,20 +275,31 @@ macro_rules! assert_face_rim {
     ($dcel:expr, $id:expr, $count:expr) => {{
         use $crate::{EdgeId, FaceId, HalfEdgeId, VertexId};
 
+        fn are_rotations<T: PartialEq>(left: &[T], right: &[T]) -> bool {
+            if left.len() != right.len() {
+                return false;
+            }
+            if left.is_empty() {
+                return true;
+            }
+
+            (0..left.len())
+                .any(|offset| (0..left.len()).all(|i| left[(i + offset) % left.len()] == right[i]))
+        }
+
         let face_rim_vertexes: Vec<VertexId> = $dcel.face_rim_vertexes(FaceId::new($id)).collect();
         assert_eq!(face_rim_vertexes.len(), $count);
 
         let face_rim_vertexes_reverse: Vec<VertexId> =
             $dcel.face_rim_vertexes_reverse(FaceId::new($id)).collect();
         assert_eq!(face_rim_vertexes_reverse.len(), $count);
-        // TODO? It does not pass.
-        /*assert_eq!(
-            face_rim_vertexes,
-            face_rim_vertexes_reverse
-                .into_iter()
-                .rev()
-                .collect::<Vec<VertexId>>()
-        );*/
+
+        let mut face_rim_vertexes_reverse_reverse = face_rim_vertexes_reverse;
+        face_rim_vertexes_reverse_reverse.reverse();
+        assert!(are_rotations(
+            &face_rim_vertexes,
+            &face_rim_vertexes_reverse_reverse
+        ));
 
         let face_rim_half_edges: Vec<HalfEdgeId> =
             $dcel.face_rim_half_edges(FaceId::new($id)).collect();
@@ -297,28 +308,25 @@ macro_rules! assert_face_rim {
         let face_rim_half_edges_reverse: Vec<HalfEdgeId> = $dcel
             .face_rim_half_edges_reverse(FaceId::new($id))
             .collect();
-        assert_eq!(face_rim_half_edges_reverse.len(), $count);
-        // TODO? It does not pass.
-        /*assert_eq!(
-            face_rim_half_edges,
-            face_rim_half_edges_reverse
-                .into_iter()
-                .rev()
-                .collect::<Vec<HalfEdgeId>>()
-        );*/
+
+        let mut face_rim_half_edges_reverse_reverse = face_rim_half_edges_reverse;
+        face_rim_half_edges_reverse_reverse.reverse();
+        assert!(are_rotations(
+            &face_rim_half_edges,
+            &face_rim_half_edges_reverse_reverse
+        ));
 
         let face_rim_edges: Vec<EdgeId> = $dcel.face_rim_edges(FaceId::new($id)).collect();
         assert_eq!(face_rim_edges.len(), $count);
 
-        // TODO.
-        /*let face_rim_edges_reverse: Vec<EdgeId> =
+        let face_rim_edges_reverse: Vec<EdgeId> =
             $dcel.face_rim_edges_reverse(FaceId::new($id)).collect();
-        assert_eq!(
-            face_rim_edges,
-            face_rim_edges_reverse
-                .into_iter()
-                //.rev()
-                .collect::<Vec<EdgeId>>()
-        );*/
+
+        let mut face_rim_edges_reverse_reverse = face_rim_edges_reverse;
+        face_rim_edges_reverse_reverse.reverse();
+        assert!(are_rotations(
+            &face_rim_edges,
+            &face_rim_edges_reverse_reverse
+        ));
     }};
 }
