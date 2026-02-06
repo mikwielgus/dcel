@@ -903,12 +903,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
 #[cfg(test)]
 mod test {
     use crate::{
-        Dcel, assert_face_boundary, assert_vertex_rim, assert_vertex_spokes_interspokes,
-        init_dcel_with_3x3_hex_mesh,
+        Dcel, assert_face_boundary, assert_face_rim, assert_vertex_rim,
+        assert_vertex_spokes_interspokes, init_dcel_with_3x3_hex_mesh,
     };
 
     #[test]
-    fn test_vertex_rim() {
+    fn test_vertex_rims() {
         let dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
 
         assert_vertex_rim!(&dcel, 0, 0);
@@ -993,5 +993,29 @@ mod test {
         assert_face_boundary!(&dcel, 7, 6);
         assert_face_boundary!(&dcel, 8, 6);
         assert_face_boundary!(&dcel, 9, 6);
+    }
+
+    #[test]
+    fn test_face_rims() {
+        let dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
+
+        assert_face_rim!(&dcel, 0, 0);
+
+        // Boundary faces have no rims, so the number of elements is undefined,
+        // at least for now.
+        /*assert_face_rim!(&dcel, 1, 22);
+        assert_face_rim!(&dcel, 2, 30);
+        assert_face_rim!(&dcel, 3, 26);
+        assert_face_rim!(&dcel, 4, 34);*/
+
+        // Only the central face has a rim.
+        assert_face_rim!(&dcel, 5, 18);
+
+        // Boundary faces have no rims, so the number of elements is undefined,
+        // at least for now.
+        /*assert_face_rim!(&dcel, 6, 26);
+        assert_face_rim!(&dcel, 7, 22);
+        assert_face_rim!(&dcel, 8, 30);
+        assert_face_rim!(&dcel, 9, 26);*/
     }
 }
