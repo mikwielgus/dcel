@@ -471,13 +471,24 @@ async fn main() {
 
         if let Some(face) = selected_face {
             let highlight = Color::new(0.2, 0.8, 0.3, 1.0);
-            for edge in dcel.face_spokes(face) {
+            /*for edge in dcel.face_spokes(face) {
                 let (start_vertex, end_vertex) = dcel.endpoints(edge);
                 let &(sx, sy) = dcel.vertex_weight(start_vertex);
                 let &(ex, ey) = dcel.vertex_weight(end_vertex);
                 let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
                 let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
                 draw_line(start.x, start.y, end.x, end.y, 4.0, highlight);
+            }*/
+
+            for interspoke in dcel.face_interspokes(face) {
+                for edge in dcel.face_edges(interspoke) {
+                    let (start_vertex, end_vertex) = dcel.endpoints(edge);
+                    let &(sx, sy) = dcel.vertex_weight(start_vertex);
+                    let &(ex, ey) = dcel.vertex_weight(end_vertex);
+                    let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
+                    let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
+                    draw_line(start.x, start.y, end.x, end.y, 4.0, highlight);
+                }
             }
         }
 
