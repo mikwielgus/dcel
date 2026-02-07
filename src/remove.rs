@@ -15,6 +15,15 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn remove_face(&mut self, face: FaceId) {
+        self.absorb_faces_over_edges_and_vertexes(
+            face,
+            self.face_interspokes(face).collect::<Vec<FaceId>>(),
+            self.face_edges(face).collect::<Vec<EdgeId>>(),
+            self.face_vertexes(face).collect::<Vec<VertexId>>(),
+        );
+    }
+
     pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
         let absorbing_face = self.face_in_front(edge.lesser());
         let face_to_absorb = self.face_behind(edge.lesser());
