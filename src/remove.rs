@@ -23,6 +23,18 @@ impl<
 
         absorbing_face
     }
+
+    pub fn remove_edge_chain(&mut self, edges: impl IntoIterator<Item = EdgeId>) -> FaceId {
+        let edges: Vec<EdgeId> = edges.into_iter().collect();
+
+        // XXX: Harden against empty iterators?
+        let absorbing_face = self.face_in_front(edges[0].lesser());
+        let face_to_absorb = self.face_behind(edges[0].lesser());
+
+        self.absorb_faces_over_edges_and_vertexes(absorbing_face, [face_to_absorb], edges, []);
+
+        absorbing_face
+    }
 }
 
 impl<VW, HEW, FW, VC: Remove<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
