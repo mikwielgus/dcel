@@ -15,13 +15,19 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    pub fn remove_face(&mut self, face: FaceId) {
+    pub fn remove_face(&mut self, face: FaceId) -> (Vec<EdgeId>, Vec<FaceId>) {
+        let mut edges: Vec<EdgeId> = self.face_edges(face).collect();
+        edges.extend(self.face_spokes(face));
+        let interspokes: Vec<FaceId> = self.face_interspokes(face).collect();
+
         self.absorb_faces_over_edges_and_vertexes(
             face,
-            self.face_interspokes(face).collect::<Vec<FaceId>>(),
-            self.face_edges(face).collect::<Vec<EdgeId>>(),
+            interspokes.clone(),
+            edges.clone(),
             self.face_vertexes(face).collect::<Vec<VertexId>>(),
         );
+
+        (edges, interspokes)
     }
 
     pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {

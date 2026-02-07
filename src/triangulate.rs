@@ -15,8 +15,8 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    /// Partition a face into triangles by inserting a vertex inside and then
-    /// adding edges between it and the original face's vertexes.
+    /// Partition a face into triangles by inserting a vertex inside and adding
+    /// edges between it and the original face's vertexes.
     ///
     /// The original face is reused for the first triangle. New faces are
     /// created for all the other triangles.
