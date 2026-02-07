@@ -311,6 +311,17 @@ macro_rules! assert_face_spokes_interspokes {
         /*let mut face_spokes_reverse_reverse = face_spokes_reverse;
         face_spokes_reverse_reverse.reverse();
         assert!(are_rotations(&face_spokes, &face_spokes_reverse_reverse));*/
+
+        let face_interspokes: Vec<FaceId> = $dcel.face_interspokes(FaceId::new($id)).collect();
+        assert_eq!(face_spokes.len(), $count);
+
+        let face_spokes_reverse: Vec<FaceId> =
+            $dcel.face_interspokes_reverse(FaceId::new($id)).collect();
+
+        // FIXME.
+        /*let mut face_interspokes_reverse_reverse = face_interspokes_reverse;
+        face_interspokes_reverse_reverse.reverse();
+        assert!(are_rotations(&face_interspokes, &face_interspokes_reverse_reverse));*/
     }};
 }
 
