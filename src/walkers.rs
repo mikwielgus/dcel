@@ -539,7 +539,7 @@ create_walker_and_iter!(
     CirculationSpokesWalker {
         circulator: CirculationHalfSpokesWalker,
     },
-    CirculateSpokesIter
+    CirculationSpokesIter
 );
 
 impl CirculationSpokesWalker {
@@ -555,7 +555,7 @@ impl CirculationSpokesWalker {
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
-    for CirculateSpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
+    for CirculationSpokesIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
 
