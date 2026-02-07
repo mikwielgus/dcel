@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+use std::collections::BTreeSet;
+
 use maplike::Get;
 
 use crate::{
@@ -12,10 +14,12 @@ use crate::{
         CirculateHalfEdgesWithExcludesIter, CirculateHalfEdgesWithExcludesReverseIter,
         CirculateHalfEdgesWithExcludesReverseWalker, CirculateHalfEdgesWithExcludesWalker,
         CirculateHalfSpokesIter, CirculateHalfSpokesReverseIter, CirculateSpokesIter,
-        CirculateSpokesReverseIter, CirculateVertexesWithExcludesIter,
-        CirculateVertexesWithExcludesReverseIter, CirculateVertexesWithExcludesReverseWalker,
-        CirculateVertexesWithExcludesWalker, CirculationHalfSpokesReverseWalker,
-        CirculationHalfSpokesWalker, CirculationSpokesReverseWalker, CirculationSpokesWalker,
+        CirculateVertexesWithExcludesIter, CirculateVertexesWithExcludesReverseIter,
+        CirculateVertexesWithExcludesReverseWalker, CirculateVertexesWithExcludesWalker,
+        CirculationHalfSpokesReverseWalker, CirculationHalfSpokesWalker,
+        CirculationInterspokesIter, CirculationInterspokesReverseIter,
+        CirculationInterspokesReverseWalker, CirculationInterspokesWalker,
+        CirculationSpokesReverseIter, CirculationSpokesReverseWalker, CirculationSpokesWalker,
         HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker,
         InterspokesIter, InterspokesReverseIter, InterspokesReverseWalker, InterspokesWalker,
         SpokesIter, SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
@@ -451,7 +455,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         &self,
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
-    ) -> CirculateSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+    ) -> CirculationSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CirculationSpokesReverseWalker {
             circulator: CirculationHalfSpokesReverseWalker {
                 circulator: self
@@ -462,6 +466,45 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                     .walker(),
                 half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
                 prev_half_edge: self.next_half_edge(initial_half_edge),
+            },
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulation_interspokes(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculationInterspokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculationInterspokesWalker {
+            circulator: CirculationHalfSpokesWalker {
+                circulator: self
+                    .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
+                    .walker(),
+                half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
+                prev_half_edge: self.prev_half_edge(initial_half_edge),
+            },
+        }
+        .iter(self)
+    }
+
+    #[inline]
+    pub fn circulation_interspokes_reverse(
+        &self,
+        initial_half_edge: HalfEdgeId,
+        excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
+    ) -> CirculationInterspokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        CirculationInterspokesReverseWalker {
+            circulator: CirculationHalfSpokesReverseWalker {
+                circulator: self
+                    .circulate_half_edges_with_excludes_reverse(
+                        initial_half_edge,
+                        excluded_half_edges,
+                    )
+                    .walker(),
+                half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
+                prev_half_edge: self.prev_half_edge(initial_half_edge),
             },
         }
         .iter(self)
@@ -794,7 +837,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
     pub fn face_spokes_reverse(
         &self,
         face: FaceId,
-    ) -> CirculateSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+    ) -> CirculationSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.

@@ -458,17 +458,12 @@ impl CirculationHalfSpokesWalker {
                     .circulator
                     .excluded_half_edges
                     .contains(&candidate_half_spoke)
-                    && self
-                        .prev_half_edge
-                        != candidate_half_spoke
-                        && dcel.twin(candidate_half_spoke) != self.prev_half_edge
-                    && self
-                        .circulator
-                        .curr_half_edge
-                        .is_none_or(|half_edge| {
-                            candidate_half_spoke != half_edge
-                                && dcel.twin(candidate_half_spoke) != half_edge
-                        })
+                    && self.prev_half_edge != candidate_half_spoke
+                    && dcel.twin(candidate_half_spoke) != self.prev_half_edge
+                    && self.circulator.curr_half_edge.is_none_or(|half_edge| {
+                        candidate_half_spoke != half_edge
+                            && dcel.twin(candidate_half_spoke) != half_edge
+                    })
                 {
                     return Some(candidate_half_spoke);
                 }
@@ -512,17 +507,12 @@ impl CirculationHalfSpokesReverseWalker {
                     .circulator
                     .excluded_half_edges
                     .contains(&candidate_half_spoke)
-                    && self
-                        .prev_half_edge
-                        != candidate_half_spoke
-                        && dcel.twin(candidate_half_spoke) != self.prev_half_edge
-                    && self
-                        .circulator
-                        .curr_half_edge
-                        .is_none_or(|half_edge| {
-                            candidate_half_spoke != half_edge
-                                && dcel.twin(candidate_half_spoke) != half_edge
-                        })
+                    && self.prev_half_edge != candidate_half_spoke
+                    && dcel.twin(candidate_half_spoke) != self.prev_half_edge
+                    && self.circulator.curr_half_edge.is_none_or(|half_edge| {
+                        candidate_half_spoke != half_edge
+                            && dcel.twin(candidate_half_spoke) != half_edge
+                    })
                 {
                     return Some(candidate_half_spoke);
                 }
@@ -579,7 +569,7 @@ create_walker_and_iter!(
     CirculationSpokesReverseWalker {
         circulator: CirculationHalfSpokesReverseWalker,
     },
-    CirculateSpokesReverseIter
+    CirculationSpokesReverseIter
 );
 
 impl CirculationSpokesReverseWalker {
@@ -595,9 +585,69 @@ impl CirculationSpokesReverseWalker {
 }
 
 impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
-    for CirculateSpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+    for CirculationSpokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
 {
     type Item = EdgeId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculationInterspokesWalker {
+        circulator: CirculationHalfSpokesWalker,
+    },
+    CirculationInterspokesIter
+);
+
+impl CirculationInterspokesWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<FaceId> {
+        self.circulator
+            .next(dcel)
+            .map(|half_spoke| dcel.face_in_front(half_spoke))
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
+    for CirculationInterspokesIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = FaceId;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.walker.next(self.dcel)
+    }
+}
+
+create_walker_and_iter!(
+    CirculationInterspokesReverseWalker {
+        circulator: CirculationHalfSpokesReverseWalker,
+    },
+    CirculationInterspokesReverseIter
+);
+
+impl CirculationInterspokesReverseWalker {
+    #[inline]
+    pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
+        &mut self,
+        dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
+    ) -> Option<FaceId> {
+        self.circulator
+            .next(dcel)
+            .map(|half_spoke| dcel.face_in_front(half_spoke))
+    }
+}
+
+impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
+    for CirculationInterspokesReverseIter<'a, VW, HEW, FW, VC, HEC, FC>
+{
+    type Item = FaceId;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
