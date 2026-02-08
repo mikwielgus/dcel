@@ -72,14 +72,20 @@ impl<
             .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect();
 
-        // Find an initial half-edge that is not in the excluded list. Otherwise,
-        // the circulator could end up starting from an excluded half-edge, which would
-        // result in an infinite loop, as the termination condition depends on
-        // returning to the initial edge.
+        // Find an initial half-edge that is not in the exclusion list.
+        // Otherwise, the circulator could end up starting from an excluded
+        // half-edge, which would result in an infinite loop, as the termination
+        // condition depends on returning to the initial edge.
         let initial_half_edge = self
             .face_half_edges(absorbing_face)
             .find(|half_edge| !excluded_half_edges.contains(half_edge))
-            .unwrap();
+            // XXX: If simple circulation around the absorbing face does not
+            // find an initial half-edge, try getting it from the rim.
+            .unwrap_or_else(|| {
+                self.face_rim_half_edges(absorbing_face)
+                    .find(|half_edge| !excluded_half_edges.contains(half_edge))
+                    .unwrap()
+            });
 
         let perimeter_half_edges: Vec<HalfEdgeId> = self
             .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges.clone())
