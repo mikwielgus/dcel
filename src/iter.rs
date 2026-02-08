@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use std::collections::BTreeSet;
-
 use maplike::Get;
 
 use crate::{
@@ -516,10 +514,15 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
     ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         let excluded_half_edges = excluded_half_edges.into_iter().collect::<Vec<HalfEdgeId>>();
-        let mut rim_excluded_half_edges = self
-            .circulation_spokes(initial_half_edge, excluded_half_edges.iter().copied())
+
+        let mut rim_excluded_half_edges: Vec<HalfEdgeId> = self
+            .circulate_edges(initial_half_edge)
             .flat_map(|edge| [edge.lesser(), edge.greater()])
-            .collect::<Vec<HalfEdgeId>>();
+            .collect();
+        rim_excluded_half_edges.extend(
+            self.circulation_spokes(initial_half_edge, excluded_half_edges.iter().copied())
+                .flat_map(|edge| [edge.lesser(), edge.greater()]),
+        );
         rim_excluded_half_edges.extend(excluded_half_edges.iter().copied());
 
         let Some(initial_half_spoke) = self
@@ -547,10 +550,15 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
     ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
         let excluded_half_edges = excluded_half_edges.into_iter().collect::<Vec<HalfEdgeId>>();
-        let mut rim_excluded_half_edges = self
-            .circulation_spokes_reverse(initial_half_edge, excluded_half_edges.iter().copied())
+
+        let mut rim_excluded_half_edges: Vec<HalfEdgeId> = self
+            .circulate_edges_reverse(initial_half_edge)
             .flat_map(|edge| [edge.lesser(), edge.greater()])
-            .collect::<Vec<HalfEdgeId>>();
+            .collect();
+        rim_excluded_half_edges.extend(
+            self.circulation_spokes_reverse(initial_half_edge, excluded_half_edges.iter().copied())
+                .flat_map(|edge| [edge.lesser(), edge.greater()]),
+        );
         rim_excluded_half_edges.extend(excluded_half_edges.iter().copied());
 
         let Some(initial_half_spoke) = self
