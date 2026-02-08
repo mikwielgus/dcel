@@ -293,9 +293,61 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn remove_face(&mut self, face: FaceId) -> (Vec<EdgeId>, Vec<FaceId>) {
+        let mut edges: Vec<EdgeId> = self.dcel.face_edges(face).collect();
+        edges.extend(self.dcel.face_spokes(face));
+        let interspokes: Vec<FaceId> = self.dcel.face_interspokes(face).collect();
+
+        // Remove the absorbed edges.
+        for edge in edges {
+            let endpoints = self.dcel.endpoints(edge);
+
+            self.edges_rtree.remove(&GeomWithData::new(
+                Rectangle::from_corners(
+                    Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
+                    Into::<P>::into(self.dcel.vertex_weight(endpoints.1).clone()),
+                ),
+                edge,
+            ));
+        }
+
+        // Remove the absorbing face from the faces R-tree before it changes,
+        // which would otherwise invalidate its bbox and make them impossible to
+        // access anymore.
+        self.faces_rtree.remove(&GeomWithData::new(
+            Self::rectangle_from_vertex_weights(
+                self.dcel
+                    .face_vertexes(face)
+                    .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+            ),
+            face,
+        ));
+
+        // Remove the absorbed faces from the faces R-tree.
+        for interspoke in interspokes {
+            self.faces_rtree.remove(&GeomWithData::new(
+                Self::rectangle_from_vertex_weights(
+                    self.dcel
+                        .face_vertexes(interspoke)
+                        .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
+                ),
+                interspoke,
+            ));
+        }
+
+        let (edges, faces) = self.dcel.remove_face(face);
+
+        // Insert the absorbing face back in the R-tree now that its bbox has
+        // done changing.
+        self.add_face_to_rtree(face);
+
+        (edges, faces)
+    }
+
     pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
         let endpoints = self.dcel.endpoints(edge);
 
+        // Remove the absorbed edge.
         self.edges_rtree.remove(&GeomWithData::new(
             Rectangle::from_corners(
                 Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
@@ -304,9 +356,9 @@ impl<
             edge,
         ));
 
-        // Remove the absorbing and absorbed faces from the faces R-tree before
-        // they shape change, which would otherwise invalidate their bboxes and
-        // make them impossible to access anymore.
+        // Remove the absorbing face from the faces R-tree before it changes,
+        // which would otherwise invalidate its bbox and make them impossible to
+        // access anymore.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
@@ -315,6 +367,8 @@ impl<
             ),
             self.dcel.face_in_front(edge.lesser()),
         ));
+
+        // Remove the absorbed faces from the faces R-tree.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
@@ -326,7 +380,7 @@ impl<
 
         let absorbing_face = self.dcel.remove_edge(edge);
 
-        // Insert the absorbing face back in the R-tree now that its bbox is
+        // Insert the absorbing face back in the R-tree now that its bbox has
         // done changing.
         self.add_face_to_rtree(absorbing_face);
 
@@ -583,7 +637,7 @@ impl<
     ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
         let mut result = ((HalfEdgeId::new(0), HalfEdgeId::new(0)), FaceId::new(0));
 
-        self.update_face_rtree(face_to_split, |dcel| {
+        self.update_split_face_rtree(face_to_split, |dcel| {
             let (new_edge, new_face) = dcel.split_face_by_edge(from, to, face_to_split);
             let edge_id = EdgeId::new(new_edge.0, new_edge.1);
             result = (new_edge, new_face);
@@ -602,7 +656,7 @@ impl<
     ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         let mut result = (vec![], FaceId::new(0));
 
-        self.update_face_rtree(face_to_split, |dcel| {
+        self.update_split_face_rtree(face_to_split, |dcel| {
             let (new_edges, new_face) =
                 dcel.split_face_by_edge_chain(from, to, vertex_weights, face_to_split);
             let edge_ids = new_edges
@@ -638,7 +692,7 @@ impl<
     ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
         let mut result = (vec![], FaceId::new(0));
 
-        self.update_face_rtree(face_to_split, |dcel| {
+        self.update_split_face_rtree(face_to_split, |dcel| {
             let (new_edges, new_face) = dcel.split_face_by_edge_chain_with_all_weights(
                 from,
                 to,
@@ -685,7 +739,7 @@ impl<
     ) -> (VertexId, Vec<EdgeId>, Vec<FaceId>) {
         let mut result = (VertexId::new(0), vec![], vec![]);
 
-        self.update_face_rtree(perimeter_face, |dcel| {
+        self.update_split_face_rtree(perimeter_face, |dcel| {
             result = dcel.triangulate_face_around_point(perimeter_face, inner_vertex_weight);
 
             (result.1.clone(), result.2.clone())
@@ -699,7 +753,7 @@ impl<
         perimeter_face: FaceId,
         apex: VertexId,
     ) -> (Vec<EdgeId>, Vec<FaceId>) {
-        self.update_face_rtree(perimeter_face, |dcel| {
+        self.update_split_face_rtree(perimeter_face, |dcel| {
             dcel.fan_triangulate(perimeter_face, apex)
         })
     }
@@ -724,7 +778,7 @@ impl<
     ) -> (VertexId, Vec<EdgeId>, Vec<FaceId>) {
         let mut result = (VertexId::new(0), vec![], vec![]);
 
-        self.update_face_rtree(perimeter_face, |dcel| {
+        self.update_split_face_rtree(perimeter_face, |dcel| {
             result = dcel.triangulate_face_around_point_with_all_weights(
                 perimeter_face,
                 inner_vertex_weight,
@@ -744,7 +798,7 @@ impl<
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
         triangle_face_weights: impl IntoIterator<Item = FW>,
     ) -> (Vec<EdgeId>, Vec<FaceId>) {
-        self.update_face_rtree(perimeter_face, |dcel| {
+        self.update_split_face_rtree(perimeter_face, |dcel| {
             dcel.fan_triangulate_with_all_weights(
                 perimeter_face,
                 apex,
@@ -765,7 +819,7 @@ impl<
     FC: Get<usize, Value = Face<FW>>,
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
-    fn update_face_rtree<F>(
+    fn update_split_face_rtree<F>(
         &mut self,
         face_to_update: FaceId,
         mutate_fn: F,
@@ -879,23 +933,6 @@ mod test {
     };
 
     #[test]
-    fn test_insert_polygon() {
-        let mut rtreed_dcel = RTreedStableDcel::<(i32, i32)>::new();
-        let face = rtreed_dcel.insert_polygon([(0, 0), (10, 0), (10, 10), (0, 10)]);
-
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 4);
-        assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 8);
-        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 2);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 4);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 1);
-
-        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
-        assert_face_boundary!(rtreed_dcel.dcel, face.id(), 4);
-
-        assert_face_bbox_validity(&rtreed_dcel, face.id());
-    }
-
-    #[test]
     fn test_insert_edge() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
@@ -939,6 +976,25 @@ mod test {
         assert_face_bbox_validity(&rtreed_dcel, 9);
         assert_face_bbox_validity(&rtreed_dcel, 10);
     }
+
+    #[test]
+    fn test_insert_polygon() {
+        let mut rtreed_dcel = RTreedStableDcel::<(i32, i32)>::new();
+        let face = rtreed_dcel.insert_polygon([(0, 0), (10, 0), (10, 10), (0, 10)]);
+
+        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 4);
+        assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 8);
+        assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 2);
+        assert_eq!(rtreed_dcel.edges_rtree.size(), 4);
+        assert_eq!(rtreed_dcel.faces_rtree.size(), 1);
+
+        assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
+        assert_face_boundary!(rtreed_dcel.dcel, face.id(), 4);
+
+        assert_face_bbox_validity(&rtreed_dcel, face.id());
+    }
+
+    // TODO: Test remove face.
 
     // TODO: Test remove edge.
 
