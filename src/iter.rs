@@ -23,6 +23,24 @@ use crate::{
     },
 };
 
+impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    #[inline]
+    pub fn vertex_half_spokes(
+        &self,
+        vertex: VertexId,
+    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        self.half_spokes(self.outgoing_next_half_edge(vertex))
+    }
+
+    #[inline]
+    pub fn vertex_half_spokes_reverse(
+        &self,
+        vertex: VertexId,
+    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
+        self.half_spokes_reverse(self.outgoing_next_half_edge(vertex))
+    }
+}
+
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
@@ -46,24 +64,6 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
             circulator: self.vertex_rim_half_edges_reverse(vertex).walker(),
         }
         .iter(self)
-    }
-}
-
-impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    #[inline]
-    pub fn vertex_half_spokes(
-        &self,
-        vertex: VertexId,
-    ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.half_spokes(self.outgoing_next_half_edge(vertex))
-    }
-
-    #[inline]
-    pub fn vertex_half_spokes_reverse(
-        &self,
-        vertex: VertexId,
-    ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.half_spokes_reverse(self.outgoing_next_half_edge(vertex))
     }
 }
 
@@ -537,10 +537,12 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
             .iter(self);
         };
 
-        self.circulate_half_edges_with_excludes(
-            self.next_half_edge(initial_half_spoke),
-            rim_excluded_half_edges,
-        )
+        let initial_half_edge = self
+            .half_spokes(self.twin(initial_half_spoke))
+            .find(|half_spoke| !rim_excluded_half_edges.contains(half_spoke))
+            .unwrap();
+
+        self.circulate_half_edges_with_excludes(initial_half_edge, rim_excluded_half_edges)
     }
 
     #[inline]
@@ -573,10 +575,14 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
             .iter(self);
         };
 
-        self.circulate_half_edges_with_excludes_reverse(
-            self.next_half_edge(initial_half_spoke),
-            rim_excluded_half_edges,
-        )
+        let initial_half_edge = self
+            // XXX: Not sure why, but `.half_spokes_reverse` here makes the
+            // tests fail.
+            .half_spokes(self.twin(initial_half_spoke))
+            .find(|half_spoke| !rim_excluded_half_edges.contains(half_spoke))
+            .unwrap();
+
+        self.circulate_half_edges_with_excludes_reverse(initial_half_edge, rim_excluded_half_edges)
     }
 
     #[inline]
