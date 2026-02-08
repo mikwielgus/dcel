@@ -188,16 +188,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     }
 
     #[inline]
-    pub fn turn_edge(&self, edge: EdgeId) -> EdgeId {
-        self.full_edge(self.turn_half_edge(edge.lesser()))
-    }
-
-    #[inline]
-    pub fn turn_back_edge(&self, edge: EdgeId) -> EdgeId {
-        self.full_edge(self.turn_back_half_edge(edge.lesser()))
-    }
-
-    #[inline]
     pub fn half_edge_weight(&self, half_edge: HalfEdgeId) -> &HEW {
         &self.half_edges.get(&half_edge.id()).unwrap().weight
     }
