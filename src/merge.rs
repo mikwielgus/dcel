@@ -31,7 +31,7 @@ impl<
             .vertex_rim_half_edges(inner_vertex)
             .collect::<Vec<HalfEdgeId>>();
 
-        self.absorb_faces_over_edges_and_vertexes_in_perimeter(
+        self.absorb_faces_over_edges_and_vertices_in_perimeter(
             absorbing_face,
             self.interspokes(initial_half_edge)
                 .filter(|face| face.id() != absorbing_face.id())
@@ -42,29 +42,29 @@ impl<
         );
     }
 
-    pub fn merge_faces_over_edges_and_vertexes(
+    pub fn merge_faces_over_edges_and_vertices(
         &mut self,
         faces: impl IntoIterator<Item = FaceId>,
         edges: impl IntoIterator<Item = EdgeId>,
-        vertexes: impl IntoIterator<Item = VertexId>,
+        vertices: impl IntoIterator<Item = VertexId>,
     ) {
         let mut faces = faces.into_iter();
         let absorbing_face = faces.next().unwrap();
 
-        self.absorb_faces_over_edges_and_vertexes(
+        self.absorb_faces_over_edges_and_vertices(
             absorbing_face,
             faces.filter(|face| face.id() != absorbing_face.id()),
             edges,
-            vertexes,
+            vertices,
         );
     }
 
-    pub fn absorb_faces_over_edges_and_vertexes(
+    pub fn absorb_faces_over_edges_and_vertices(
         &mut self,
         absorbing_face: FaceId,
         faces: impl IntoIterator<Item = FaceId>,
         edges: impl IntoIterator<Item = EdgeId>,
-        vertexes: impl IntoIterator<Item = VertexId>,
+        vertices: impl IntoIterator<Item = VertexId>,
     ) {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
         let excluded_half_edges: Vec<HalfEdgeId> = edges
@@ -91,11 +91,11 @@ impl<
             .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges.clone())
             .collect();
 
-        self.absorb_faces_over_edges_and_vertexes_in_perimeter(
+        self.absorb_faces_over_edges_and_vertices_in_perimeter(
             absorbing_face,
             faces,
             edges,
-            vertexes,
+            vertices,
             &perimeter_half_edges,
         );
     }
@@ -119,24 +119,24 @@ impl<
         let mut vertex_weights_counter = VertexesCounter::new();
         let faces: Vec<FaceId> = faces.into_iter().collect();
 
-        // To detect the merged edges and vertexes correctly, the absorbing face
+        // To detect the merged edges and vertices correctly, the absorbing face
         // has to be visited in addition to the absorbed faces.
         half_edges_counter.visit_face_half_edges(self, absorbing_face);
-        vertex_weights_counter.visit_face_vertexes(self, absorbing_face);
+        vertex_weights_counter.visit_face_vertices(self, absorbing_face);
 
         for &face in &faces {
             half_edges_counter.visit_face_half_edges(self, face);
-            vertex_weights_counter.visit_face_vertexes(self, face);
+            vertex_weights_counter.visit_face_vertices(self, face);
         }
 
-        self.absorb_faces_over_edges_and_vertexes_in_perimeter(
+        self.absorb_faces_over_edges_and_vertices_in_perimeter(
             absorbing_face,
             faces,
             half_edges_counter
                 .inner_edges(self)
                 .collect::<Vec<EdgeId>>(),
             vertex_weights_counter
-                .visited_vertexes()
+                .visited_vertices()
                 .filter(|&vertex| {
                     self.spokes_reverse(self.outgoing_next_half_edge(vertex))
                         .all(|edge| half_edges_counter.is_inner_edge(edge))
@@ -150,17 +150,17 @@ impl<
         );
     }
 
-    pub(crate) fn absorb_faces_over_edges_and_vertexes_in_perimeter(
+    pub(crate) fn absorb_faces_over_edges_and_vertices_in_perimeter(
         &mut self,
         absorbing_face: FaceId,
         faces_to_absorb: impl IntoIterator<Item = FaceId>,
         edges_to_remove: impl IntoIterator<Item = EdgeId>,
-        vertexes_to_remove: impl IntoIterator<Item = VertexId>,
+        vertices_to_remove: impl IntoIterator<Item = VertexId>,
         perimeter_half_edges: &[HalfEdgeId],
     ) {
         self.remove_orphaned_faces(faces_to_absorb);
         self.remove_orphaned_edges(edges_to_remove);
-        self.remove_orphaned_vertexes(vertexes_to_remove);
+        self.remove_orphaned_vertices(vertices_to_remove);
 
         self.wire_inner_half_edge_chain(absorbing_face, perimeter_half_edges);
     }
@@ -179,7 +179,7 @@ mod test {
         dcel.merge_faces_around_vertex(VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
-        assert_eq!(dcel.vertexes().num_elements(), 29);
+        assert_eq!(dcel.vertices().num_elements(), 29);
         assert_eq!(dcel.half_edges().num_elements(), 70);
         assert_eq!(dcel.faces().num_elements(), 8);
 
@@ -203,7 +203,7 @@ mod test {
         dcel.absorb_faces_around_vertex(FaceId::new(2), VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
-        assert_eq!(dcel.vertexes().num_elements(), 29);
+        assert_eq!(dcel.vertices().num_elements(), 29);
         assert_eq!(dcel.half_edges().num_elements(), 70);
         assert_eq!(dcel.faces().num_elements(), 8);
 
@@ -224,13 +224,13 @@ mod test {
     #[test]
     fn test_merge_faces_over_edge() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
-        dcel.merge_faces_over_edges_and_vertexes(
+        dcel.merge_faces_over_edges_and_vertices(
             [FaceId::new(5), FaceId::new(6)],
             [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
             [],
         );
 
-        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.vertices().num_elements(), 30);
         assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 
@@ -249,14 +249,14 @@ mod test {
     #[test]
     fn test_absorb_face_into_face_over_edge() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
-        dcel.absorb_faces_over_edges_and_vertexes(
+        dcel.absorb_faces_over_edges_and_vertices(
             FaceId::new(6),
             [FaceId::new(5)],
             [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
             [],
         );
 
-        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.vertices().num_elements(), 30);
         assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 
@@ -277,7 +277,7 @@ mod test {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
 
-        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.vertices().num_elements(), 30);
         assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 
@@ -298,7 +298,7 @@ mod test {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
 
-        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.vertices().num_elements(), 30);
         assert_eq!(dcel.half_edges().num_elements(), 74);
         assert_eq!(dcel.faces().num_elements(), 9);
 

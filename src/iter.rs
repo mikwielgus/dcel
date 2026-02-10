@@ -45,7 +45,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub fn vertex_rim_vertexes(
+    pub fn vertex_rim_vertices(
         &self,
         vertex: VertexId,
     ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
@@ -56,7 +56,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     }
 
     #[inline]
-    pub fn vertex_rim_vertexes_reverse(
+    pub fn vertex_rim_vertices_reverse(
         &self,
         vertex: VertexId,
     ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
@@ -81,7 +81,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
             .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect::<Vec<HalfEdgeId>>();
 
-        // Boundary vertexes do not have cycles circulating them.
+        // Boundary vertices do not have cycles circulating them.
         // Return an empty walker-iterator instead.
         if self.is_boundary_vertex(vertex) {
             return CirculateHalfEdgesWithExcludesWalker {
@@ -106,7 +106,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
             .flat_map(|edge| [edge.lesser(), edge.greater()])
             .collect::<Vec<HalfEdgeId>>();
 
-        // Boundary vertexes do not have cycles circulating them.
+        // Boundary vertices do not have cycles circulating them.
         // Return an empty walker-iterator instead.
         if self.is_boundary_vertex(vertex) {
             return CirculateHalfEdgesWithExcludesReverseWalker {
@@ -266,23 +266,23 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn circulate_vertexes(
+    pub fn circulate_vertices(
         &self,
         initial_half_edge: HalfEdgeId,
     ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.circulate_vertexes_with_excludes(initial_half_edge, std::iter::empty())
+        self.circulate_vertices_with_excludes(initial_half_edge, std::iter::empty())
     }
 
     #[inline]
-    pub fn circulate_vertexes_reverse(
+    pub fn circulate_vertices_reverse(
         &self,
         initial_half_edge: HalfEdgeId,
     ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.circulate_vertexes_with_excludes_reverse(initial_half_edge, std::iter::empty())
+        self.circulate_vertices_with_excludes_reverse(initial_half_edge, std::iter::empty())
     }
 
     #[inline]
-    pub fn circulate_vertexes_with_excludes(
+    pub fn circulate_vertices_with_excludes(
         &self,
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
@@ -296,7 +296,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     }
 
     #[inline]
-    pub fn circulate_vertexes_with_excludes_reverse(
+    pub fn circulate_vertices_with_excludes_reverse(
         &self,
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
@@ -614,7 +614,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     }
 
     #[inline]
-    pub fn circulation_rim_vertexes(
+    pub fn circulation_rim_vertices(
         &self,
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
@@ -628,7 +628,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     }
 
     #[inline]
-    pub fn circulation_rim_vertexes_reverse(
+    pub fn circulation_rim_vertices_reverse(
         &self,
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
@@ -652,7 +652,7 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     #[inline]
-    pub fn face_vertexes(
+    pub fn face_vertices(
         &self,
         face: FaceId,
     ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
@@ -663,7 +663,7 @@ impl<
     }
 
     #[inline]
-    pub fn face_vertexes_reverse(
+    pub fn face_vertices_reverse(
         &self,
         face: FaceId,
     ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
@@ -989,7 +989,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
     }
 
     #[inline]
-    pub fn face_rim_vertexes(
+    pub fn face_rim_vertices(
         &self,
         face: FaceId,
     ) -> CirculateVertexesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
@@ -1010,11 +1010,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
             .iter(self);
         };
 
-        self.circulation_rim_vertexes(initial_half_edge, std::iter::empty())
+        self.circulation_rim_vertices(initial_half_edge, std::iter::empty())
     }
 
     #[inline]
-    pub fn face_rim_vertexes_reverse(
+    pub fn face_rim_vertices_reverse(
         &self,
         face: FaceId,
     ) -> CirculateVertexesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
@@ -1035,7 +1035,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
             .iter(self);
         };
 
-        self.circulation_rim_vertexes_reverse(initial_half_edge, std::iter::empty())
+        self.circulation_rim_vertices_reverse(initial_half_edge, std::iter::empty())
     }
 
     #[inline]

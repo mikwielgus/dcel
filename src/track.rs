@@ -144,7 +144,7 @@ impl VertexesCounter {
         }
     }
 
-    pub fn visit_face_vertexes<
+    pub fn visit_face_vertices<
         VW,
         HEW,
         FW,
@@ -156,7 +156,7 @@ impl VertexesCounter {
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
         face: FaceId,
     ) {
-        for vertex in dcel.face_vertexes(face) {
+        for vertex in dcel.face_vertices(face) {
             self.visit_vertex(vertex);
         }
     }
@@ -165,7 +165,7 @@ impl VertexesCounter {
         *self.map.entry(vertex.id()).or_insert(0) += 1;
     }
 
-    pub fn visited_vertexes(&self) -> impl Iterator<Item = VertexId> {
+    pub fn visited_vertices(&self) -> impl Iterator<Item = VertexId> {
         self.map.keys().map(|&id| VertexId(id))
     }
 }
@@ -201,11 +201,11 @@ impl EdgesTracker {
         }
     }
 
-    pub fn visit_vertexes_edge(&mut self, from: VertexId, to: VertexId, half_edge: HalfEdgeId) {
+    pub fn visit_vertices_edge(&mut self, from: VertexId, to: VertexId, half_edge: HalfEdgeId) {
         self.map.insert((from.id(), to.id()), half_edge.id());
     }
 
-    pub fn vertexes_half_edge(&self, from: VertexId, to: VertexId) -> Option<HalfEdgeId> {
+    pub fn vertices_half_edge(&self, from: VertexId, to: VertexId) -> Option<HalfEdgeId> {
         self.map
             .get(&(from.id(), to.id()))
             .map(|id| HalfEdgeId(*id))

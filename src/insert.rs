@@ -142,11 +142,11 @@ impl<
         face_weight: FW,
     ) -> FaceId {
         let new_face = self.add_unwired_face(face_weight);
-        let vertexes =
-            self.add_deduplicated_unwired_polygon_vertexes(vertex_weights_tracker, vertex_weights);
+        let vertices =
+            self.add_deduplicated_unwired_polygon_vertices(vertex_weights_tracker, vertex_weights);
         let edges = self.add_adjoined_unwired_polygon_edges(
             edges_tracker,
-            &vertexes,
+            &vertices,
             new_face,
             outer_face,
             edge_weights,
@@ -170,7 +170,7 @@ impl<
         new_face
     }
 
-    fn add_deduplicated_unwired_polygon_vertexes(
+    fn add_deduplicated_unwired_polygon_vertices(
         &mut self,
         vertex_weights_counter: &mut VertexTracker<VW>,
         vertex_weights: impl IntoIterator<Item = VW>,
@@ -192,22 +192,22 @@ impl<
     fn add_adjoined_unwired_polygon_edges(
         &mut self,
         edges_tracker: &mut EdgesTracker,
-        vertexes: &[VertexId],
+        vertices: &[VertexId],
         new_face: FaceId,
         outer_face: FaceId,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
     ) -> Vec<(HalfEdgeId, HalfEdgeId)> {
-        let vertexes_circular_tuple_windows = vertexes
+        let vertices_circular_tuple_windows = vertices
             .iter()
-            .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
+            .zip(vertices.iter().skip(1).chain(vertices.iter().take(1)));
 
         let mut edges: Vec<(HalfEdgeId, HalfEdgeId)> = vec![];
 
         for ((&from_vertex, &to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
-            vertexes_circular_tuple_windows.zip(edge_weights)
+            vertices_circular_tuple_windows.zip(edge_weights)
         {
             let edge = if let Some(existing_half_edge) =
-                edges_tracker.vertexes_half_edge(to_vertex, from_vertex)
+                edges_tracker.vertices_half_edge(to_vertex, from_vertex)
             {
                 // Reuse already existing shared edge.
                 let forward = self.twin(existing_half_edge);
@@ -236,7 +236,7 @@ impl<
                 (forward, backward)
             };
 
-            edges_tracker.visit_vertexes_edge(from_vertex, to_vertex, edge.0);
+            edges_tracker.visit_vertices_edge(from_vertex, to_vertex, edge.0);
             edges.push(edge);
         }
 
@@ -275,8 +275,8 @@ impl<
         face_weight: FW,
     ) -> FaceId {
         let new_face = self.add_unwired_face(face_weight);
-        let vertexes = self.add_unwired_polygon_vertexes(vertex_weights);
-        let edges = self.add_unwired_polygon_edges(&vertexes, new_face, outer_face, edge_weights);
+        let vertices = self.add_unwired_polygon_vertices(vertex_weights);
+        let edges = self.add_unwired_polygon_edges(&vertices, new_face, outer_face, edge_weights);
 
         self.wire_outer_half_edge_chain_circularly(
             &edges.iter().map(|edge| edge.greater()).collect::<Vec<_>>(),
@@ -289,7 +289,7 @@ impl<
         new_face
     }
 
-    fn add_unwired_polygon_vertexes(
+    fn add_unwired_polygon_vertices(
         &mut self,
         vertex_weights: impl IntoIterator<Item = VW>,
     ) -> Vec<VertexId> {
@@ -301,19 +301,19 @@ impl<
 
     fn add_unwired_polygon_edges(
         &mut self,
-        vertexes: &[VertexId],
+        vertices: &[VertexId],
         new_face: FaceId,
         outer_face: FaceId,
         edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
     ) -> Vec<EdgeId> {
-        let vertexes_circular_tuple_windows = vertexes
+        let vertices_circular_tuple_windows = vertices
             .iter()
-            .zip(vertexes.iter().skip(1).chain(vertexes.iter().take(1)));
+            .zip(vertices.iter().skip(1).chain(vertices.iter().take(1)));
 
         let mut edges = vec![];
 
         for ((from_vertex, to_vertex), (forward_half_edge_weight, backward_half_edge_weight)) in
-            vertexes_circular_tuple_windows.zip(edge_weights)
+            vertices_circular_tuple_windows.zip(edge_weights)
         {
             let (forward, _) = self.add_unwired_edge(
                 *from_vertex,
@@ -344,7 +344,7 @@ impl<
         from: VertexId,
         to: VertexId,
     ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
-        self.split_face_by_edge(from, to, self.vertexes_common_face(from, to).unwrap())
+        self.split_face_by_edge(from, to, self.vertices_common_face(from, to).unwrap())
     }
 
     pub fn insert_edge_chain(
@@ -357,7 +357,7 @@ impl<
             from,
             to,
             vertex_weights,
-            self.vertexes_common_face(from, to).unwrap(),
+            self.vertices_common_face(from, to).unwrap(),
         )
     }
 }
@@ -383,7 +383,7 @@ impl<
             to,
             vertex_weights,
             edge_weights,
-            self.vertexes_common_face(from, to).unwrap(),
+            self.vertices_common_face(from, to).unwrap(),
             FW::default(),
         )
     }
@@ -410,11 +410,11 @@ mod test {
     fn test_insert_edge() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(Dcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
-        let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
+        let face_to_split_vertices: Vec<VertexId> = dcel.face_vertices(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
         let (_new_edge, _new_face) =
-            dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
+            dcel.insert_edge(face_to_split_vertices[0], face_to_split_vertices[3]);
 
         // There are now eleven faces in total: one unbounded and ten bounded.
         assert_eq!(dcel.faces().len(), 11);
@@ -447,12 +447,12 @@ mod test {
         let mut dcel: Dcel<(i64, i64)> = Dcel::new();
         dcel.insert_mesh(two_adjoined_squares);
 
-        assert_eq!(dcel.vertexes().len(), 6);
+        assert_eq!(dcel.vertices().len(), 6);
         assert_eq!(dcel.half_edges().len(), 14);
         assert_eq!(dcel.faces().len(), 3);
 
         assert_eq!(
-            dcel.face_vertexes(FaceId::new(0))
+            dcel.face_vertices(FaceId::new(0))
                 .collect::<Vec<VertexId>>()
                 .len(),
             0
@@ -528,7 +528,7 @@ mod test {
         for (i, _face) in dcel.faces().iter().enumerate() {
             if FaceId::new(i) == dcel.unbounded_face() {
                 assert_eq!(
-                    dcel.face_vertexes(FaceId::new(i))
+                    dcel.face_vertices(FaceId::new(i))
                         .collect::<Vec<VertexId>>()
                         .len(),
                     0
@@ -549,7 +549,7 @@ mod test {
             }
 
             assert_eq!(
-                dcel.face_vertexes(FaceId::new(i))
+                dcel.face_vertices(FaceId::new(i))
                     .collect::<Vec<VertexId>>()
                     .len(),
                 4
@@ -568,7 +568,7 @@ mod test {
             );
         }
 
-        assert_eq!(dcel.vertexes().len(), 25);
+        assert_eq!(dcel.vertices().len(), 25);
         assert_eq!(dcel.half_edges().len(), 80);
         assert_eq!(dcel.faces().len(), 17);
     }

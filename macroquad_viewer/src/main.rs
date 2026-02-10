@@ -165,7 +165,7 @@ async fn main() {
     let (mesh_min, mesh_max, mesh_center) = {
         let mut min = vec2(f32::INFINITY, f32::INFINITY);
         let mut max = vec2(f32::NEG_INFINITY, f32::NEG_INFINITY);
-        for vertex_idx in dcel.vertexes().indices() {
+        for vertex_idx in dcel.vertices().indices() {
             let vertex = VertexId::new(vertex_idx);
             let &(x, y) = dcel.vertex_weight(vertex);
             let p = to_world(x, y);
@@ -241,7 +241,7 @@ async fn main() {
             let mut nearest: Option<(VertexId, f32)> = None;
             let hit_radius = 10.0;
 
-            for vertex_idx in dcel.vertexes().indices() {
+            for vertex_idx in dcel.vertices().indices() {
                 let vertex = VertexId::new(vertex_idx);
                 let &(x, y) = dcel.vertex_weight(vertex);
                 let world = to_world(x, y);
@@ -282,7 +282,7 @@ async fn main() {
                     }
 
                     let face_vertices: Vec<Vec2> = dcel
-                        .face_vertexes(face)
+                        .face_vertices(face)
                         .map(|vertex| {
                             let &(x, y) = dcel.vertex_weight(vertex);
                             to_world(x, y)
@@ -319,7 +319,7 @@ async fn main() {
                     }
 
                     let face_vertices: Vec<Vec2> = dcel
-                        .face_vertexes(face)
+                        .face_vertices(face)
                         .map(|vertex| {
                             let &(x, y) = dcel.vertex_weight(vertex);
                             to_world(x, y)
@@ -357,7 +357,7 @@ async fn main() {
                 let mut nearest: Option<(VertexId, f32)> = None;
                 let hit_radius = 10.0;
 
-                for vertex_idx in dcel.vertexes().indices() {
+                for vertex_idx in dcel.vertices().indices() {
                     let vertex = VertexId::new(vertex_idx);
                     let &(x, y) = dcel.vertex_weight(vertex);
                     let world = to_world(x, y);
@@ -388,7 +388,7 @@ async fn main() {
                         }
 
                         let face_vertices: Vec<Vec2> = dcel
-                            .face_vertexes(face)
+                            .face_vertices(face)
                             .map(|vertex| {
                                 let &(x, y) = dcel.vertex_weight(vertex);
                                 to_world(x, y)
@@ -444,7 +444,7 @@ async fn main() {
         }
 
         let vertex_color = Color::new(0.35, 0.35, 0.35, 1.0);
-        for vertex_idx in dcel.vertexes().indices() {
+        for vertex_idx in dcel.vertices().indices() {
             let vertex = VertexId::new(vertex_idx);
             let &(x, y) = dcel.vertex_weight(vertex);
             let world = to_world(x, y);
@@ -510,7 +510,7 @@ async fn main() {
             }
 
             let face_vertices: Vec<Vec2> = dcel
-                .face_vertexes(face)
+                .face_vertices(face)
                 .map(|vertex| {
                     let &(x, y) = dcel.vertex_weight(vertex);
                     to_world(x, y)

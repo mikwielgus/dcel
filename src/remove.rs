@@ -20,11 +20,11 @@ impl<
         edges.extend(self.face_spokes(face));
         let interspokes: Vec<FaceId> = self.face_interspokes(face).collect();
 
-        self.absorb_faces_over_edges_and_vertexes(
+        self.absorb_faces_over_edges_and_vertices(
             face,
             interspokes.clone(),
             edges.clone(),
-            self.face_vertexes(face).collect::<Vec<VertexId>>(),
+            self.face_vertices(face).collect::<Vec<VertexId>>(),
         );
 
         (edges, interspokes)
@@ -34,7 +34,7 @@ impl<
         let absorbing_face = self.face_in_front(edge.lesser());
         let face_to_absorb = self.face_behind(edge.lesser());
 
-        self.absorb_faces_over_edges_and_vertexes(absorbing_face, [face_to_absorb], [edge], []);
+        self.absorb_faces_over_edges_and_vertices(absorbing_face, [face_to_absorb], [edge], []);
 
         absorbing_face
     }
@@ -46,24 +46,24 @@ impl<
         let absorbing_face = self.face_in_front(edges[0].lesser());
         let face_to_absorb = self.face_behind(edges[0].lesser());
 
-        self.absorb_faces_over_edges_and_vertexes(absorbing_face, [face_to_absorb], edges, []);
+        self.absorb_faces_over_edges_and_vertices(absorbing_face, [face_to_absorb], edges, []);
 
         absorbing_face
     }
 }
 
 impl<VW, HEW, FW, VC: Remove<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    pub(crate) fn remove_orphaned_vertexes(
+    pub(crate) fn remove_orphaned_vertices(
         &mut self,
-        vertexes: impl IntoIterator<Item = VertexId>,
+        vertices: impl IntoIterator<Item = VertexId>,
     ) {
-        for vertex in vertexes.into_iter() {
+        for vertex in vertices.into_iter() {
             self.remove_orphaned_vertex(vertex);
         }
     }
 
     pub(crate) fn remove_orphaned_vertex(&mut self, vertex: VertexId) {
-        self.vertexes.remove(&vertex.id());
+        self.vertices.remove(&vertex.id());
     }
 }
 

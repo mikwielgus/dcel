@@ -16,7 +16,7 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Partition a face into triangles by inserting a vertex inside and adding
-    /// edges between it and the original face's vertexes.
+    /// edges between it and the original face's vertices.
     ///
     /// The original face is reused for the first triangle. New faces are
     /// created for all the other triangles.
@@ -29,7 +29,7 @@ impl<
         perimeter_face: FaceId,
         inner_vertex_weight: VW,
     ) -> (VertexId, Vec<EdgeId>, Vec<FaceId>) {
-        let perimeter_vertex_count = self.face_vertexes(perimeter_face).count();
+        let perimeter_vertex_count = self.face_vertices(perimeter_face).count();
 
         self.triangulate_face_around_point_with_all_weights(
             perimeter_face,
@@ -44,7 +44,7 @@ impl<
         perimeter_face: FaceId,
         apex: VertexId,
     ) -> (Vec<EdgeId>, Vec<FaceId>) {
-        let perimeter_vertex_count = self.face_vertexes(perimeter_face).count();
+        let perimeter_vertex_count = self.face_vertices(perimeter_face).count();
 
         self.fan_triangulate_with_all_weights(
             perimeter_face,
@@ -100,7 +100,7 @@ impl<
             &triangle_faces,
             inner_edge_weights,
         );
-        self.wire_triangulation_faces_edges_vertexes(perimeter_face, &new_edges);
+        self.wire_triangulation_faces_edges_vertices(perimeter_face, &new_edges);
 
         (new_edges, new_faces)
     }
@@ -136,12 +136,12 @@ impl<
         inner_edge_weights: impl IntoIterator<Item = (HEW, HEW)>,
     ) -> Vec<EdgeId> {
         let mut inner_edge_weights = inner_edge_weights.into_iter();
-        let mut face_vertexes_walker = self.face_vertexes(perimeter_face).walker();
+        let mut face_vertices_walker = self.face_vertices(perimeter_face).walker();
         let mut edges = vec![];
 
         let mut i: usize = 0;
 
-        while let Some(perimeter_vertex) = face_vertexes_walker.next(self) {
+        while let Some(perimeter_vertex) = face_vertices_walker.next(self) {
             let (weight, twin_weight) = inner_edge_weights.next().unwrap();
 
             let prev_face = if i == 0 {
@@ -167,7 +167,7 @@ impl<
         edges
     }
 
-    fn wire_triangulation_faces_edges_vertexes(
+    fn wire_triangulation_faces_edges_vertices(
         &mut self,
         perimeter_face: FaceId,
         inner_edges: &[EdgeId],

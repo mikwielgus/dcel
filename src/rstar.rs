@@ -182,7 +182,7 @@ impl<
         from: VertexId,
         to: VertexId,
     ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
-        self.split_face_by_edge(from, to, self.dcel.vertexes_common_face(from, to).unwrap())
+        self.split_face_by_edge(from, to, self.dcel.vertices_common_face(from, to).unwrap())
     }
 
     pub fn insert_edge_chain(
@@ -195,7 +195,7 @@ impl<
             from,
             to,
             vertex_weights,
-            self.dcel.vertexes_common_face(from, to).unwrap(),
+            self.dcel.vertices_common_face(from, to).unwrap(),
         )
     }
 }
@@ -222,7 +222,7 @@ impl<
             to,
             vertex_weights,
             edge_weights,
-            self.dcel.vertexes_common_face(from, to).unwrap(),
+            self.dcel.vertices_common_face(from, to).unwrap(),
             FW::default(),
         )
     }
@@ -317,7 +317,7 @@ impl<
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(face)
+                    .face_vertices(face)
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
             face,
@@ -328,7 +328,7 @@ impl<
             self.faces_rtree.remove(&GeomWithData::new(
                 Self::rectangle_from_vertex_weights(
                     self.dcel
-                        .face_vertexes(interspoke)
+                        .face_vertices(interspoke)
                         .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
                 ),
                 interspoke,
@@ -362,7 +362,7 @@ impl<
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(self.dcel.face_in_front(edge.lesser()))
+                    .face_vertices(self.dcel.face_in_front(edge.lesser()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
             self.dcel.face_in_front(edge.lesser()),
@@ -372,7 +372,7 @@ impl<
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(self.dcel.face_behind(edge.lesser()))
+                    .face_vertices(self.dcel.face_behind(edge.lesser()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
             self.dcel.face_behind(edge.lesser()),
@@ -414,7 +414,7 @@ impl<
             .vertex_rim_half_edges(inner_vertex)
             .collect::<Vec<HalfEdgeId>>();
 
-        self.absorb_faces_over_edges_and_vertexes_in_perimeter(
+        self.absorb_faces_over_edges_and_vertices_in_perimeter(
             absorbing_face,
             self.dcel
                 .interspokes(initial_half_edge)
@@ -426,29 +426,29 @@ impl<
         );
     }
 
-    pub fn merge_faces_over_edges_and_vertexes(
+    pub fn merge_faces_over_edges_and_vertices(
         &mut self,
         faces: impl IntoIterator<Item = FaceId>,
         edges: impl IntoIterator<Item = EdgeId>,
-        vertexes: impl IntoIterator<Item = VertexId>,
+        vertices: impl IntoIterator<Item = VertexId>,
     ) {
         let mut faces = faces.into_iter();
         let absorbing_face = faces.next().unwrap();
 
-        self.absorb_faces_over_edges_and_vertexes(
+        self.absorb_faces_over_edges_and_vertices(
             absorbing_face,
             faces.filter(|face| face.id() != absorbing_face.id()),
             edges,
-            vertexes,
+            vertices,
         );
     }
 
-    pub fn absorb_faces_over_edges_and_vertexes(
+    pub fn absorb_faces_over_edges_and_vertices(
         &mut self,
         absorbing_face: FaceId,
         faces: impl IntoIterator<Item = FaceId>,
         edges: impl IntoIterator<Item = EdgeId>,
-        vertexes: impl IntoIterator<Item = VertexId>,
+        vertices: impl IntoIterator<Item = VertexId>,
     ) {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
         let excluded_half_edges: Vec<HalfEdgeId> = edges
@@ -471,11 +471,11 @@ impl<
             .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges.clone())
             .collect();
 
-        self.absorb_faces_over_edges_and_vertexes_in_perimeter(
+        self.absorb_faces_over_edges_and_vertices_in_perimeter(
             absorbing_face,
             faces,
             edges,
-            vertexes,
+            vertices,
             &perimeter_half_edges,
         );
     }
@@ -499,24 +499,24 @@ impl<
         let mut vertex_weights_counter = VertexesCounter::new();
         let faces: Vec<FaceId> = faces.into_iter().collect();
 
-        // To detect the merged edges and vertexes correctly, the absorbing face
+        // To detect the merged edges and vertices correctly, the absorbing face
         // has to be visited in addition to the absorbed faces.
         half_edges_counter.visit_face_half_edges(&self.dcel, absorbing_face);
-        vertex_weights_counter.visit_face_vertexes(&self.dcel, absorbing_face);
+        vertex_weights_counter.visit_face_vertices(&self.dcel, absorbing_face);
 
         for &face in &faces {
             half_edges_counter.visit_face_half_edges(&self.dcel, face);
-            vertex_weights_counter.visit_face_vertexes(&self.dcel, face);
+            vertex_weights_counter.visit_face_vertices(&self.dcel, face);
         }
 
-        self.absorb_faces_over_edges_and_vertexes_in_perimeter(
+        self.absorb_faces_over_edges_and_vertices_in_perimeter(
             absorbing_face,
             faces,
             half_edges_counter
                 .inner_edges(&self.dcel)
                 .collect::<Vec<EdgeId>>(),
             vertex_weights_counter
-                .visited_vertexes()
+                .visited_vertices()
                 .filter(|&vertex| {
                     self.dcel
                         .spokes_reverse(self.dcel.outgoing_next_half_edge(vertex))
@@ -531,12 +531,12 @@ impl<
         );
     }
 
-    fn absorb_faces_over_edges_and_vertexes_in_perimeter(
+    fn absorb_faces_over_edges_and_vertices_in_perimeter(
         &mut self,
         absorbing_face: FaceId,
         faces_to_absorb: impl IntoIterator<Item = FaceId>,
         edges_to_remove: impl IntoIterator<Item = EdgeId>,
-        vertexes_to_remove: impl IntoIterator<Item = VertexId>,
+        vertices_to_remove: impl IntoIterator<Item = VertexId>,
         perimeter_half_edges: &[HalfEdgeId],
     ) {
         let faces_to_absorb: Vec<FaceId> = faces_to_absorb.into_iter().collect();
@@ -546,7 +546,7 @@ impl<
             self.faces_rtree.remove(&GeomWithData::new(
                 Self::rectangle_from_vertex_weights(
                     self.dcel
-                        .face_vertexes(face_to_absorb)
+                        .face_vertices(face_to_absorb)
                         .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
                 ),
                 face_to_absorb,
@@ -571,17 +571,17 @@ impl<
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(absorbing_face)
+                    .face_vertices(absorbing_face)
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
             absorbing_face,
         ));
 
-        self.dcel.absorb_faces_over_edges_and_vertexes_in_perimeter(
+        self.dcel.absorb_faces_over_edges_and_vertices_in_perimeter(
             absorbing_face,
             faces_to_absorb,
             edges_to_remove,
-            vertexes_to_remove,
+            vertices_to_remove,
             perimeter_half_edges,
         );
 
@@ -724,7 +724,7 @@ impl<
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
     /// Partition a face into triangles by inserting a vertex inside and then
-    /// adding edges between it and the original face's vertexes.
+    /// adding edges between it and the original face's vertices.
     ///
     /// The original face is reused for the first triangle. New faces are
     /// created for all the other triangles.
@@ -834,7 +834,7 @@ impl<
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(face_to_update)
+                    .face_vertices(face_to_update)
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
             face_to_update,
@@ -863,7 +863,7 @@ impl<
             face,
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(face)
+                    .face_vertices(face)
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
         )
@@ -879,7 +879,7 @@ impl<
             face,
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertexes(face)
+                    .face_vertices(face)
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
         )
@@ -936,15 +936,15 @@ mod test {
     fn test_insert_edge() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
-        let face_to_split_vertexes: Vec<VertexId> =
-            rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
+        let face_to_split_vertices: Vec<VertexId> =
+            rtreed_dcel.dcel.face_vertices(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
         let (_new_edge, _new_face) =
-            rtreed_dcel.insert_edge(face_to_split_vertexes[0], face_to_split_vertexes[3]);
+            rtreed_dcel.insert_edge(face_to_split_vertices[0], face_to_split_vertices[3]);
 
         // There are now eleven faces in total: one unbounded and ten bounded.
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 30);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
@@ -982,7 +982,7 @@ mod test {
         let mut rtreed_dcel = RTreedStableDcel::<(i32, i32)>::new();
         let face = rtreed_dcel.insert_polygon([(0, 0), (10, 0), (10, 10), (0, 10)]);
 
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 4);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 4);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 8);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 2);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 4);
@@ -1004,7 +1004,7 @@ mod test {
         rtreed_dcel.merge_faces_around_vertex(VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 29);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 29);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 70);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 8);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 35);
@@ -1039,7 +1039,7 @@ mod test {
         rtreed_dcel.absorb_faces_around_vertex(FaceId::new(2), VertexId::new(8));
 
         // There are now eight faces in total: one unbounded and seven bounded.
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 29);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 29);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 70);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 8);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 35);
@@ -1072,13 +1072,13 @@ mod test {
     #[test]
     fn test_merge_faces_over_edge() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        rtreed_dcel.merge_faces_over_edges_and_vertexes(
+        rtreed_dcel.merge_faces_over_edges_and_vertices(
             [FaceId::new(5), FaceId::new(6)],
             [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
             [],
         );
 
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 30);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
@@ -1109,14 +1109,14 @@ mod test {
     #[test]
     fn test_absorb_face_into_face_over_edge() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
-        rtreed_dcel.absorb_faces_over_edges_and_vertexes(
+        rtreed_dcel.absorb_faces_over_edges_and_vertices(
             FaceId::new(6),
             [FaceId::new(5)],
             [EdgeId::new(HalfEdgeId::new(44), HalfEdgeId::new(45))],
             [],
         );
 
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 30);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
@@ -1149,7 +1149,7 @@ mod test {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         rtreed_dcel.merge_faces([FaceId::new(7), FaceId::new(8)]);
 
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 30);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
@@ -1182,7 +1182,7 @@ mod test {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         rtreed_dcel.absorb_faces(FaceId::new(8), [FaceId::new(7)]);
 
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 30);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
@@ -1214,18 +1214,18 @@ mod test {
     fn test_split_face_by_edge() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
-        let face_to_split_vertexes: Vec<VertexId> =
-            rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
+        let face_to_split_vertices: Vec<VertexId> =
+            rtreed_dcel.dcel.face_vertices(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
         let (_new_edge, _new_face) = rtreed_dcel.split_face_by_edge(
-            face_to_split_vertexes[0],
-            face_to_split_vertexes[3],
+            face_to_split_vertices[0],
+            face_to_split_vertices[3],
             face_to_split,
         );
 
         // There are now eleven faces in total: one unbounded and ten bounded.
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 30);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
@@ -1267,9 +1267,9 @@ mod test {
 
         let (_new_vertex, new_edge) = rtreed_dcel.split_edge_by_vertex(edge, (259, 150));
 
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 10);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
@@ -1294,20 +1294,20 @@ mod test {
     fn test_split_face_by_chain_of_two_edges() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
-        let face_to_split_vertexes: Vec<VertexId> =
-            rtreed_dcel.dcel.face_vertexes(face_to_split).collect();
+        let face_to_split_vertices: Vec<VertexId> =
+            rtreed_dcel.dcel.face_vertices(face_to_split).collect();
 
         // Split face 5 in two with a chain of two edges, with their common
         // point around the face's center.
         let (_new_edges, _new_face) = rtreed_dcel.split_face_by_edge_chain(
-            face_to_split_vertexes[0],
-            face_to_split_vertexes[3],
+            face_to_split_vertices[0],
+            face_to_split_vertices[3],
             [(259, 150)],
             face_to_split,
         );
 
         // There are now eleven faces in total: one unbounded and ten bounded.
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 80);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 40);
@@ -1351,7 +1351,7 @@ mod test {
         assert_eq!(new_faces.len(), 5);
         assert_eq!(new_edges.len(), 6);
 
-        assert_eq!(rtreed_dcel.dcel.vertexes().num_elements(), 31);
+        assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 88);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 15);
         assert_eq!(rtreed_dcel.edges_rtree.size(), 44);
@@ -1361,8 +1361,8 @@ mod test {
 
         // All new faces are triangles.
         for face in &new_faces {
-            let face_vertexes: Vec<VertexId> = rtreed_dcel.dcel.face_vertexes(*face).collect();
-            assert_eq!(face_vertexes.len(), 3);
+            let face_vertices: Vec<VertexId> = rtreed_dcel.dcel.face_vertices(*face).collect();
+            assert_eq!(face_vertices.len(), 3);
         }
 
         // The new edges are in the edges rtree.
@@ -1384,7 +1384,7 @@ mod test {
                         &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
                             rtreed_dcel
                                 .dcel
-                                .face_vertexes(*face)
+                                .face_vertices(*face)
                                 .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
                         )
                         .envelope(),
@@ -1428,7 +1428,7 @@ mod test {
         RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
             rtreed_dcel
                 .dcel
-                .face_vertexes(face)
+                .face_vertices(face)
                 .map(|vertex| rtreed_dcel.dcel.vertex_weight(vertex).clone()),
         )
     }

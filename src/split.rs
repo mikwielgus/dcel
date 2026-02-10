@@ -59,7 +59,7 @@ impl<
         self.link_subsequent_half_edges(backward, new_edge.greater());
         self.link_subsequent_half_edges(new_edge.greater(), backward_next);
 
-        // Update the outgoing spokes of vertexes.
+        // Update the outgoing spokes of vertices.
         // XXX: Is this really needed?
         self.link_vertex_with_half_edge(new_vertex, forward);
         if self.outgoing_next_half_edge(origin) == forward {
@@ -259,7 +259,7 @@ mod test {
 
         let (_new_vertex, new_edge) = dcel.split_edge_by_vertex(edge, (259, 150));
 
-        assert_eq!(dcel.vertexes().num_elements(), 31);
+        assert_eq!(dcel.vertices().num_elements(), 31);
         assert_eq!(dcel.half_edges().num_elements(), 78);
         assert_eq!(dcel.faces().num_elements(), 10);
 
@@ -279,17 +279,17 @@ mod test {
     fn test_split_face_by_edge() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
-        let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
+        let face_to_split_vertices: Vec<VertexId> = dcel.face_vertices(face_to_split).collect();
 
         // Split face 5 in two with a single edge.
         let (_new_edge, _new_face) = dcel.split_face_by_edge(
-            face_to_split_vertexes[0],
-            face_to_split_vertexes[3],
+            face_to_split_vertices[0],
+            face_to_split_vertices[3],
             face_to_split,
         );
 
         // There are now eleven faces in total: one unbounded and ten bounded.
-        assert_eq!(dcel.vertexes().num_elements(), 30);
+        assert_eq!(dcel.vertices().num_elements(), 30);
         assert_eq!(dcel.half_edges().num_elements(), 78);
         assert_eq!(dcel.faces().num_elements(), 11);
 
@@ -313,19 +313,19 @@ mod test {
     fn test_split_face_by_chain_of_two_edges() {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         let face_to_split = FaceId::new(5);
-        let face_to_split_vertexes: Vec<VertexId> = dcel.face_vertexes(face_to_split).collect();
+        let face_to_split_vertices: Vec<VertexId> = dcel.face_vertices(face_to_split).collect();
 
         // Split face 5 in two with a chain of two edges, with their common
         // point around the face's center.
         let (_new_edges, _new_face) = dcel.split_face_by_edge_chain(
-            face_to_split_vertexes[0],
-            face_to_split_vertexes[3],
+            face_to_split_vertices[0],
+            face_to_split_vertices[3],
             [(259, 150)],
             face_to_split,
         );
 
         // There are now eleven faces in total: one unbounded and ten bounded.
-        assert_eq!(dcel.vertexes().num_elements(), 31);
+        assert_eq!(dcel.vertices().num_elements(), 31);
         assert_eq!(dcel.half_edges().num_elements(), 80);
         assert_eq!(dcel.faces().num_elements(), 11);
 

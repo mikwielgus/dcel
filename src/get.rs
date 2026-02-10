@@ -8,8 +8,8 @@ use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn vertexes(&self) -> &VC {
-        &self.vertexes
+    pub fn vertices(&self) -> &VC {
+        &self.vertices
     }
 
     #[inline]
@@ -24,14 +24,14 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
 
     #[inline]
     pub fn dissolve(self) -> (VC, HEC, FC) {
-        (self.vertexes, self.half_edges, self.faces)
+        (self.vertices, self.half_edges, self.faces)
     }
 }
 
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn outgoing_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
-        self.vertexes
+        self.vertices
             .get(&vertex.id())
             .unwrap()
             .outgoing_next_half_edge
@@ -80,18 +80,18 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     }
 
     #[inline]
-    pub fn vertexes_half_edge(&self, from: VertexId, to: VertexId) -> Option<HalfEdgeId> {
+    pub fn vertices_half_edge(&self, from: VertexId, to: VertexId) -> Option<HalfEdgeId> {
         self.vertex_half_spokes(from)
             .find(|&half_edge| self.origin(self.twin(half_edge)) == to)
     }
 
     #[inline]
-    pub fn vertexes_edge(&self, from: VertexId, to: VertexId) -> Option<EdgeId> {
-        Some(self.full_edge(self.vertexes_half_edge(from, to)?))
+    pub fn vertices_edge(&self, from: VertexId, to: VertexId) -> Option<EdgeId> {
+        Some(self.full_edge(self.vertices_half_edge(from, to)?))
     }
 
     #[inline]
-    pub fn vertexes_common_face(&self, vertex1: VertexId, vertex2: VertexId) -> Option<FaceId> {
+    pub fn vertices_common_face(&self, vertex1: VertexId, vertex2: VertexId) -> Option<FaceId> {
         let interspokes1: Vec<FaceId> = self.vertex_interspokes(vertex1).collect();
 
         self.vertex_interspokes(vertex2)
@@ -110,7 +110,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
     pub fn vertex_weight(&self, vertex: VertexId) -> &VW {
-        &self.vertexes.get(&vertex.id()).unwrap().weight
+        &self.vertices.get(&vertex.id()).unwrap().weight
     }
 }
 

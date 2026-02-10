@@ -133,7 +133,7 @@ pub struct Dcel<
     HEC = Vec<HalfEdge<HEW>>,
     FC = Vec<Face<FW>>,
 > {
-    vertexes: VC,
+    vertices: VC,
     half_edges: HEC,
     faces: FC,
     vertex_weight_marker: std::marker::PhantomData<VW>,
@@ -155,7 +155,7 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
         });
 
         Self {
-            vertexes: VC::default(),
+            vertices: VC::default(),
             half_edges: HEC::default(),
             faces,
             vertex_weight_marker: std::marker::PhantomData,
@@ -176,9 +176,9 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn from_collections(vertexes: VC, half_edges: HEC, faces: FC) -> Self {
+    pub fn from_collections(vertices: VC, half_edges: HEC, faces: FC) -> Self {
         Self {
-            vertexes,
+            vertices,
             half_edges,
             faces,
             vertex_weight_marker: std::marker::PhantomData,
@@ -194,7 +194,7 @@ where
 {
     #[inline]
     pub fn vertex_ids(&self) -> impl Iterator<Item = VertexId> {
-        self.vertexes.into_iter().map(|id| VertexId(*id))
+        self.vertices.into_iter().map(|id| VertexId(*id))
     }
 }
 
@@ -290,7 +290,7 @@ impl<
 
 impl<VW, HEW, FW, VC: Push<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn add_unwired_vertex(&mut self, weight: VW) -> VertexId {
-        VertexId(self.vertexes.push(Vertex {
+        VertexId(self.vertices.push(Vertex {
             // Since we do not use optionals, we cannot use `None` as the uninitialized value.
             // So instead uninitialized edge ids are edge 0.
             // Initializing `.outward_edge` to a correct value is the
@@ -305,11 +305,11 @@ impl<VW: Clone, HEW, FW, VC: Get<usize, Value = Vertex<VW>> + Insert<usize>, HEC
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_vertex_with_half_edge(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
-        self.vertexes.insert(
+        self.vertices.insert(
             vertex.id(),
             Vertex {
                 outgoing_next_half_edge: outgoing_half_edge,
-                weight: self.vertexes.get(&vertex.id()).unwrap().weight.clone(),
+                weight: self.vertices.get(&vertex.id()).unwrap().weight.clone(),
             },
         )
     }
