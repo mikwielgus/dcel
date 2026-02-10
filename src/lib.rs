@@ -34,40 +34,60 @@ pub use walkers::{
     SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
 };
 
+/// An index pointing to a vertex.
+///
+/// This is just a thin newtype wrapper over [usize] for clarity and to
+/// disambiguate it from other index types. Use the [id()] method to access the
+/// underlying index.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct VertexId(usize);
 
 impl VertexId {
+    /// Wrap a vertex index in a newtype struct.
     #[inline]
     pub fn new(id: usize) -> Self {
         Self(id)
     }
 
+    /// Returns the underlying index.
     #[inline]
     pub fn id(self) -> usize {
         self.0
     }
 }
 
+/// An index pointing to a half-edge.
+///
+/// This is just a thin newtype wrapper over [usize] for clarity and to
+/// disambiguate it from other index types. Use the [id()] method to access the
+/// underlying index.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct HalfEdgeId(usize);
 
 impl HalfEdgeId {
+    /// Wrap a half-edge index in a newtype struct.
     #[inline]
     pub fn new(id: usize) -> Self {
         Self(id)
     }
 
+    /// Returns the underlying index.
     #[inline]
     pub fn id(self) -> usize {
         self.0
     }
 }
 
+/// A unique identifier to an edge made of an ordered pair of half-edge ids
+/// sorted in ascending order.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
 impl EdgeId {
+    /// Construct a new edge id from two half-edge ids, sorting them if
+    /// necessary.
+    ///
+    /// The order in which the two half-edge ids are passed does not matter.
     #[inline]
     pub(crate) fn new(half_edge1: HalfEdgeId, half_edge2: HalfEdgeId) -> EdgeId {
         Self(
@@ -76,38 +96,49 @@ impl EdgeId {
         )
     }
 
+    /// Returns the smaller of the two half-edge indexes.
     #[inline]
     pub fn lesser(self) -> HalfEdgeId {
         self.0
     }
 
+    /// Returns the greater of the two half-edge indexes.
     #[inline]
     pub fn greater(self) -> HalfEdgeId {
         self.1
     }
 }
 
+/// An index pointing to a face.
+///
+/// This is just a thin newtype wrapper over [usize] for clarity and to
+/// disambiguate it from other index types. Use the [id()] method to access the
+/// underlying index.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FaceId(usize);
 
 impl FaceId {
+    /// Wrap a face index in a newtype struct.
     #[inline]
     pub fn new(id: usize) -> Self {
         Self(id)
     }
 
+    /// Returns the underlying index.
     #[inline]
     pub fn id(self) -> usize {
         self.0
     }
 }
 
+/// The data which describes a vertex.
 #[derive(Clone, Debug)]
 pub struct Vertex<VW> {
     outgoing_next_half_edge: HalfEdgeId,
     weight: VW,
 }
 
+/// The data which describes a half-edge.
 #[derive(Clone, Debug)]
 pub struct HalfEdge<HEW> {
     origin: VertexId,
@@ -118,12 +149,14 @@ pub struct HalfEdge<HEW> {
     weight: HEW,
 }
 
+/// The data which describes a face.
 #[derive(Clone, Debug)]
 pub struct Face<FW> {
     incident_half_edge: Option<HalfEdgeId>,
     weight: FW,
 }
 
+/// A doubly-connected edge list (DCEL).
 #[derive(Clone, Debug)]
 pub struct Dcel<
     VW,
