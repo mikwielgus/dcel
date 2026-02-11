@@ -300,7 +300,7 @@ impl<
 
         // Remove the absorbed edges.
         for edge in edges {
-            let endpoints = self.dcel.endpoints(edge);
+            let endpoints = self.dcel.edge_endpoints(edge);
 
             self.edges_rtree.remove(&GeomWithData::new(
                 Rectangle::from_corners(
@@ -345,7 +345,7 @@ impl<
     }
 
     pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
-        let endpoints = self.dcel.endpoints(edge);
+        let endpoints = self.dcel.edge_endpoints(edge);
 
         // Remove the absorbed edge.
         self.edges_rtree.remove(&GeomWithData::new(
@@ -554,7 +554,7 @@ impl<
         }
 
         for &edge_to_remove in &edges_to_remove {
-            let endpoints = self.dcel.endpoints(edge_to_remove);
+            let endpoints = self.dcel.edge_endpoints(edge_to_remove);
 
             self.edges_rtree.remove(&GeomWithData::new(
                 Rectangle::from_corners(
@@ -606,7 +606,7 @@ impl<
         edge_to_split: EdgeId,
         vertex: VW,
     ) -> (VertexId, EdgeId) {
-        let sourceal_endpoints = self.dcel.endpoints(edge_to_split);
+        let sourceal_endpoints = self.dcel.edge_endpoints(edge_to_split);
 
         // Remove the edge to split from the edges R-tree before its shape
         // changes, which would otherwise invalidate its bbox and make it
@@ -901,7 +901,7 @@ impl<
     }
 
     fn add_edge_to_rtree(&mut self, edge: EdgeId) {
-        let endpoints = self.dcel.endpoints(edge);
+        let endpoints = self.dcel.edge_endpoints(edge);
         self.edges_rtree.insert(GeomWithData::new(
             Rectangle::from_corners(
                 Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
@@ -1262,7 +1262,7 @@ mod test {
     fn test_split_edge_by_vertex() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
-        let sourceal_endpoints = rtreed_dcel.dcel.endpoints(edge);
+        let sourceal_endpoints = rtreed_dcel.dcel.edge_endpoints(edge);
         let sourceal_edge_count = rtreed_dcel.edges_rtree.size();
 
         let (_new_vertex, new_edge) = rtreed_dcel.split_edge_by_vertex(edge, (259, 150));
@@ -1407,7 +1407,7 @@ mod test {
     }
 
     fn assert_edge_bbox_validity(rtreed_dcel: &RTreedStableDcel<(i32, i32)>, edge: EdgeId) {
-        let endpoints = rtreed_dcel.dcel.endpoints(edge);
+        let endpoints = rtreed_dcel.dcel.edge_endpoints(edge);
         let rectangle = Rectangle::from_corners(
             rtreed_dcel.dcel.vertex_weight(endpoints.0).clone(),
             rtreed_dcel.dcel.vertex_weight(endpoints.1).clone(),

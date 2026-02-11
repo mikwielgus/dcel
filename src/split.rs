@@ -20,7 +20,7 @@ impl<
         edge_to_split: EdgeId,
         vertex: VW,
     ) -> (VertexId, EdgeId) {
-        let (source, _) = self.endpoints(edge_to_split);
+        let (source, _) = self.edge_endpoints(edge_to_split);
         let forward = edge_to_split.lesser();
         let backward = edge_to_split.greater();
         let face = self.face_in_front(forward);

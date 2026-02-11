@@ -126,11 +126,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     }
 
     #[inline]
-    pub fn endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
-        (self.source(edge.lesser()), self.source(edge.greater()))
-    }
-
-    #[inline]
     pub fn twin(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().twin
     }
@@ -148,6 +143,11 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
         self.face_in_front(self.twin(half_edge))
+    }
+
+    #[inline]
+    pub fn edge_endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
+        (self.source(edge.lesser()), self.source(edge.greater()))
     }
 
     #[inline]

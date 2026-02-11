@@ -460,7 +460,7 @@ async fn main() {
         if let Some(vertex) = selected_vertex {
             let highlight = Color::new(0.9, 0.2, 0.2, 1.0);
             for edge in dcel.vertex_rim_edges(vertex) {
-                let (start_vertex, end_vertex) = dcel.endpoints(edge);
+                let (start_vertex, end_vertex) = dcel.edge_endpoints(edge);
                 let &(sx, sy) = dcel.vertex_weight(start_vertex);
                 let &(ex, ey) = dcel.vertex_weight(end_vertex);
                 let start = world_to_screen(to_world(sx, sy), scale, source, pan);
@@ -472,7 +472,7 @@ async fn main() {
         if let Some(face) = selected_face {
             let highlight = Color::new(0.2, 0.8, 0.3, 1.0);
             /*for edge in dcel.face_spokes(face) {
-                let (start_vertex, end_vertex) = dcel.endpoints(edge);
+                let (start_vertex, end_vertex) = dcel.edge_endpoints(edge);
                 let &(sx, sy) = dcel.vertex_weight(start_vertex);
                 let &(ex, ey) = dcel.vertex_weight(end_vertex);
                 let start = world_to_screen(to_world(sx, sy), scale, source, pan);
@@ -482,7 +482,7 @@ async fn main() {
 
             for interspoke in dcel.face_interspokes(face) {
                 for edge in dcel.face_edges(interspoke) {
-                    let (start_vertex, end_vertex) = dcel.endpoints(edge);
+                    let (start_vertex, end_vertex) = dcel.edge_endpoints(edge);
                     let &(sx, sy) = dcel.vertex_weight(start_vertex);
                     let &(ex, ey) = dcel.vertex_weight(end_vertex);
                     let start = world_to_screen(to_world(sx, sy), scale, source, pan);
@@ -495,7 +495,7 @@ async fn main() {
         if rim_walk_face.is_some() && !rim_walk_edges.is_empty() {
             let edge = rim_walk_edges[rim_walk_index];
             let highlight = Color::new(1.0, 0.85, 0.2, 1.0);
-            let (start_vertex, end_vertex) = dcel.endpoints(edge);
+            let (start_vertex, end_vertex) = dcel.edge_endpoints(edge);
             let &(sx, sy) = dcel.vertex_weight(start_vertex);
             let &(ex, ey) = dcel.vertex_weight(end_vertex);
             let start = world_to_screen(to_world(sx, sy), scale, source, pan);
