@@ -23,8 +23,8 @@ impl<
         let (source, _) = self.edge_endpoints(edge_to_split);
         let forward = edge_to_split.lesser();
         let backward = edge_to_split.greater();
-        let face = self.face_in_front(forward);
-        let twin_face = self.face_in_front(backward);
+        let face = self.incident_face(forward);
+        let twin_face = self.incident_face(backward);
         let (forward_weight, backward_weight) = self.edge_weights(edge_to_split);
         let (forward_weight, backward_weight) = (forward_weight.clone(), backward_weight.clone());
 

@@ -298,8 +298,8 @@ impl<
         );
 
         for (&outer_half_edge, &next_outer_half_edge) in outer_half_edges_circular_tuple_windows {
-            let is_edge_outward = self.face_in_front(outer_half_edge) == outer_face;
-            let is_next_edge_outward = self.face_in_front(next_outer_half_edge) == outer_face;
+            let is_edge_outward = self.incident_face(outer_half_edge) == outer_face;
+            let is_next_edge_outward = self.incident_face(next_outer_half_edge) == outer_face;
 
             if is_edge_outward && is_next_edge_outward {
                 self.link_subsequent_half_edges(next_outer_half_edge, outer_half_edge);

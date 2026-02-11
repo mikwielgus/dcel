@@ -31,8 +31,8 @@ impl<
     }
 
     pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
-        let absorbing_face = self.face_in_front(edge.lesser());
-        let face_to_absorb = self.face_behind(edge.lesser());
+        let absorbing_face = self.incident_face(edge.lesser());
+        let face_to_absorb = self.opposite_face(edge.lesser());
 
         self.absorb_faces_over_edges_and_vertices(absorbing_face, [face_to_absorb], [edge], []);
 
@@ -43,8 +43,8 @@ impl<
         let edges: Vec<EdgeId> = edges.into_iter().collect();
 
         // XXX: Harden against empty iterators?
-        let absorbing_face = self.face_in_front(edges[0].lesser());
-        let face_to_absorb = self.face_behind(edges[0].lesser());
+        let absorbing_face = self.incident_face(edges[0].lesser());
+        let face_to_absorb = self.opposite_face(edges[0].lesser());
 
         self.absorb_faces_over_edges_and_vertices(absorbing_face, [face_to_absorb], edges, []);
 

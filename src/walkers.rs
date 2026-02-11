@@ -254,7 +254,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     fn next(&mut self) -> Option<Self::Item> {
         self.walker
             .next(self.dcel)
-            .map(|half_edge| self.dcel.face_in_front(half_edge))
+            .map(|half_edge| self.dcel.incident_face(half_edge))
     }
 }
 
@@ -290,7 +290,7 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
     fn next(&mut self) -> Option<Self::Item> {
         self.walker
             .next(self.dcel)
-            .map(|half_edge| self.dcel.face_in_front(half_edge))
+            .map(|half_edge| self.dcel.incident_face(half_edge))
     }
 }
 
@@ -610,7 +610,7 @@ impl CirculationInterspokesWalker {
     ) -> Option<FaceId> {
         self.circulator
             .next(dcel)
-            .map(|half_spoke| dcel.face_in_front(half_spoke))
+            .map(|half_spoke| dcel.incident_face(half_spoke))
     }
 }
 
@@ -640,7 +640,7 @@ impl CirculationInterspokesReverseWalker {
     ) -> Option<FaceId> {
         self.circulator
             .next(dcel)
-            .map(|half_spoke| dcel.face_in_front(half_spoke))
+            .map(|half_spoke| dcel.incident_face(half_spoke))
     }
 }
 

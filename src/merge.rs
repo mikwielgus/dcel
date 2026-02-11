@@ -19,7 +19,7 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
-        let absorbing_face = self.face_in_front(self.outgoing_next_half_edge(inner_vertex));
+        let absorbing_face = self.incident_face(self.outgoing_next_half_edge(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
 

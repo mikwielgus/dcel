@@ -609,7 +609,7 @@ async fn main() {
                 draw_text(&cw_label, cw_pos.x, cw_pos.y, cw_font, WHITE);
 
                 let twin = dcel.twin(half_edge);
-                let front_face = dcel.face_in_front(half_edge);
+                let front_face = dcel.incident_face(half_edge);
                 let twin_label = format!("t{} f{}", twin.id(), front_face.id());
                 let twin_font = 16.0;
                 let twin_dims = measure_text(&twin_label, None, twin_font as u16, 1.0);
@@ -619,7 +619,7 @@ async fn main() {
 
             for half_edge in dcel.face_half_edges(face) {
                 draw_half_edge(half_edge, 1.0);
-                if dcel.face_behind(half_edge) == dcel.unbounded_face() {
+                if dcel.opposite_face(half_edge) == dcel.unbounded_face() {
                     draw_half_edge(dcel.twin(half_edge), -1.0);
                 }
             }

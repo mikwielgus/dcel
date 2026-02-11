@@ -69,7 +69,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     #[inline]
     pub fn vertex_inner_outgoing_half_edge(&self, vertex: VertexId, face: FaceId) -> HalfEdgeId {
         self.vertex_half_spokes(vertex)
-            .find(|&half_edge| self.face_in_front(half_edge) == face)
+            .find(|&half_edge| self.incident_face(half_edge) == face)
             .unwrap()
     }
 
@@ -101,8 +101,8 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     #[inline]
     pub fn is_boundary_vertex(&self, vertex: VertexId) -> bool {
         self.vertex_spokes(vertex).any(|spoke| {
-            self.face_in_front(spoke.lesser()) == self.unbounded_face()
-                || self.face_in_front(spoke.greater()) == self.unbounded_face()
+            self.incident_face(spoke.lesser()) == self.unbounded_face()
+                || self.incident_face(spoke.greater()) == self.unbounded_face()
         })
     }
 }
@@ -148,7 +148,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 
     /// Returns the indicent face of the half-edge.
     #[inline]
-    pub fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
+    pub fn incident_face(&self, half_edge: HalfEdgeId) -> FaceId {
         self.half_edges.get(&half_edge.id()).unwrap().face
     }
 
@@ -156,8 +156,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     ///
     /// This is the same as the incident face of the twin half-edge.
     #[inline]
-    pub fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
-        self.face_in_front(self.twin(half_edge))
+    pub fn opposite_face(&self, half_edge: HalfEdgeId) -> FaceId {
+        self.incident_face(self.twin(half_edge))
     }
 
     /// Returns the endpoint vertices of the edge.
@@ -171,8 +171,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     #[inline]
     pub fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
         (
-            self.face_in_front(edge.lesser()),
-            self.face_behind(edge.greater()),
+            self.incident_face(edge.lesser()),
+            self.opposite_face(edge.greater()),
         )
     }
 

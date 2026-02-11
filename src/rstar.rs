@@ -362,20 +362,20 @@ impl<
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertices(self.dcel.face_in_front(edge.lesser()))
+                    .face_vertices(self.dcel.incident_face(edge.lesser()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
-            self.dcel.face_in_front(edge.lesser()),
+            self.dcel.incident_face(edge.lesser()),
         ));
 
         // Remove the absorbed faces from the faces R-tree.
         self.faces_rtree.remove(&GeomWithData::new(
             Self::rectangle_from_vertex_weights(
                 self.dcel
-                    .face_vertices(self.dcel.face_behind(edge.lesser()))
+                    .face_vertices(self.dcel.opposite_face(edge.lesser()))
                     .map(|vertex| self.dcel.vertex_weight(vertex).clone()),
             ),
-            self.dcel.face_behind(edge.lesser()),
+            self.dcel.opposite_face(edge.lesser()),
         ));
 
         let absorbing_face = self.dcel.remove_edge(edge);
@@ -401,7 +401,7 @@ impl<
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
         let absorbing_face = self
             .dcel
-            .face_in_front(self.dcel.outgoing_next_half_edge(inner_vertex));
+            .incident_face(self.dcel.outgoing_next_half_edge(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
 
