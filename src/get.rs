@@ -52,11 +52,6 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     }
 
     #[inline]
-    pub fn vertex_next_edge(&self, vertex: VertexId) -> EdgeId {
-        self.full_edge(self.outgoing_next_half_edge(vertex))
-    }
-
-    #[inline]
     pub fn incoming_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.prev_half_edge(self.outgoing_next_half_edge(vertex))
     }
@@ -64,11 +59,6 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     #[inline]
     pub fn outgoing_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
         self.twin(self.incoming_prev_half_edge(vertex))
-    }
-
-    #[inline]
-    pub fn vertex_prev_edge(&self, vertex: VertexId) -> EdgeId {
-        self.full_edge(self.incoming_prev_half_edge(vertex))
     }
 
     #[inline]
