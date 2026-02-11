@@ -83,7 +83,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 
         // Boundary vertices do not have cycles circulating them.
         // Return an empty walker-iterator instead.
-        if self.is_boundary_vertex(vertex) {
+        if self.check_if_boundary_vertex(vertex) {
             return CirculateHalfEdgesWithExcludesWalker {
                 initial_half_edge,
                 curr_half_edge: None,
@@ -108,7 +108,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 
         // Boundary vertices do not have cycles circulating them.
         // Return an empty walker-iterator instead.
-        if self.is_boundary_vertex(vertex) {
+        if self.check_if_boundary_vertex(vertex) {
             return CirculateHalfEdgesWithExcludesReverseWalker {
                 initial_half_edge,
                 curr_half_edge: None,

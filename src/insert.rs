@@ -344,7 +344,7 @@ impl<
         from: VertexId,
         to: VertexId,
     ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
-        self.split_face_by_edge(from, to, self.vertices_common_face(from, to).unwrap())
+        self.split_face_by_edge(from, to, self.find_vertices_common_face(from, to).unwrap())
     }
 
     pub fn insert_edge_chain(
@@ -357,7 +357,7 @@ impl<
             from,
             to,
             vertex_weights,
-            self.vertices_common_face(from, to).unwrap(),
+            self.find_vertices_common_face(from, to).unwrap(),
         )
     }
 }
@@ -383,7 +383,7 @@ impl<
             to,
             vertex_weights,
             edge_weights,
-            self.vertices_common_face(from, to).unwrap(),
+            self.find_vertices_common_face(from, to).unwrap(),
             FW::default(),
         )
     }

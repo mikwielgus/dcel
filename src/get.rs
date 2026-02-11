@@ -74,28 +74,36 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         self.prev_half_edge(outgoing)
     }
 
-    /// Find the half-edge from `source` to `target`, if it exists.
+    /// Find the half-edge from `source` to `target`, if there is one.
     ///
     /// This is done by iterating over all the half-spokes of `source`, looking
     /// for one whose target is `target`.
     #[inline]
-    pub fn vertices_half_edge(&self, source: VertexId, target: VertexId) -> Option<HalfEdgeId> {
+    pub fn find_half_edge_from_to(&self, source: VertexId, target: VertexId) -> Option<HalfEdgeId> {
         self.vertex_half_spokes(source)
             .find(|&half_edge| self.source(self.twin(half_edge)) == target)
     }
 
-    /// Find the edge between two vertices, if it exists.
+    /// Find the edge between two vertices, if there is one.
     ///
     /// This is done by iterating over all the half-spokes of `source`, looking
     /// for one whose target is `target`, and upgrading it to a full edge if
     /// found.
     #[inline]
-    pub fn vertices_edge(&self, source: VertexId, target: VertexId) -> Option<EdgeId> {
-        Some(self.full_edge(self.vertices_half_edge(source, target)?))
+    pub fn find_edge_between(&self, source: VertexId, target: VertexId) -> Option<EdgeId> {
+        Some(self.full_edge(self.find_half_edge_from_to(source, target)?))
     }
 
+    /// Find the common face between two vertices, if there is one.
+    ///
+    /// This is done by iterating over the interspokes of both vertices, looking
+    /// for a shared one.
     #[inline]
-    pub fn vertices_common_face(&self, vertex1: VertexId, vertex2: VertexId) -> Option<FaceId> {
+    pub fn find_vertices_common_face(
+        &self,
+        vertex1: VertexId,
+        vertex2: VertexId,
+    ) -> Option<FaceId> {
         let interspokes1: Vec<FaceId> = self.vertex_interspokes(vertex1).collect();
 
         self.vertex_interspokes(vertex2)
@@ -104,10 +112,10 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 
     /// Check if the vertex lies on the DCEL's boundary.
     ///
-    /// This is determined by checking whether any of the vertex spokes is
-    /// bordering the unbounded face.
+    /// This is determined by iterating over the vertex spokes and checking if
+    /// any of them borders the unbounded face.
     #[inline]
-    pub fn is_boundary_vertex(&self, vertex: VertexId) -> bool {
+    pub fn check_if_boundary_vertex(&self, vertex: VertexId) -> bool {
         self.vertex_spokes(vertex).any(|spoke| {
             self.incident_face(spoke.lesser()) == self.unbounded_face()
                 || self.incident_face(spoke.greater()) == self.unbounded_face()
