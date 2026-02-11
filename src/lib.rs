@@ -2,6 +2,11 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+#![doc(html_root_url = "https://docs.rs/dcel")]
+#![doc = include_str!("../README.md")]
+//#![deny(missing_docs)]
+#![forbid(unsafe_code)]
+
 mod get;
 mod insert;
 mod iter;
