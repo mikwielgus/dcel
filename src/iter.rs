@@ -683,7 +683,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateHalfEdgesWithExcludesWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
@@ -711,7 +711,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateHalfEdgesWithExcludesReverseWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
@@ -765,7 +765,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculationHalfSpokesWalker {
                 circulator: CirculateHalfEdgesWithExcludesWalker {
                     // Uninitialized half-edge.
@@ -795,7 +795,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculationHalfSpokesReverseWalker {
                 circulator: CirculateHalfEdgesWithExcludesReverseWalker {
                     // Uninitialized half-edge.
@@ -822,7 +822,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculationSpokesWalker {
                 circulator: CirculationHalfSpokesWalker {
                     circulator: CirculateHalfEdgesWithExcludesWalker {
@@ -854,7 +854,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculationSpokesReverseWalker {
                 circulator: CirculationHalfSpokesReverseWalker {
                     circulator: CirculateHalfEdgesWithExcludesReverseWalker {
@@ -886,7 +886,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculationInterspokesWalker {
                 circulator: CirculationHalfSpokesWalker {
                     circulator: CirculateHalfEdgesWithExcludesWalker {
@@ -918,7 +918,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculationInterspokesReverseWalker {
                 circulator: CirculationHalfSpokesReverseWalker {
                     circulator: CirculateHalfEdgesWithExcludesReverseWalker {
@@ -950,7 +950,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateHalfEdgesWithExcludesWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
@@ -973,7 +973,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateHalfEdgesWithExcludesReverseWalker {
                 // Uninitialized half-edge.
                 initial_half_edge: HalfEdgeId::new(0),
@@ -996,7 +996,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateVertexesWithExcludesWalker {
                 circulator: CirculateHalfEdgesWithExcludesWalker {
                     // Uninitialized half-edge.
@@ -1021,7 +1021,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateVertexesWithExcludesReverseWalker {
                 circulator: CirculateHalfEdgesWithExcludesReverseWalker {
                     // Uninitialized half-edge.
@@ -1046,7 +1046,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateEdgesWithExcludesWalker {
                 circulator: CirculateHalfEdgesWithExcludesWalker {
                     // Uninitialized half-edge.
@@ -1071,7 +1071,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
-        let Some(initial_half_edge) = self.incident_half_edge(face) else {
+        let Some(initial_half_edge) = self.face_representative(face) else {
             return CirculateEdgesWithExcludesReverseWalker {
                 circulator: CirculateHalfEdgesWithExcludesReverseWalker {
                     // Uninitialized half-edge.

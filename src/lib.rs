@@ -152,7 +152,7 @@ pub struct HalfEdge<HEW> {
 /// The data which describes a face.
 #[derive(Clone, Debug)]
 pub struct Face<FW> {
-    incident_half_edge: Option<HalfEdgeId>,
+    representative: Option<HalfEdgeId>,
     weight: FW,
 }
 
@@ -183,7 +183,7 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
 
         // Push the outermost face.
         faces.push(Face {
-            incident_half_edge: None,
+            representative: None,
             weight: FW::default(),
         });
 
@@ -426,7 +426,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usi
 impl<VW, HEW, FW, VC, HEC, FC: Push<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     fn add_unwired_face(&mut self, weight: FW) -> FaceId {
         FaceId(self.faces.push(Face {
-            incident_half_edge: None,
+            representative: None,
             weight,
         }))
     }
@@ -452,7 +452,7 @@ impl<
         self.faces.insert(
             face.id(),
             Face {
-                incident_half_edge: Some(half_edge),
+                representative: Some(half_edge),
                 weight: self.faces.get(&face.id()).unwrap().weight.clone(),
             },
         );

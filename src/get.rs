@@ -246,10 +246,14 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    /// Returns the principal incident half-edge to the face.
+    /// Returns the face's representative half-edge.
+    ///
+    /// The representative half-edge of a face is one of incident half-edges
+    /// that is stored in the face's datum to make it possible to use the face
+    /// id to traverse the face's surroundings.
     #[inline]
-    pub fn incident_half_edge(&self, face: FaceId) -> Option<HalfEdgeId> {
-        self.faces.get(&face.id()).unwrap().incident_half_edge
+    pub fn face_representative(&self, face: FaceId) -> Option<HalfEdgeId> {
+        self.faces.get(&face.id()).unwrap().representative
     }
 
     /// Returns the weight of the face.

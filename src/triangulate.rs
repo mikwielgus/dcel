@@ -116,7 +116,7 @@ impl<
         self.faces.insert(
             first_face.id(),
             Face {
-                incident_half_edge: self.faces.get(&first_face.id()).unwrap().incident_half_edge,
+                representative: self.faces.get(&first_face.id()).unwrap().representative,
                 weight: face_weights_iter.next().unwrap(),
             },
         );
