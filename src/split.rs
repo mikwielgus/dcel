@@ -119,10 +119,10 @@ impl<
         face_to_split: FaceId,
         new_face_weight: FW,
     ) -> (Vec<(HalfEdgeId, HalfEdgeId)>, FaceId) {
-        let from_incoming = self.vertex_inner_incoming_half_edge(from, face_to_split);
-        let from_outgoing = self.vertex_inner_outgoing_half_edge(from, face_to_split);
-        let to_incoming = self.vertex_inner_incoming_half_edge(to, face_to_split);
-        let to_outgoing = self.vertex_inner_outgoing_half_edge(to, face_to_split);
+        let from_incoming = self.find_prev_incident_half_spoke(from, face_to_split);
+        let from_outgoing = self.find_incident_half_spoke(from, face_to_split);
+        let to_incoming = self.find_prev_incident_half_spoke(to, face_to_split);
+        let to_outgoing = self.find_incident_half_spoke(to, face_to_split);
 
         let new_face = self.add_unwired_face(new_face_weight);
         let (mut new_edges, last_vertex, last_edge_weight) = self.add_unwired_dangling_edge_chain(

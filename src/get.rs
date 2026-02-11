@@ -43,9 +43,9 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
     /// the vertex is always the source (origin) vertex of its representative
     /// half-edge, never the target vertex.
     ///
-    /// The representative half-edge of a vertex is one of its two
-    /// outgoing half-edges that is stored in the vertex datum to make it
-    /// possible to use the vertex id to traverse the vertex's surroundings.
+    /// The representative half-edge of a vertex is one of its two outgoing
+    /// half-edges that is stored in the vertex datum to make it possible to use
+    /// the vertex id to access the vertex's surroundings.
     ///
     /// In DCEL terminology, the representative half-edge of a vertex is
     /// usually just called "the incident half-edge", but we prefer to call it
@@ -60,16 +60,24 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Find the half-spoke that is also incident to a given face.
     #[inline]
-    pub fn vertex_inner_outgoing_half_edge(&self, vertex: VertexId, face: FaceId) -> HalfEdgeId {
+    pub(crate) fn find_incident_half_spoke(&self, vertex: VertexId, face: FaceId) -> HalfEdgeId {
         self.vertex_half_spokes(vertex)
             .find(|&half_edge| self.incident_face(half_edge) == face)
             .unwrap()
     }
 
+    /// Find the half-spoke that is also incident to a given face and return the
+    /// half-edge that is previous in the circulation around the same incident
+    /// face.
     #[inline]
-    pub fn vertex_inner_incoming_half_edge(&self, vertex: VertexId, face: FaceId) -> HalfEdgeId {
-        let outgoing = self.vertex_inner_outgoing_half_edge(vertex, face);
+    pub(crate) fn find_prev_incident_half_spoke(
+        &self,
+        vertex: VertexId,
+        face: FaceId,
+    ) -> HalfEdgeId {
+        let outgoing = self.find_incident_half_spoke(vertex, face);
         self.prev(outgoing)
     }
 
@@ -246,7 +254,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
     ///
     /// The representative half-edge of a face is one of incident half-edges
     /// that is stored in the face datum to make it possible to use the face id
-    /// to traverse the face's surroundings.
+    /// to access the face's surroundings.
     ///
     /// In DCEL terminology, the representative half-edge of a face is
     /// usually just called "the incident half-edge", but we prefer to call it
