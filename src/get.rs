@@ -188,20 +188,6 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.half_edges.get(&half_edge.id()).unwrap().next
     }
 
-    #[inline]
-    pub fn prev_edge(&self, edge: EdgeId) -> EdgeId {
-        let next_forward_half_edge = self.half_edges.get(&edge.lesser().id()).unwrap().prev;
-
-        self.full_edge(next_forward_half_edge)
-    }
-
-    #[inline]
-    pub fn next_edge(&self, edge: EdgeId) -> EdgeId {
-        let next_forward_half_edge = self.half_edges.get(&edge.lesser().id()).unwrap().next;
-
-        self.full_edge(next_forward_half_edge)
-    }
-
     /// Returns the next half-edge in the cyclic ordering.
     ///
     /// This is the same as the next half-edge of the twin half-edge.
