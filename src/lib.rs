@@ -304,13 +304,10 @@ impl<
             if is_edge_outward && is_next_edge_outward {
                 self.link_subsequent_half_edges(next_outer_half_edge, outer_half_edge);
             } else if !is_edge_outward && is_next_edge_outward {
-                self.link_subsequent_half_edges(
-                    next_outer_half_edge,
-                    self.turn_half_edge(outer_half_edge),
-                );
+                self.link_subsequent_half_edges(next_outer_half_edge, self.turn(outer_half_edge));
             } else if is_edge_outward && !is_next_edge_outward {
                 self.link_subsequent_half_edges(
-                    self.twin(self.turn_back_half_edge(self.twin(next_outer_half_edge))),
+                    self.twin(self.turn_back(self.twin(next_outer_half_edge))),
                     outer_half_edge,
                 );
             } else {

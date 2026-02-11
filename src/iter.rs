@@ -75,7 +75,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.next_half_edge(self.outgoing_next_half_edge(vertex));
+        let initial_half_edge = self.next(self.outgoing_next_half_edge(vertex));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
             .flat_map(|edge| [edge.lesser(), edge.greater()])
@@ -100,7 +100,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.prev_half_edge(self.incoming_next_half_edge(vertex));
+        let initial_half_edge = self.prev(self.incoming_next_half_edge(vertex));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
             .flat_map(|edge| [edge.lesser(), edge.greater()])
@@ -408,7 +408,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                 .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
                 .walker(),
             half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-            prev_half_edge: self.prev_half_edge(initial_half_edge),
+            prev_half_edge: self.prev(initial_half_edge),
         }
         .iter(self)
     }
@@ -424,7 +424,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                 .circulate_half_edges_with_excludes_reverse(initial_half_edge, excluded_half_edges)
                 .walker(),
             half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-            prev_half_edge: self.next_half_edge(initial_half_edge),
+            prev_half_edge: self.next(initial_half_edge),
         }
         .iter(self)
     }
@@ -441,7 +441,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                     .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
                     .walker(),
                 half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-                prev_half_edge: self.prev_half_edge(initial_half_edge),
+                prev_half_edge: self.prev(initial_half_edge),
             },
         }
         .iter(self)
@@ -462,7 +462,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                     )
                     .walker(),
                 half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-                prev_half_edge: self.next_half_edge(initial_half_edge),
+                prev_half_edge: self.next(initial_half_edge),
             },
         }
         .iter(self)
@@ -480,7 +480,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                     .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
                     .walker(),
                 half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-                prev_half_edge: self.prev_half_edge(initial_half_edge),
+                prev_half_edge: self.prev(initial_half_edge),
             },
         }
         .iter(self)
@@ -501,7 +501,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
                     )
                     .walker(),
                 half_spokes_walker: self.half_spokes(initial_half_edge).walker(),
-                prev_half_edge: self.prev_half_edge(initial_half_edge),
+                prev_half_edge: self.prev(initial_half_edge),
             },
         }
         .iter(self)

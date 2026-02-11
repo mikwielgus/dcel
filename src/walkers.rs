@@ -108,7 +108,7 @@ impl HalfSpokesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -142,7 +142,7 @@ impl HalfSpokesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn_back(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -236,7 +236,7 @@ impl InterspokesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -272,7 +272,7 @@ impl InterspokesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let next_half_edge = dcel.turn_back_half_edge(self.curr_half_edge?);
+        let next_half_edge = dcel.turn_back(self.curr_half_edge?);
 
         std::mem::replace(
             &mut self.curr_half_edge,
@@ -309,10 +309,10 @@ impl CirculateHalfEdgesWithExcludesWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let mut candidate_next_half_edge = dcel.next_half_edge(self.curr_half_edge?);
+        let mut candidate_next_half_edge = dcel.next(self.curr_half_edge?);
 
         while self.excluded_half_edges.contains(&candidate_next_half_edge) {
-            candidate_next_half_edge = dcel.turn_half_edge(candidate_next_half_edge);
+            candidate_next_half_edge = dcel.turn(candidate_next_half_edge);
         }
 
         let next_half_edge = candidate_next_half_edge;
@@ -350,11 +350,11 @@ impl CirculateHalfEdgesWithExcludesReverseWalker {
         &mut self,
         dcel: &Dcel<VW, HEW, FW, VC, HEC, FC>,
     ) -> Option<HalfEdgeId> {
-        let mut candidate_next_half_edge = dcel.prev_half_edge(self.curr_half_edge?);
+        let mut candidate_next_half_edge = dcel.prev(self.curr_half_edge?);
 
         while self.excluded_half_edges.contains(&candidate_next_half_edge) {
             candidate_next_half_edge =
-                dcel.twin(dcel.turn_back_half_edge(dcel.twin(candidate_next_half_edge)));
+                dcel.twin(dcel.turn_back(dcel.twin(candidate_next_half_edge)));
         }
 
         let next_half_edge = candidate_next_half_edge;

@@ -48,8 +48,8 @@ impl<
             },
         );
 
-        let forward_prev = self.prev_half_edge(forward);
-        let backward_next = self.next_half_edge(backward);
+        let forward_prev = self.prev(forward);
+        let backward_next = self.next(backward);
 
         // Insert the new edge in the forward face cycle.
         self.link_subsequent_half_edges(forward_prev, new_edge.lesser());
@@ -148,10 +148,10 @@ impl<
         face_to_split_directed_edges.push((to_outgoing, self.twin(to_outgoing)));
 
         // TODO: No need to run the whole loop here actually.
-        let mut curr_half_edge = self.next_half_edge(to_outgoing);
+        let mut curr_half_edge = self.next(to_outgoing);
         while curr_half_edge != from_incoming {
             face_to_split_directed_edges.push((curr_half_edge, self.twin(curr_half_edge)));
-            curr_half_edge = self.next_half_edge(curr_half_edge);
+            curr_half_edge = self.next(curr_half_edge);
         }
 
         let mut new_face_directed_edges: Vec<(HalfEdgeId, HalfEdgeId)> = vec![];
@@ -165,10 +165,10 @@ impl<
         new_face_directed_edges.push((from_outgoing, self.twin(from_outgoing)));
 
         // TODO: No need to run the whole loop here actually.
-        let mut curr_half_edge = self.next_half_edge(from_outgoing);
+        let mut curr_half_edge = self.next(from_outgoing);
         while curr_half_edge != to_incoming {
             new_face_directed_edges.push((curr_half_edge, self.twin(curr_half_edge)));
-            curr_half_edge = self.next_half_edge(curr_half_edge);
+            curr_half_edge = self.next(curr_half_edge);
         }
 
         self.wire_inner_half_edge_chain(

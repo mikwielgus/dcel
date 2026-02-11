@@ -7,26 +7,29 @@ use maplike::Get;
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    /// Returns the collection holding the vertex weights and metadata.
+    /// Returns an immutable reference to the collection holding the data of
+    /// the vertices.
     #[inline]
     pub fn vertices(&self) -> &VC {
         &self.vertices
     }
 
-    /// Returns the collection holding the half-edge weights and metadata.
+    /// Returns an immutable reference to the collection holding the data of
+    /// the half-edges.
     #[inline]
     pub fn half_edges(&self) -> &HEC {
         &self.half_edges
     }
 
-    /// Returns the collection holding the face weights and metadata.
+    /// Returns an immutable reference to the collection holding the data of
+    /// the faces.
     #[inline]
     pub fn faces(&self) -> &FC {
         &self.faces
     }
 
-    /// Dissolve the DCEL, returning and ceding ownership of the weights and
-    /// metadata of its vertices, half-edges, and faces.
+    /// Dissolve the DCEL, ceding ownership and returning the datas of its
+    /// vertices, half-edges, and faces.
     #[inline]
     pub fn dissolve(self) -> (VC, HEC, FC) {
         (self.vertices, self.half_edges, self.faces)
@@ -53,7 +56,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 
     #[inline]
     pub fn incoming_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
-        self.prev_half_edge(self.outgoing_next_half_edge(vertex))
+        self.prev(self.outgoing_next_half_edge(vertex))
     }
 
     #[inline]
@@ -71,7 +74,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     #[inline]
     pub fn vertex_inner_incoming_half_edge(&self, vertex: VertexId, face: FaceId) -> HalfEdgeId {
         let outgoing = self.vertex_inner_outgoing_half_edge(vertex, face);
-        self.prev_half_edge(outgoing)
+        self.prev(outgoing)
     }
 
     /// Find the half-edge from `source` to `target`, if there is one.
@@ -148,7 +151,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     /// This is the same as the source vertex of the next half-edge.
     #[inline]
     pub fn target(&self, half_edge: HalfEdgeId) -> VertexId {
-        self.source(self.next_half_edge(half_edge))
+        self.source(self.next(half_edge))
     }
 
     /// Returns the twin (opposite) of the half-edge.
@@ -196,14 +199,14 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     /// Returns the previous half-edge in the circulation around the same
     /// incident face.
     #[inline]
-    pub fn prev_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn prev(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().prev
     }
 
     /// Returns the next half-edge in the circulation around the same incident
     /// face.
     #[inline]
-    pub fn next_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+    pub fn next(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().next
     }
 
@@ -212,8 +215,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     ///
     /// This is the same as the twin of the previous half-edge.
     #[inline]
-    pub fn turn_back_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
-        self.twin(self.prev_half_edge(half_edge))
+    pub fn turn_back(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.twin(self.prev(half_edge))
     }
 
     /// Returns the half-edge that precedes in the rotation around the same
@@ -221,8 +224,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
     ///
     /// This is the same as the next half-edge of the twin half-edge.
     #[inline]
-    pub fn turn_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
-        self.next_half_edge(self.twin(half_edge))
+    pub fn turn(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
+        self.next(self.twin(half_edge))
     }
 
     /// Returns the weight of the half-edge.
