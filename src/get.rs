@@ -115,41 +115,59 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
 }
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Returns the source (origin) vertex of the half-edge.
+    ///
+    /// In DCEL terminology, this vertex is usually called the "origin".
+    /// However, here we have opted to use terms from graph theory, where the
+    /// terms "source vertex" (for this vertex) and "target vertex" (for the
+    /// vertex on the other end) are used instead.
     #[inline]
     pub fn source(&self, half_edge: HalfEdgeId) -> VertexId {
         self.half_edges.get(&half_edge.id()).unwrap().source
     }
 
+    /// Returns the target vertex of the half-edge.
+    ///
+    /// This is the same as the source vertex of the next half-edge.
     #[inline]
     pub fn target(&self, half_edge: HalfEdgeId) -> VertexId {
         self.source(self.next_half_edge(half_edge))
     }
 
+    /// Returns the twin (opposite) of the half-edge.
     #[inline]
     pub fn twin(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().twin
     }
 
+    /// Returns the edge the half-edge is half of.
     #[inline]
     pub fn full_edge(&self, half_edge: HalfEdgeId) -> EdgeId {
         EdgeId::new(half_edge, self.twin(half_edge))
     }
 
+    /// Returns the indicent face of the half-edge.
     #[inline]
     pub fn face_in_front(&self, half_edge: HalfEdgeId) -> FaceId {
         self.half_edges.get(&half_edge.id()).unwrap().face
     }
 
+    /// Returns the opposite face of the half-edge.
+    ///
+    /// This is the same as the incident face of the twin half-edge.
     #[inline]
     pub fn face_behind(&self, half_edge: HalfEdgeId) -> FaceId {
         self.face_in_front(self.twin(half_edge))
     }
 
+    /// Returns the endpoint vertices of the edge.
     #[inline]
     pub fn edge_endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
         (self.source(edge.lesser()), self.source(edge.greater()))
     }
 
+    /// Returns the pair of faces adjacent to the edge: the incident face and
+    /// the opposite face.
     #[inline]
     pub fn edge_faces(&self, edge: EdgeId) -> (FaceId, FaceId) {
         (
@@ -158,11 +176,13 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         )
     }
 
+    /// Returns the previous half-edge.
     #[inline]
     pub fn prev_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().prev
     }
 
+    /// Returns the next half-edge.
     #[inline]
     pub fn next_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.half_edges.get(&half_edge.id()).unwrap().next
@@ -182,21 +202,30 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.full_edge(next_forward_half_edge)
     }
 
+    /// Returns the next half-edge in the cyclic ordering.
+    ///
+    /// This is the same as the next half-edge of the twin half-edge.
     #[inline]
     pub fn turn_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.next_half_edge(self.twin(half_edge))
     }
 
+    /// Returns the previous half-edge in the cyclic ordering.
+    ///
+    /// This is the same as the twin of the previous half-edge.
     #[inline]
     pub fn turn_back_half_edge(&self, half_edge: HalfEdgeId) -> HalfEdgeId {
         self.twin(self.prev_half_edge(half_edge))
     }
 
+    /// Returns the weight of the half-edge.
     #[inline]
     pub fn half_edge_weight(&self, half_edge: HalfEdgeId) -> &HEW {
         &self.half_edges.get(&half_edge.id()).unwrap().weight
     }
 
+    /// Returns the pair of half-edge weights of the edge, sorted by half-edge
+    /// indices in ascending order.
     #[inline]
     pub fn edge_weights(&self, edge: EdgeId) -> (&HEW, &HEW) {
         (
@@ -207,11 +236,13 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Returns the principal incident half-edge to the face.
     #[inline]
     pub fn incident_half_edge(&self, face: FaceId) -> Option<HalfEdgeId> {
         self.faces.get(&face.id()).unwrap().incident_half_edge
     }
 
+    /// Returns the weight of the face.
     #[inline]
     pub fn face_weight(&self, face: FaceId) -> &FW {
         &self.faces.get(&face.id()).unwrap().weight
@@ -219,7 +250,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
 }
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
-    /// Returns the id of the unbounded face.
+    /// Returns the unbounded face.
     ///
     /// The unbounded face is always the first element of the face list.
     #[inline]
