@@ -49,7 +49,7 @@ impl CirculateVertexesWithExcludesWalker {
     ) -> Option<VertexId> {
         self.circulator
             .next(dcel)
-            .map(|half_edge| dcel.origin(half_edge))
+            .map(|half_edge| dcel.source(half_edge))
     }
 }
 
@@ -79,7 +79,7 @@ impl CirculateVertexesWithExcludesReverseWalker {
     ) -> Option<VertexId> {
         self.circulator
             .next(dcel)
-            .map(|half_edge| dcel.origin(half_edge))
+            .map(|half_edge| dcel.source(half_edge))
     }
 }
 

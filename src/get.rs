@@ -82,7 +82,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
     #[inline]
     pub fn vertices_half_edge(&self, from: VertexId, to: VertexId) -> Option<HalfEdgeId> {
         self.vertex_half_spokes(from)
-            .find(|&half_edge| self.origin(self.twin(half_edge)) == to)
+            .find(|&half_edge| self.source(self.twin(half_edge)) == to)
     }
 
     #[inline]
@@ -116,13 +116,18 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
     #[inline]
-    pub fn origin(&self, half_edge: HalfEdgeId) -> VertexId {
-        self.half_edges.get(&half_edge.id()).unwrap().origin
+    pub fn source(&self, half_edge: HalfEdgeId) -> VertexId {
+        self.half_edges.get(&half_edge.id()).unwrap().source
+    }
+
+    #[inline]
+    pub fn target(&self, half_edge: HalfEdgeId) -> VertexId {
+        self.source(self.next_half_edge(half_edge))
     }
 
     #[inline]
     pub fn endpoints(&self, edge: EdgeId) -> (VertexId, VertexId) {
-        (self.origin(edge.lesser()), self.origin(edge.greater()))
+        (self.source(edge.lesser()), self.source(edge.greater()))
     }
 
     #[inline]

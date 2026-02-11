@@ -13,14 +13,14 @@ use std::time::Duration;
 
 use dcel::{EdgeId, FaceId, HalfEdgeId, StableDcel, VertexId};
 
-fn world_to_screen(p: Vec2, scale: f32, origin: Vec2, pan: Vec2) -> Vec2 {
+fn world_to_screen(p: Vec2, scale: f32, source: Vec2, pan: Vec2) -> Vec2 {
     let p = p + pan;
-    vec2(origin.x + p.x * scale, origin.y - p.y * scale)
+    vec2(source.x + p.x * scale, source.y - p.y * scale)
 }
 
-fn screen_to_world(p: Vec2, scale: f32, origin: Vec2, pan: Vec2) -> Vec2 {
-    let world_x = (p.x - origin.x) / scale - pan.x;
-    let world_y = (origin.y - p.y) / scale - pan.y;
+fn screen_to_world(p: Vec2, scale: f32, source: Vec2, pan: Vec2) -> Vec2 {
+    let world_x = (p.x - source.x) / scale - pan.x;
+    let world_y = (source.y - p.y) / scale - pan.y;
     vec2(world_x, world_y)
 }
 
@@ -201,7 +201,7 @@ async fn main() {
         let grid_h = (mesh_max.y - mesh_min.y).abs().max(1.0);
         let scale_x = (screen_w - 2.0 * padding) / grid_w;
         let scale_y = (screen_h - 2.0 * padding) / grid_h;
-        let mut origin = vec2(screen_w * 0.5, screen_h * 0.5);
+        let mut source = vec2(screen_w * 0.5, screen_h * 0.5);
         let fit_scale = scale_x.min(scale_y);
         let min_scale = fit_scale * 0.05;
         let max_scale = fit_scale * 50.0;
@@ -215,11 +215,11 @@ async fn main() {
         if scroll_y.abs() > f32::EPSILON {
             let (mx, my) = mouse_position();
             let mouse = vec2(mx, my);
-            let before = screen_to_world(mouse, scale, origin, pan);
+            let before = screen_to_world(mouse, scale, source, pan);
             let zoom = 1.1_f32.powf(scroll_y);
             scale = (scale * zoom).clamp(min_scale, max_scale);
-            origin = vec2(screen_w * 0.5, screen_h * 0.5);
-            let after = screen_to_world(mouse, scale, origin, pan);
+            source = vec2(screen_w * 0.5, screen_h * 0.5);
+            let after = screen_to_world(mouse, scale, source, pan);
             pan += after - before;
         }
 
@@ -245,7 +245,7 @@ async fn main() {
                 let vertex = VertexId::new(vertex_idx);
                 let &(x, y) = dcel.vertex_weight(vertex);
                 let world = to_world(x, y);
-                let screen = world_to_screen(world, scale, origin, pan);
+                let screen = world_to_screen(world, scale, source, pan);
                 let dist = screen.distance(mouse);
                 if dist <= hit_radius {
                     if nearest.map_or(true, |(_, best)| dist < best) {
@@ -272,7 +272,7 @@ async fn main() {
             } else {
                 selected_vertex = None;
                 selected_face = None;
-                let world_point = screen_to_world(mouse, scale, origin, pan);
+                let world_point = screen_to_world(mouse, scale, source, pan);
                 let mut target_face: Option<FaceId> = None;
 
                 for face_idx in dcel.faces().indices() {
@@ -309,7 +309,7 @@ async fn main() {
             let mouse = vec2(mx, my);
             let mut handled_rim_walk = false;
             if is_key_down(KeyCode::LeftShift) || is_key_down(KeyCode::RightShift) {
-                let world_point = screen_to_world(mouse, scale, origin, pan);
+                let world_point = screen_to_world(mouse, scale, source, pan);
                 let mut target_face: Option<FaceId> = None;
 
                 for face_idx in dcel.faces().indices() {
@@ -361,7 +361,7 @@ async fn main() {
                     let vertex = VertexId::new(vertex_idx);
                     let &(x, y) = dcel.vertex_weight(vertex);
                     let world = to_world(x, y);
-                    let screen = world_to_screen(world, scale, origin, pan);
+                    let screen = world_to_screen(world, scale, source, pan);
                     let dist = screen.distance(mouse);
                     if dist <= hit_radius {
                         if nearest.map_or(true, |(_, best)| dist < best) {
@@ -377,7 +377,7 @@ async fn main() {
                     rim_walk_face = None;
                     rim_walk_edges.clear();
                 } else {
-                    let world_point = screen_to_world(mouse, scale, origin, pan);
+                    let world_point = screen_to_world(mouse, scale, source, pan);
                     let mut target_face: Option<FaceId> = None;
 
                     for face_idx in dcel.faces().indices() {
@@ -448,7 +448,7 @@ async fn main() {
             let vertex = VertexId::new(vertex_idx);
             let &(x, y) = dcel.vertex_weight(vertex);
             let world = to_world(x, y);
-            let screen = world_to_screen(world, scale, origin, pan);
+            let screen = world_to_screen(world, scale, source, pan);
             draw_circle(screen.x, screen.y, 4.0, vertex_color);
             let label = format!("{}", vertex.id());
             let font_size = 16.0;
@@ -463,8 +463,8 @@ async fn main() {
                 let (start_vertex, end_vertex) = dcel.endpoints(edge);
                 let &(sx, sy) = dcel.vertex_weight(start_vertex);
                 let &(ex, ey) = dcel.vertex_weight(end_vertex);
-                let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
-                let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
+                let start = world_to_screen(to_world(sx, sy), scale, source, pan);
+                let end = world_to_screen(to_world(ex, ey), scale, source, pan);
                 draw_line(start.x, start.y, end.x, end.y, 4.0, highlight);
             }
         }
@@ -475,8 +475,8 @@ async fn main() {
                 let (start_vertex, end_vertex) = dcel.endpoints(edge);
                 let &(sx, sy) = dcel.vertex_weight(start_vertex);
                 let &(ex, ey) = dcel.vertex_weight(end_vertex);
-                let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
-                let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
+                let start = world_to_screen(to_world(sx, sy), scale, source, pan);
+                let end = world_to_screen(to_world(ex, ey), scale, source, pan);
                 draw_line(start.x, start.y, end.x, end.y, 4.0, highlight);
             }*/
 
@@ -485,8 +485,8 @@ async fn main() {
                     let (start_vertex, end_vertex) = dcel.endpoints(edge);
                     let &(sx, sy) = dcel.vertex_weight(start_vertex);
                     let &(ex, ey) = dcel.vertex_weight(end_vertex);
-                    let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
-                    let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
+                    let start = world_to_screen(to_world(sx, sy), scale, source, pan);
+                    let end = world_to_screen(to_world(ex, ey), scale, source, pan);
                     draw_line(start.x, start.y, end.x, end.y, 4.0, highlight);
                 }
             }
@@ -498,8 +498,8 @@ async fn main() {
             let (start_vertex, end_vertex) = dcel.endpoints(edge);
             let &(sx, sy) = dcel.vertex_weight(start_vertex);
             let &(ex, ey) = dcel.vertex_weight(end_vertex);
-            let start = world_to_screen(to_world(sx, sy), scale, origin, pan);
-            let end = world_to_screen(to_world(ex, ey), scale, origin, pan);
+            let start = world_to_screen(to_world(sx, sy), scale, source, pan);
+            let end = world_to_screen(to_world(ex, ey), scale, source, pan);
             draw_line(start.x, start.y, end.x, end.y, 6.0, highlight);
         }
 
@@ -526,7 +526,7 @@ async fn main() {
             let face_label = format!("{}", face.id());
             let face_font = 18.0;
             let face_dims = measure_text(&face_label, None, face_font as u16, 1.0);
-            let face_screen = world_to_screen(center, scale, origin, pan);
+            let face_screen = world_to_screen(center, scale, source, pan);
             let face_label_pos = vec2(
                 face_screen.x - face_dims.width * 0.5,
                 face_screen.y + face_dims.height * 0.5,
@@ -540,9 +540,9 @@ async fn main() {
             );
 
             let draw_half_edge = |half_edge: HalfEdgeId, shift_sign: f32| {
-                let origin_id = dcel.origin(half_edge);
-                let dest_id = dcel.origin(dcel.next_half_edge(half_edge));
-                let &(ox, oy) = dcel.vertex_weight(origin_id);
+                let source_id = dcel.source(half_edge);
+                let dest_id = dcel.source(dcel.next_half_edge(half_edge));
+                let &(ox, oy) = dcel.vertex_weight(source_id);
                 let &(dx, dy) = dcel.vertex_weight(dest_id);
                 let p0 = to_world(ox, oy);
                 let p1 = to_world(dx, dy);
@@ -553,8 +553,8 @@ async fn main() {
                 let start = midpoint + (p0 - midpoint) * shrink + shift;
                 let end = midpoint + (p1 - midpoint) * shrink + shift;
 
-                let start_screen = world_to_screen(start, scale, origin, pan);
-                let end_screen = world_to_screen(end, scale, origin, pan);
+                let start_screen = world_to_screen(start, scale, source, pan);
+                let end_screen = world_to_screen(end, scale, source, pan);
 
                 draw_arrow(
                     start_screen,

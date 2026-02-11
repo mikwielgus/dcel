@@ -20,7 +20,7 @@ impl<
         edge_to_split: EdgeId,
         vertex: VW,
     ) -> (VertexId, EdgeId) {
-        let (origin, _) = self.endpoints(edge_to_split);
+        let (source, _) = self.endpoints(edge_to_split);
         let forward = edge_to_split.lesser();
         let backward = edge_to_split.greater();
         let face = self.face_in_front(forward);
@@ -30,7 +30,7 @@ impl<
 
         let new_vertex = self.add_unwired_vertex(vertex);
         let (new_forward, _) = self.add_unwired_edge(
-            origin,
+            source,
             new_vertex,
             face,
             twin_face,
@@ -39,11 +39,11 @@ impl<
         );
         let new_edge = self.full_edge(new_forward);
 
-        // Retarget the original edge to start at the new vertex.
+        // Retarget the sourceal edge to start at the new vertex.
         self.half_edges.insert(
             forward.id(),
             HalfEdge {
-                origin: new_vertex,
+                source: new_vertex,
                 ..self.half_edges.get(&forward.id()).unwrap().clone()
             },
         );
@@ -62,8 +62,8 @@ impl<
         // Update the outgoing spokes of vertices.
         // XXX: Is this really needed?
         self.link_vertex_with_half_edge(new_vertex, forward);
-        if self.outgoing_next_half_edge(origin) == forward {
-            self.link_vertex_with_half_edge(origin, new_edge.lesser());
+        if self.outgoing_next_half_edge(source) == forward {
+            self.link_vertex_with_half_edge(source, new_edge.lesser());
         }
 
         (new_vertex, new_edge)
@@ -255,7 +255,7 @@ mod test {
         let mut dcel = init_dcel_with_3x3_hex_mesh!(StableDcel<(i32, i32)>);
         let face = FaceId::new(5);
         let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
-        let old_origin = dcel.origin(edge.lesser());
+        let old_source = dcel.source(edge.lesser());
 
         let (_new_vertex, new_edge) = dcel.split_edge_by_vertex(edge, (259, 150));
 
@@ -293,7 +293,7 @@ mod test {
         assert_eq!(dcel.half_edges().num_elements(), 78);
         assert_eq!(dcel.faces().num_elements(), 11);
 
-        // The original hexagon is now split into two quads.
+        // The sourceal hexagon is now split into two quads.
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);
         assert_face_boundary!(&dcel, 2, 6);
@@ -329,7 +329,7 @@ mod test {
         assert_eq!(dcel.half_edges().num_elements(), 80);
         assert_eq!(dcel.faces().num_elements(), 11);
 
-        // The original hexagon is now split into two pentagons.
+        // The sourceal hexagon is now split into two pentagons.
 
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);

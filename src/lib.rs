@@ -141,7 +141,7 @@ pub struct Vertex<VW> {
 /// The data which describes a half-edge.
 #[derive(Clone, Debug)]
 pub struct HalfEdge<HEW> {
-    origin: VertexId,
+    source: VertexId,
     twin: HalfEdgeId,
     prev: HalfEdgeId,
     next: HalfEdgeId,
@@ -266,7 +266,7 @@ impl<
             .zip(half_edges.iter().skip(1).chain(half_edges.iter().take(1)));
 
         for (&half_edge, &next_half_edge) in half_edges_circular_tuple_windows {
-            self.link_vertex_with_half_edge(self.origin(half_edge), half_edge);
+            self.link_vertex_with_half_edge(self.source(half_edge), half_edge);
             self.link_subsequent_half_edges(half_edge, next_half_edge);
             self.link_face_with_half_edge(face, half_edge);
         }
@@ -353,15 +353,15 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
 {
     fn add_unwired_edge(
         &mut self,
-        origin: VertexId,
-        twin_origin: VertexId,
+        source: VertexId,
+        twin_source: VertexId,
         face: FaceId,
         twin_face: FaceId,
         weight: HEW,
         twin_weight: HEW,
     ) -> (HalfEdgeId, HalfEdgeId) {
         let forward_half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
-            origin,
+            source,
             // Uninitialized as edge 0 before until the twin is created in the next few lines of this method.
             twin: HalfEdgeId(0),
             // Uninitialized as edge 0. Initializing `.prev` and `.next` to
@@ -373,7 +373,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
         }));
 
         let backward_half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
-            origin: twin_origin,
+            source: twin_source,
             twin: forward_half_edge,
             // Uninitialized as edge 0. Initializing `.prev` and `.next` to
             // correct value is the responsibility of the caller.
@@ -389,7 +389,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
         self.half_edges.insert(
             forward_half_edge.id(),
             HalfEdge {
-                origin,
+                source,
                 // Uninitialized as edge 0 before until the twin is created in the next few lines of this method.
                 twin: backward_half_edge,
                 // Uninitialized as edge 0. Initializing `.prev` and `.next` to
