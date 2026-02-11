@@ -39,7 +39,7 @@ impl<
         );
         let new_edge = self.full_edge(new_forward);
 
-        // Retarget the sourceal edge to start at the new vertex.
+        // Retarget the original edge to start at the new vertex.
         self.half_edges.insert(
             forward.id(),
             HalfEdge {
@@ -62,7 +62,7 @@ impl<
         // Update the outgoing spokes of vertices.
         // XXX: Is this really needed?
         self.link_vertex_with_half_edge(new_vertex, forward);
-        if self.outgoing_next_half_edge(source) == forward {
+        if self.vertex_representative(source) == forward {
             self.link_vertex_with_half_edge(source, new_edge.lesser());
         }
 
@@ -293,7 +293,7 @@ mod test {
         assert_eq!(dcel.half_edges().num_elements(), 78);
         assert_eq!(dcel.faces().num_elements(), 11);
 
-        // The sourceal hexagon is now split into two quads.
+        // The original hexagon is now split into two quads.
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);
         assert_face_boundary!(&dcel, 2, 6);
@@ -329,7 +329,7 @@ mod test {
         assert_eq!(dcel.half_edges().num_elements(), 80);
         assert_eq!(dcel.faces().num_elements(), 11);
 
-        // The sourceal hexagon is now split into two pentagons.
+        // The original hexagon is now split into two pentagons.
 
         assert_face_boundary!(&dcel, 0, 0);
         assert_face_boundary!(&dcel, 1, 6);

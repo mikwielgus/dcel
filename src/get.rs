@@ -37,33 +37,29 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
 }
 
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Returns the vertex's representative half-edge.
+    ///
+    /// This is always an outgoing half-edge, never an incoming one. That is,
+    /// the vertex is always the source (origin) vertex of its representative
+    /// half-edge, never the target vertex.
+    ///
+    /// The representative half-edge of a vertex is one of its two
+    /// outgoing half-edges that is stored in the vertex datum to make it
+    /// possible to use the vertex id to traverse the vertex's surroundings.
+    ///
+    /// In DCEL terminology, the representative half-edge of a vertex is
+    /// usually just called "the incident half-edge", but we prefer to call it
+    /// differently to distinguish it from the other incident half-edges of the
+    /// same vertex.
     #[inline]
-    pub fn outgoing_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
-        self.vertices
-            .get(&vertex.id())
-            .unwrap()
-            .outgoing_next_half_edge
+    pub fn vertex_representative(&self, vertex: VertexId) -> HalfEdgeId {
+        self.vertices.get(&vertex.id()).unwrap().representative
     }
 }
 
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    #[inline]
-    pub fn incoming_next_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
-        self.twin(self.outgoing_next_half_edge(vertex))
-    }
-
-    #[inline]
-    pub fn incoming_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
-        self.prev(self.outgoing_next_half_edge(vertex))
-    }
-
-    #[inline]
-    pub fn outgoing_prev_half_edge(&self, vertex: VertexId) -> HalfEdgeId {
-        self.twin(self.incoming_prev_half_edge(vertex))
-    }
-
     #[inline]
     pub fn vertex_inner_outgoing_half_edge(&self, vertex: VertexId, face: FaceId) -> HalfEdgeId {
         self.vertex_half_spokes(vertex)
@@ -234,8 +230,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         &self.half_edges.get(&half_edge.id()).unwrap().weight
     }
 
-    /// Returns the pair of half-edge weights of the edge, sorted by half-edge
-    /// indices in ascending order.
+    /// Returns the pair of half-edge weights of the edge, ascendingly sorted by
+    /// half-edge indices.
     #[inline]
     pub fn edge_weights(&self, edge: EdgeId) -> (&HEW, &HEW) {
         (
@@ -249,8 +245,13 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
     /// Returns the face's representative half-edge.
     ///
     /// The representative half-edge of a face is one of incident half-edges
-    /// that is stored in the face's datum to make it possible to use the face
-    /// id to traverse the face's surroundings.
+    /// that is stored in the face datum to make it possible to use the face id
+    /// to traverse the face's surroundings.
+    ///
+    /// In DCEL terminology, the representative half-edge of a face is
+    /// usually just called "the incident half-edge", but we prefer to call it
+    /// differently to distinguish it from the other incident half-edges of the
+    /// same face.
     #[inline]
     pub fn face_representative(&self, face: FaceId) -> Option<HalfEdgeId> {
         self.faces.get(&face.id()).unwrap().representative

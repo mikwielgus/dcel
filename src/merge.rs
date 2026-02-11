@@ -19,12 +19,12 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
-        let absorbing_face = self.incident_face(self.outgoing_next_half_edge(inner_vertex));
+        let absorbing_face = self.incident_face(self.vertex_representative(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
 
     pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
-        let initial_half_edge = self.outgoing_next_half_edge(inner_vertex);
+        let initial_half_edge = self.vertex_representative(inner_vertex);
 
         let inner_edges: Vec<EdgeId> = self.spokes(initial_half_edge).collect();
         let perimeter_half_edges: Vec<HalfEdgeId> = self
@@ -138,7 +138,7 @@ impl<
             vertex_weights_counter
                 .visited_vertices()
                 .filter(|&vertex| {
-                    self.spokes_reverse(self.outgoing_next_half_edge(vertex))
+                    self.spokes_reverse(self.vertex_representative(vertex))
                         .all(|edge| half_edges_counter.is_inner_edge(edge))
                 })
                 // PERF: Needless collect?

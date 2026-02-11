@@ -29,7 +29,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
         &self,
         vertex: VertexId,
     ) -> HalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.half_spokes(self.outgoing_next_half_edge(vertex))
+        self.half_spokes(self.vertex_representative(vertex))
     }
 
     #[inline]
@@ -37,7 +37,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
         &self,
         vertex: VertexId,
     ) -> HalfSpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.half_spokes_reverse(self.outgoing_next_half_edge(vertex))
+        self.half_spokes_reverse(self.vertex_representative(vertex))
     }
 }
 
@@ -75,7 +75,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.next(self.outgoing_next_half_edge(vertex));
+        let initial_half_edge = self.next(self.vertex_representative(vertex));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
             .flat_map(|edge| [edge.lesser(), edge.greater()])
@@ -100,7 +100,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> CirculateHalfEdgesWithExcludesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        let initial_half_edge = self.prev(self.incoming_next_half_edge(vertex));
+        let initial_half_edge = self.prev(self.twin(self.vertex_representative(vertex)));
         let excluded_half_edges = self
             .vertex_spokes(vertex)
             .flat_map(|edge| [edge.lesser(), edge.greater()])
@@ -152,7 +152,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 {
     #[inline]
     pub fn vertex_spokes(&self, vertex: VertexId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.spokes(self.outgoing_next_half_edge(vertex))
+        self.spokes(self.vertex_representative(vertex))
     }
 
     #[inline]
@@ -160,7 +160,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> SpokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.spokes_reverse(self.outgoing_next_half_edge(vertex))
+        self.spokes_reverse(self.vertex_representative(vertex))
     }
 }
 
@@ -198,7 +198,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> InterspokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.interspokes(self.outgoing_next_half_edge(vertex))
+        self.interspokes(self.vertex_representative(vertex))
     }
 
     #[inline]
@@ -206,7 +206,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         &self,
         vertex: VertexId,
     ) -> InterspokesReverseIter<'_, VW, HEW, FW, VC, HEC, FC> {
-        self.interspokes_reverse(self.outgoing_next_half_edge(vertex))
+        self.interspokes_reverse(self.vertex_representative(vertex))
     }
 }
 

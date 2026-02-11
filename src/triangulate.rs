@@ -16,9 +16,9 @@ impl<
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Partition a face into triangles by inserting a vertex inside and adding
-    /// edges between it and the sourceal face's vertices.
+    /// edges between it and the original face's vertices.
     ///
-    /// The sourceal face is reused for the first triangle. New faces are
+    /// The original face is reused for the first triangle. New faces are
     /// created for all the other triangles.
     ///
     /// Returns the new vertex id together with the ids of all the newly created

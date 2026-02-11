@@ -78,8 +78,12 @@ impl HalfEdgeId {
     }
 }
 
-/// A unique identifier to an edge made of an ordered pair of half-edge ids
-/// sorted in ascending order.
+/// A unique identifier to an edge made of an ascendingly sorted pair of
+/// half-edge ids.
+///
+/// The ascending sort is to ensure uniqueness and correctness of comparison
+/// by having only one possible representation. Otherwise, for each edge there
+/// would be two possible values, (x, y) and (y, x).
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
@@ -134,7 +138,7 @@ impl FaceId {
 /// The data which describes a vertex.
 #[derive(Clone, Debug)]
 pub struct Vertex<VW> {
-    outgoing_next_half_edge: HalfEdgeId,
+    representative: HalfEdgeId,
     weight: VW,
 }
 
@@ -325,7 +329,7 @@ impl<VW, HEW, FW, VC: Push<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW
             // So instead uninitialized edge ids are edge 0.
             // Initializing `.outward_edge` to a correct value is the
             // responsibility of the caller.
-            outgoing_next_half_edge: HalfEdgeId(0),
+            representative: HalfEdgeId(0),
             weight,
         }))
     }
@@ -338,7 +342,7 @@ impl<VW: Clone, HEW, FW, VC: Get<usize, Value = Vertex<VW>> + Insert<usize>, HEC
         self.vertices.insert(
             vertex.id(),
             Vertex {
-                outgoing_next_half_edge: outgoing_half_edge,
+                representative: outgoing_half_edge,
                 weight: self.vertices.get(&vertex.id()).unwrap().weight.clone(),
             },
         )

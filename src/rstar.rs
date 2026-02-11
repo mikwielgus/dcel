@@ -182,7 +182,11 @@ impl<
         from: VertexId,
         to: VertexId,
     ) -> ((HalfEdgeId, HalfEdgeId), FaceId) {
-        self.split_face_by_edge(from, to, self.dcel.find_vertices_common_face(from, to).unwrap())
+        self.split_face_by_edge(
+            from,
+            to,
+            self.dcel.find_vertices_common_face(from, to).unwrap(),
+        )
     }
 
     pub fn insert_edge_chain(
@@ -401,12 +405,12 @@ impl<
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
         let absorbing_face = self
             .dcel
-            .incident_face(self.dcel.outgoing_next_half_edge(inner_vertex));
+            .incident_face(self.dcel.vertex_representative(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
 
     pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
-        let initial_half_edge = self.dcel.outgoing_next_half_edge(inner_vertex);
+        let initial_half_edge = self.dcel.vertex_representative(inner_vertex);
 
         let inner_edges: Vec<EdgeId> = self.dcel.spokes(initial_half_edge).collect();
         let perimeter_half_edges: Vec<HalfEdgeId> = self
@@ -519,7 +523,7 @@ impl<
                 .visited_vertices()
                 .filter(|&vertex| {
                     self.dcel
-                        .spokes_reverse(self.dcel.outgoing_next_half_edge(vertex))
+                        .spokes_reverse(self.dcel.vertex_representative(vertex))
                         .all(|edge| half_edges_counter.is_inner_edge(edge))
                 })
                 // PERF: Needless collect?
@@ -606,15 +610,15 @@ impl<
         edge_to_split: EdgeId,
         vertex: VW,
     ) -> (VertexId, EdgeId) {
-        let sourceal_endpoints = self.dcel.edge_endpoints(edge_to_split);
+        let original_endpoints = self.dcel.edge_endpoints(edge_to_split);
 
         // Remove the edge to split from the edges R-tree before its shape
         // changes, which would otherwise invalidate its bbox and make it
         // impossible to access anymore.
         self.edges_rtree.remove(&GeomWithData::new(
             Rectangle::from_corners(
-                Into::<P>::into(self.dcel.vertex_weight(sourceal_endpoints.0).clone()),
-                Into::<P>::into(self.dcel.vertex_weight(sourceal_endpoints.1).clone()),
+                Into::<P>::into(self.dcel.vertex_weight(original_endpoints.0).clone()),
+                Into::<P>::into(self.dcel.vertex_weight(original_endpoints.1).clone()),
             ),
             edge_to_split,
         ));
@@ -724,9 +728,9 @@ impl<
 > RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
 {
     /// Partition a face into triangles by inserting a vertex inside and then
-    /// adding edges between it and the sourceal face's vertices.
+    /// adding edges between it and the original face's vertices.
     ///
-    /// The sourceal face is reused for the first triangle. New faces are
+    /// The original face is reused for the first triangle. New faces are
     /// created for all the other triangles.
     ///
     /// Returns the new vertex id together with the ids of all the newly created
@@ -950,7 +954,7 @@ mod test {
         assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
         assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
 
-        // The sourceal hexagon is now split into two quads.
+        // The original hexagon is now split into two quads.
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
         assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
@@ -1231,7 +1235,7 @@ mod test {
         assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
         assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
 
-        // The sourceal hexagon is now split into two quads.
+        // The original hexagon is now split into two quads.
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
         assert_face_boundary!(rtreed_dcel.dcel, 2, 6);
@@ -1262,8 +1266,8 @@ mod test {
     fn test_split_edge_by_vertex() {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
-        let sourceal_endpoints = rtreed_dcel.dcel.edge_endpoints(edge);
-        let sourceal_edge_count = rtreed_dcel.edges_rtree.size();
+        let original_endpoints = rtreed_dcel.dcel.edge_endpoints(edge);
+        let original_edge_count = rtreed_dcel.edges_rtree.size();
 
         let (_new_vertex, new_edge) = rtreed_dcel.split_edge_by_vertex(edge, (259, 150));
 
@@ -1314,7 +1318,7 @@ mod test {
         assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
         // TODO: Test number of elements here and further below.
 
-        // The sourceal hexagon is now split into two pentagons.
+        // The original hexagon is now split into two pentagons.
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);

@@ -419,7 +419,7 @@ mod test {
         // There are now eleven faces in total: one unbounded and ten bounded.
         assert_eq!(dcel.faces().len(), 11);
 
-        // The sourceal hexagon is now split into two quads.
+        // The original hexagon is now split into two quads.
         assert_face_boundary!(dcel, 0, 0);
         assert_face_boundary!(dcel, 1, 6);
         assert_face_boundary!(dcel, 2, 6);
