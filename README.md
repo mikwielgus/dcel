@@ -16,7 +16,7 @@ First, add `dcel` as a dependency to your `Cargo.toml`
 
 ```toml
 [dependencies]
-dcel = "0.1"
+dcel = "0.6"
 ```
 
 ## Documentation
