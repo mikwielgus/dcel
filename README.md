@@ -31,7 +31,7 @@ on `dcel`'s usage.
 
 ## Contributing
 
-We welcome issues and pull requests from anyone to out canonical
+We welcome issues and pull requests from anyone to our canonical
 [repository](https://codeberg.org/topola/dcel) on Codeberg.
 
 ## Licence
@@ -46,6 +46,5 @@ at your option.
 ### Inbound licensing
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the clause 5 of the Apache-2.0
-licence, will be dual-licensed as described above, without any additional terms
-or conditions.
+for inclusion in the work by you will be dual-licensed as described above,
+without any additional terms or conditions.
