@@ -18,6 +18,11 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Remove a degree-2 vertex, merging its incident edges into one.
+    ///
+    /// In mathematics, this is called [graph
+    /// smoothing](https://mathworld.wolfram.com/GraphSmoothing.html), hence the
+    /// function name.
     pub fn smoothen_vertex(&mut self, vertex: VertexId) {
         let representative = self.vertex_representative(vertex);
 
@@ -31,11 +36,23 @@ impl<
         self.remove_orphaned_vertices([vertex]);
     }
 
+    /// Remove a degree-2 vertex together with its incident edges, merging
+    /// together all of its incident faces into one.
+    ///
+    /// The id of one of the incident faces is reused as the id of the resulting
+    /// single merged face. If you want to choose which face should it be, call
+    /// [absorb_faces_around_vertex()] instead.
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
         let absorbing_face = self.incident_face(self.vertex_representative(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
     }
 
+    /// Remove a degree-2 vertex together with its incident edges, absorbing all
+    /// of its incident faces into a chosen one of them.
+    ///
+    /// This method does the same as [merge_faces_around_vertex()], but the
+    /// face whose id is to be reused for the resulting single merged face is
+    /// specified by an additional argument, `absorbing_face`.
     pub fn absorb_faces_around_vertex(&mut self, absorbing_face: FaceId, inner_vertex: VertexId) {
         let initial_half_edge = self.vertex_representative(inner_vertex);
 
@@ -55,7 +72,13 @@ impl<
         );
     }
 
-    pub fn merge_faces_over_edges_and_vertices(
+    /// Merge a contiguous set of faces into one, removing the specified edges
+    /// and vertices and only them.
+    ///
+    /// Because this method is relatively obscure and the complicated
+    /// responsibility for providing correct edges and vertices to remove now
+    /// lies on the caller, this method is non-public.
+    pub(crate) fn merge_faces_over_edges_and_vertices(
         &mut self,
         faces: impl IntoIterator<Item = FaceId>,
         edges: impl IntoIterator<Item = EdgeId>,
@@ -72,7 +95,13 @@ impl<
         );
     }
 
-    pub fn absorb_faces_over_edges_and_vertices(
+    /// Absorb a contiguous set of faces into one, removing the specified edges
+    /// and vertices and only them.
+    ///
+    /// Because this method is relatively obscure and the complicated
+    /// responsibility for providing correct edges and vertices to remove lies
+    /// on the caller, this method is non-public.
+    pub(crate) fn absorb_faces_over_edges_and_vertices(
         &mut self,
         absorbing_face: FaceId,
         faces: impl IntoIterator<Item = FaceId>,
@@ -113,6 +142,16 @@ impl<
         );
     }
 
+    /// Merge a contiguous set of faces into one, removing their shared vertices
+    /// and edges.
+    ///
+    /// The set of input faces must be contiguous: the faces together must form
+    /// a single connected component. Otherwise, the behavior of this method
+    /// is undefined.
+    ///
+    /// The id of one of the incident faces is reused as the id of the resulting
+    /// single merged face. If you want to choose which face should it be, call
+    /// [absorb_faces()] instead.
     pub fn merge_faces(&mut self, faces: impl IntoIterator<Item = FaceId>) {
         let mut faces = faces.into_iter();
         let absorbing_face = faces.next().unwrap();
@@ -123,6 +162,15 @@ impl<
         );
     }
 
+    /// Absorb a contiguous set of faces into one.
+    ///
+    /// The set of input faces must be contiguous: the faces together must form
+    /// a single connected component. Otherwise, the behavior of this method
+    /// is undefined.
+    ///
+    /// This method does the same as [merge_faces()], but the face whose id is
+    /// to be reused for the resulting single merged face is specified by an
+    /// additional argument, `absorbing_face`.
     pub fn absorb_faces(
         &mut self,
         absorbing_face: FaceId,
@@ -163,6 +211,12 @@ impl<
         );
     }
 
+    /// Remove the provided faces, edges, and vertices, and then rewire the
+    /// provided perimeter.
+    ///
+    /// This is the non-public method that actually does the merging or
+    /// absorbing internally. The other absorbing and merging methods merely
+    /// build arguments for this method and then call it.
     pub(crate) fn absorb_faces_over_edges_and_vertices_in_perimeter(
         &mut self,
         absorbing_face: FaceId,

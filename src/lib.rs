@@ -186,6 +186,7 @@ pub struct Dcel<
 impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Value = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Create a new DCEL.
     #[inline]
     pub fn new() -> Self {
         let mut faces = FC::default();
