@@ -18,6 +18,19 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    pub fn smoothen_vertex(&mut self, vertex: VertexId) {
+        let representative = self.vertex_representative(vertex);
+
+        self.link_subsequent_half_edges(self.prev(representative), self.next(representative));
+        self.link_subsequent_half_edges(
+            self.prev(self.twin(representative)),
+            self.next(self.twin(representative)),
+        );
+
+        self.remove_orphaned_edges([self.full_edge(representative)]);
+        self.remove_orphaned_vertices([vertex]);
+    }
+
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
         let absorbing_face = self.incident_face(self.vertex_representative(inner_vertex));
         self.absorb_faces_around_vertex(absorbing_face, inner_vertex);
