@@ -52,6 +52,8 @@ We welcome issues and pull requests from anyone to our canonical
 
 ## Licence
 
+### Outbound licence
+
 `dcel` is dual-licensed as under either of
 
 - [MIT license](./LICENSES/MIT.txt),
@@ -59,8 +61,8 @@ We welcome issues and pull requests from anyone to our canonical
 
 at your option.
 
-### Inbound licence is outbound licence
+### Inbound licence
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
+Unless you expressly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you will be dual-licensed as described above,
 without any additional terms or conditions.
