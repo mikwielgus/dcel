@@ -2,8 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::hash::Hash;
+use std::collections::{BTreeMap, BTreeSet};
 
 use maplike::Get;
 
@@ -171,13 +170,13 @@ impl VertexesCounter {
 }
 
 pub struct VertexTracker<VW> {
-    map: HashMap<VW, VertexId>,
+    map: BTreeMap<VW, VertexId>,
 }
 
-impl<VW: Eq + Hash> VertexTracker<VW> {
+impl<VW: Eq + Ord> VertexTracker<VW> {
     pub fn new() -> Self {
         Self {
-            map: HashMap::new(),
+            map: BTreeMap::new(),
         }
     }
 

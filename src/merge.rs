@@ -23,6 +23,9 @@ impl<
     /// In mathematics, this is called [graph
     /// smoothing](https://mathworld.wolfram.com/GraphSmoothing.html), hence the
     /// function name.
+    ///
+    /// If the degree of the passed vertex is not two, the behavior of this
+    /// method is undefined.
     pub fn smoothen_vertex(&mut self, vertex: VertexId) {
         let representative = self.vertex_representative(vertex);
 
@@ -36,11 +39,11 @@ impl<
         self.remove_orphaned_vertices([vertex]);
     }
 
-    /// Remove a degree-2 vertex together with its incident edges, merging
-    /// together all of its incident faces into one.
+    /// Remove a degree-2 vertex together with its incident edges, merging all
+    /// of its incident faces into one.
     ///
     /// The id of one of the incident faces is reused as the id of the resulting
-    /// single merged face. If you want to choose which face should it be, call
+    /// single merged face. If you want to choose which face it should be, call
     /// [absorb_faces_around_vertex()] instead.
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
         let absorbing_face = self.incident_face(self.vertex_representative(inner_vertex));
@@ -150,7 +153,7 @@ impl<
     /// is undefined.
     ///
     /// The id of one of the incident faces is reused as the id of the resulting
-    /// single merged face. If you want to choose which face should it be, call
+    /// single merged face. If you want to choose which face it should be, call
     /// [absorb_faces()] instead.
     pub fn merge_faces(&mut self, faces: impl IntoIterator<Item = FaceId>) {
         let mut faces = faces.into_iter();

@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use std::hash::Hash;
-
 use maplike::{Get, Insert, Push};
 
 use crate::{
@@ -12,7 +10,7 @@ use crate::{
 };
 
 impl<
-    VW: Clone + Eq + Hash,
+    VW: Clone + Eq + Ord,
     HEW: Clone + Default,
     FW: Clone + Default,
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
@@ -106,7 +104,7 @@ impl<
 }
 
 impl<
-    VW: Clone + Eq + Hash,
+    VW: Clone + Eq + Ord,
     HEW: Clone,
     FW: Clone,
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,

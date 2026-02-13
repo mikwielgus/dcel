@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use std::collections::BTreeSet;
-use std::hash::Hash;
 
 use maplike::{Get, Insert, Push, StableRemove};
 use rstar::{
@@ -78,7 +77,7 @@ impl<
 
 impl<
     P: Point,
-    VW: Clone + Into<P> + Eq + Hash,
+    VW: Clone + Into<P> + Eq + Ord,
     HEW: Clone + Default,
     FW: Clone + Default,
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
