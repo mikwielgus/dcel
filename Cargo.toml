@@ -19,6 +19,8 @@ edition = "2024"
 maintenance = { status = "actively-developed" }
 
 [features]
+default = ["std"]
+std = []
 stable-vec = ["dep:stable-vec", "maplike/stable-vec"]
 
 [dependencies]
