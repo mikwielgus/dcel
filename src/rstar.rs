@@ -16,6 +16,7 @@ use crate::{
     track::{HalfEdgesCounter, VertexesCounter},
 };
 
+#[derive(Clone, Debug)]
 pub struct RTreedDcel<
     P: Point,
     VW = P,
