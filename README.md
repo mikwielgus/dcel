@@ -32,7 +32,7 @@ First, add `dcel` as a dependency to your `Cargo.toml`
 
 ```toml
 [dependencies]
-dcel = "0.7"
+dcel = "0.8"
 ```
 
 ## Documentation
