@@ -41,6 +41,17 @@ pub type RTreedStableDcel<P, VW = P, HEW = (), FW = ()> = RTreedDcel<
     StableVec<Face<FW>>,
 >;
 
+#[cfg(feature = "undoredo")]
+pub type RecordingRTreedStableDcel<P, VW = P, HEW = (), FW = ()> = RTreedDcel<
+    P,
+    VW,
+    HEW,
+    FW,
+    undoredo::Recorder<StableVec<Vertex<VW>>>,
+    undoredo::Recorder<StableVec<HalfEdge<HEW>>>,
+    undoredo::Recorder<StableVec<Face<FW>>>,
+>;
+
 impl<
     P: Point,
     VW,
