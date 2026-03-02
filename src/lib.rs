@@ -131,7 +131,7 @@ impl EdgeId {
 /// This is just a thin newtype wrapper over [usize] for clarity and to
 /// disambiguate it from other index types. Use the [id()] method to access the
 /// underlying index.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct FaceId(usize);
 
 impl FaceId {
