@@ -10,6 +10,7 @@ use rstar::{
     AABB, Envelope, Point, RTree,
     primitives::{GeomWithData, Rectangle},
 };
+use rstared::AsRefRTree;
 use stable_vec::StableVec;
 
 #[cfg(feature = "undoredo")]
@@ -29,8 +30,8 @@ pub struct RTreedDcel<
     VC = Vec<Vertex<VW>>,
     HEC = Vec<HalfEdge<HEW>>,
     FC = Vec<Face<FW>>,
-    ER = RTree<GeomWithData<Rectangle<P>, EdgeId>>,
-    FR = RTree<GeomWithData<Rectangle<P>, FaceId>>,
+    ER = AsRefRTree<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR = AsRefRTree<GeomWithData<Rectangle<P>, FaceId>>,
 > {
     dcel: Dcel<VW, HEW, FW, VC, HEC, FC>,
     edges_rtree: ER,
@@ -43,8 +44,8 @@ pub type RTreedStableDcel<
     VW = P,
     HEW = (),
     FW = (),
-    ER = RTree<GeomWithData<Rectangle<P>, EdgeId>>,
-    FR = RTree<GeomWithData<Rectangle<P>, FaceId>>,
+    ER = AsRefRTree<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR = AsRefRTree<GeomWithData<Rectangle<P>, FaceId>>,
 > = RTreedDcel<
     P,
     VW,
@@ -63,8 +64,8 @@ pub type RecordingRTreedStableDcel<
     VW = P,
     HEW = (),
     FW = (),
-    ER = RTree<GeomWithData<Rectangle<P>, EdgeId>>,
-    FR = RTree<GeomWithData<Rectangle<P>, FaceId>>,
+    ER = AsRefRTree<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR = AsRefRTree<GeomWithData<Rectangle<P>, FaceId>>,
 > = RTreedDcel<
     P,
     VW,
@@ -1121,8 +1122,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 39);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 10);
 
         // The original hexagon is now split into two quads.
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
@@ -1159,8 +1160,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 4);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 8);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 2);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 4);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 1);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 4);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 1);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, face.id(), 4);
@@ -1181,8 +1182,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 29);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 70);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 8);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 35);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 7);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 35);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 7);
 
         // Among the remaining faces, one is now a dodecagon, and the remaining
         // six are hexagons.
@@ -1216,8 +1217,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 29);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 70);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 8);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 35);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 7);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 35);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 7);
 
         // Among the remaining faces, one is now a dodecagon, and the remaining
         // six are hexagons.
@@ -1255,8 +1256,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 37);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 8);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
@@ -1293,8 +1294,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 37);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 8);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
@@ -1326,8 +1327,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 37);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 8);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
@@ -1359,8 +1360,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 74);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 9);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 37);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 8);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 37);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 8);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
@@ -1402,8 +1403,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 30);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 39);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 10);
 
         // The original hexagon is now split into two quads.
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
@@ -1437,7 +1438,7 @@ mod test {
         let mut rtreed_dcel = init_dcel_with_3x3_hex_mesh!(RTreedStableDcel<(i32, i32)>);
         let edge = EdgeId::new(HalfEdgeId::new(38), HalfEdgeId::new(39));
         let original_endpoints = rtreed_dcel.dcel.edge_endpoints(edge);
-        let original_edge_count = rtreed_dcel.edges_rtree.size();
+        let original_edge_count = rtreed_dcel.edges_rtree.as_ref().size();
 
         let (_new_vertex, new_edge) = rtreed_dcel.split_edge_by_vertex(edge, (259, 150));
 
@@ -1446,8 +1447,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 78);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 10);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 39);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 9);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 39);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 9);
 
         assert_face_boundary!(rtreed_dcel.dcel, 0, 0);
         assert_face_boundary!(rtreed_dcel.dcel, 1, 6);
@@ -1484,8 +1485,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 80);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 11);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 40);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 10);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 40);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 10);
         // TODO: Test number of elements here and further below.
 
         // The original hexagon is now split into two pentagons.
@@ -1528,8 +1529,8 @@ mod test {
         assert_eq!(rtreed_dcel.dcel.vertices().num_elements(), 31);
         assert_eq!(rtreed_dcel.dcel.half_edges().num_elements(), 88);
         assert_eq!(rtreed_dcel.dcel.faces().num_elements(), 15);
-        assert_eq!(rtreed_dcel.edges_rtree.size(), 44);
-        assert_eq!(rtreed_dcel.faces_rtree.size(), 14);
+        assert_eq!(rtreed_dcel.edges_rtree.as_ref().size(), 44);
+        assert_eq!(rtreed_dcel.faces_rtree.as_ref().size(), 14);
 
         assert_face_boundary!(rtreed_dcel.dcel, 5, 3);
 
@@ -1543,6 +1544,7 @@ mod test {
         assert_eq!(
             rtreed_dcel
                 .edges_rtree
+                .as_ref()
                 .iter()
                 .filter(|e| new_edges.contains(&e.data))
                 .count(),
@@ -1554,6 +1556,7 @@ mod test {
             assert!(
                 rtreed_dcel
                     .faces_rtree
+                    .as_ref()
                     .locate_in_envelope(
                         &RTreedStableDcel::<(i32, i32)>::rectangle_from_vertex_weights(
                             rtreed_dcel
@@ -1575,6 +1578,7 @@ mod test {
         assert!(
             rtreed_dcel
                 .faces_rtree
+                .as_ref()
                 .locate_in_envelope(&rectangle.envelope())
                 .any(|&element| element == GeomWithData::new(rectangle, FaceId::new(face),))
         );
@@ -1590,6 +1594,7 @@ mod test {
         assert!(
             rtreed_dcel
                 .edges_rtree
+                .as_ref()
                 .locate_in_envelope(&rectangle.envelope())
                 .any(|&element| element == GeomWithData::new(rectangle, edge))
         );
