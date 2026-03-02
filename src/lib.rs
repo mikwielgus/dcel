@@ -23,6 +23,14 @@ pub mod test_common;
 #[cfg(feature = "stable-vec")]
 mod stable_vec;
 
+use std::marker::PhantomData;
+
+#[cfg(feature = "undoredo")]
+use maplike::KeyedCollection;
+
+#[cfg(feature = "undoredo")]
+use undoredo::{ApplyDelta, Delta, FlushDelta, Recorder};
+
 #[cfg(feature = "stable-vec")]
 pub use stable_vec::StableDcel;
 
@@ -30,11 +38,11 @@ pub use stable_vec::StableDcel;
 mod rstar;
 
 #[cfg(feature = "rstar")]
-pub use rstar::{RTreedDcel, RTreedStableDcel};
+pub use crate::rstar::{RTreedDcel, RTreedStableDcel};
 
 use maplike::{Get, Insert, Push};
 
-pub use walkers::{
+pub use crate::walkers::{
     HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker, SpokesIter,
     SpokesReverseIter, SpokesReverseWalker, SpokesWalker,
 };
@@ -178,9 +186,9 @@ pub struct Dcel<
     vertices: VC,
     half_edges: HEC,
     faces: FC,
-    vertex_weight_marker: std::marker::PhantomData<VW>,
-    half_edge_weight_marker: std::marker::PhantomData<HEW>,
-    face_weight_marker: std::marker::PhantomData<FW>,
+    vertex_weight_marker: PhantomData<VW>,
+    half_edge_weight_marker: PhantomData<HEW>,
+    face_weight_marker: PhantomData<FW>,
 }
 
 impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, Value = Face<FW>>>
@@ -201,9 +209,9 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
             vertices: VC::default(),
             half_edges: HEC::default(),
             faces,
-            vertex_weight_marker: std::marker::PhantomData,
-            half_edge_weight_marker: std::marker::PhantomData,
-            face_weight_marker: std::marker::PhantomData,
+            vertex_weight_marker: PhantomData,
+            half_edge_weight_marker: PhantomData,
+            face_weight_marker: PhantomData,
         }
     }
 }
@@ -224,9 +232,9 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
             vertices,
             half_edges,
             faces,
-            vertex_weight_marker: std::marker::PhantomData,
-            half_edge_weight_marker: std::marker::PhantomData,
-            face_weight_marker: std::marker::PhantomData,
+            vertex_weight_marker: PhantomData,
+            half_edge_weight_marker: PhantomData,
+            face_weight_marker: PhantomData,
         }
     }
 }
@@ -466,5 +474,76 @@ impl<
                 weight: self.faces.get(&face.id()).unwrap().weight.clone(),
             },
         );
+    }
+}
+
+#[cfg(feature = "undoredo")]
+pub type RecordingDcel<VW, HEW, FW, VC, HEC, FC> =
+    Dcel<VW, HEW, FW, Recorder<VC>, Recorder<HEC>, Recorder<FC>>;
+
+#[cfg(feature = "undoredo")]
+impl<
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone,
+    VCD: Clone + KeyedCollection,
+    VC: Clone + KeyedCollection + ApplyDelta<VCD>,
+    HECD: Clone + KeyedCollection,
+    HEC: Clone + KeyedCollection + ApplyDelta<HECD>,
+    FCD: Clone + KeyedCollection,
+    FC: Clone + KeyedCollection + ApplyDelta<FCD>,
+> ApplyDelta<Dcel<VW, HEW, FW, VCD, HECD, FCD>> for Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn apply_delta(&mut self, delta: &Delta<Dcel<VW, HEW, FW, VCD, HECD, FCD>>) {
+        let (removed, inserted) = delta.clone().dissolve();
+
+        let vertices_delta = Delta::with_removed_inserted(removed.vertices, inserted.vertices);
+        self.vertices.apply_delta(&vertices_delta);
+
+        let half_edges_delta =
+            Delta::with_removed_inserted(removed.half_edges, inserted.half_edges);
+        self.half_edges.apply_delta(&half_edges_delta);
+
+        let faces_delta = Delta::with_removed_inserted(removed.faces, inserted.faces);
+        self.faces.apply_delta(&faces_delta);
+    }
+}
+
+#[cfg(feature = "undoredo")]
+impl<
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone,
+    VCD: Clone + KeyedCollection,
+    VC: Clone + KeyedCollection + FlushDelta<VCD>,
+    HECD: Clone + KeyedCollection,
+    HEC: Clone + KeyedCollection + FlushDelta<HECD>,
+    FCD: Clone + KeyedCollection,
+    FC: Clone + KeyedCollection + FlushDelta<FCD>,
+> FlushDelta<Dcel<VW, HEW, FW, VCD, HECD, FCD>> for Dcel<VW, HEW, FW, VC, HEC, FC>
+{
+    fn flush_delta(&mut self) -> Delta<Dcel<VW, HEW, FW, VCD, HECD, FCD>> {
+        let (removed_vertices, inserted_vertices) = self.vertices.flush_delta().dissolve();
+        let (removed_half_edges, inserted_half_edges) = self.half_edges.flush_delta().dissolve();
+        let (removed_faces, inserted_faces) = self.faces.flush_delta().dissolve();
+
+        Delta::with_removed_inserted(
+            Dcel {
+                vertices: removed_vertices,
+                half_edges: removed_half_edges,
+                faces: removed_faces,
+                vertex_weight_marker: PhantomData,
+                half_edge_weight_marker: PhantomData,
+                face_weight_marker: PhantomData,
+            },
+            Dcel {
+                vertices: inserted_vertices,
+                half_edges: inserted_half_edges,
+                faces: inserted_faces,
+                vertex_weight_marker: PhantomData,
+                half_edge_weight_marker: PhantomData,
+                face_weight_marker: PhantomData,
+            },
+        )
     }
 }

@@ -22,6 +22,7 @@ maintenance = { status = "actively-developed" }
 default = ["std"]
 std = []
 stable-vec = ["dep:stable-vec", "maplike/stable-vec"]
+rstar = ["dep:rstar", "maplike/rstar"]
 
 [dependencies]
 maplike = "0.8"

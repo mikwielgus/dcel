@@ -3,13 +3,17 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use std::collections::BTreeSet;
+use std::marker::PhantomData;
 
-use maplike::{Get, Insert, Push, StableRemove};
+use maplike::{Get, Insert, KeyedCollection, Push, Remove, StableRemove};
 use rstar::{
     AABB, Envelope, Point, RTree,
     primitives::{GeomWithData, Rectangle},
 };
 use stable_vec::StableVec;
+
+#[cfg(feature = "undoredo")]
+use undoredo::{ApplyDelta, Delta, FlushDelta, Recorder};
 
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
@@ -25,13 +29,23 @@ pub struct RTreedDcel<
     VC = Vec<Vertex<VW>>,
     HEC = Vec<HalfEdge<HEW>>,
     FC = Vec<Face<FW>>,
+    ER = RTree<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR = RTree<GeomWithData<Rectangle<P>, FaceId>>,
 > {
     dcel: Dcel<VW, HEW, FW, VC, HEC, FC>,
-    edges_rtree: RTree<GeomWithData<Rectangle<P>, EdgeId>>,
-    faces_rtree: RTree<GeomWithData<Rectangle<P>, FaceId>>,
+    edges_rtree: ER,
+    faces_rtree: FR,
+    point_marker: PhantomData<P>,
 }
 
-pub type RTreedStableDcel<P, VW = P, HEW = (), FW = ()> = RTreedDcel<
+pub type RTreedStableDcel<
+    P,
+    VW = P,
+    HEW = (),
+    FW = (),
+    ER = RTree<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR = RTree<GeomWithData<Rectangle<P>, FaceId>>,
+> = RTreedDcel<
     P,
     VW,
     HEW,
@@ -39,17 +53,28 @@ pub type RTreedStableDcel<P, VW = P, HEW = (), FW = ()> = RTreedDcel<
     StableVec<Vertex<VW>>,
     StableVec<HalfEdge<HEW>>,
     StableVec<Face<FW>>,
+    ER,
+    FR,
 >;
 
 #[cfg(feature = "undoredo")]
-pub type RecordingRTreedStableDcel<P, VW = P, HEW = (), FW = ()> = RTreedDcel<
+pub type RecordingRTreedStableDcel<
+    P,
+    VW = P,
+    HEW = (),
+    FW = (),
+    ER = RTree<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR = RTree<GeomWithData<Rectangle<P>, FaceId>>,
+> = RTreedDcel<
     P,
     VW,
     HEW,
     FW,
-    undoredo::Recorder<StableVec<Vertex<VW>>>,
-    undoredo::Recorder<StableVec<HalfEdge<HEW>>>,
-    undoredo::Recorder<StableVec<Face<FW>>>,
+    Recorder<StableVec<Vertex<VW>>>,
+    Recorder<StableVec<HalfEdge<HEW>>>,
+    Recorder<StableVec<Face<FW>>>,
+    Recorder<ER>,
+    Recorder<FR>,
 >;
 
 impl<
@@ -60,29 +85,34 @@ impl<
     VC: Default,
     HEC: Default,
     FC: Default + Push<usize, Value = Face<FW>>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Default,
+    FR: Default,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     #[inline]
     pub fn new() -> Self {
         Self {
             dcel: Dcel::new(),
-            edges_rtree: RTree::new(),
-            faces_rtree: RTree::new(),
+            edges_rtree: Default::default(),
+            faces_rtree: Default::default(),
+            point_marker: PhantomData,
         }
     }
+}
 
+impl<P: Point, VW, HEW, FW, VC, HEC, FC, ER, FR> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR> {
     #[inline]
     pub fn dcel(&self) -> &Dcel<VW, HEW, FW, VC, HEC, FC> {
         &self.dcel
     }
 
     #[inline]
-    pub fn edges_rtree(&self) -> &RTree<GeomWithData<Rectangle<P>, EdgeId>> {
+    pub fn edges_rtree(&self) -> &ER {
         &self.edges_rtree
     }
 
     #[inline]
-    pub fn faces_rtree(&self) -> &RTree<GeomWithData<Rectangle<P>, FaceId>> {
+    pub fn faces_rtree(&self) -> &FR {
         &self.faces_rtree
     }
 }
@@ -95,7 +125,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn insert_mesh(
         &mut self,
@@ -146,7 +180,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn insert_polygon(&mut self, vertex_weights: impl IntoIterator<Item = VW>) -> FaceId {
         let vertex_weights: Vec<VW> = vertex_weights.into_iter().collect();
@@ -186,7 +224,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn insert_edge(
         &mut self,
@@ -223,7 +265,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     fn insert_edge_chain_with_edge_weights(
         &mut self,
@@ -251,7 +297,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn insert_polygon_with_all_weights(
         &mut self,
@@ -306,7 +356,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn remove_face(&mut self, face: FaceId) -> (Vec<EdgeId>, Vec<FaceId>) {
         let mut edges: Vec<EdgeId> = self.dcel.face_edges(face).collect();
@@ -411,7 +465,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn merge_faces_around_vertex(&mut self, inner_vertex: VertexId) {
         let absorbing_face = self
@@ -614,7 +672,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn split_edge_by_vertex(
         &mut self,
@@ -694,7 +756,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn split_face_by_edge_chain_with_all_weights(
         &mut self,
@@ -736,7 +802,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     /// Partition a face into triangles by inserting a vertex inside and then
     /// adding edges between it and the original face's vertices.
@@ -782,7 +852,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
     HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn triangulate_face_around_point_with_all_weights(
         &mut self,
@@ -832,7 +906,11 @@ impl<
     VC: Get<usize, Value = Vertex<VW>>,
     HEC: Get<usize, Value = HalfEdge<HEW>>,
     FC: Get<usize, Value = Face<FW>>,
-> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC>
+    ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
+    FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
+        + Remove<GeomWithData<Rectangle<P>, FaceId>>,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     fn update_split_face_rtree<F>(
         &mut self,
@@ -886,7 +964,7 @@ impl<
 
     fn add_face_to_rtree_with_bbox(&mut self, face: FaceId, face_rectangle: Rectangle<P>) {
         self.faces_rtree
-            .insert(GeomWithData::new(face_rectangle, face));
+            .insert(GeomWithData::new(face_rectangle, face), ());
     }
 
     fn add_face_with_edges_to_rtrees(&mut self, face: FaceId) {
@@ -917,21 +995,102 @@ impl<
 
     fn add_edge_to_rtree(&mut self, edge: EdgeId) {
         let endpoints = self.dcel.edge_endpoints(edge);
-        self.edges_rtree.insert(GeomWithData::new(
-            Rectangle::from_corners(
-                Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
-                Into::<P>::into(self.dcel.vertex_weight(endpoints.1).clone()),
+        self.edges_rtree.insert(
+            GeomWithData::new(
+                Rectangle::from_corners(
+                    Into::<P>::into(self.dcel.vertex_weight(endpoints.0).clone()),
+                    Into::<P>::into(self.dcel.vertex_weight(endpoints.1).clone()),
+                ),
+                edge,
             ),
-            edge,
-        ));
+            (),
+        );
     }
 }
 
-impl<P: Point, VW: Into<P>, HEW, FW, VC, HEC, FC> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC> {
+impl<P: Point, VW: Into<P>, HEW, FW, VC, HEC, FC, ER, FR>
+    RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
+{
     fn rectangle_from_vertex_weights(weights: impl IntoIterator<Item = VW>) -> Rectangle<P> {
         Rectangle::from_aabb(weights.into_iter().fold(AABB::new_empty(), |aabb, weight| {
             aabb.merged(&AABB::from_point(Into::<P>::into(weight)))
         }))
+    }
+}
+
+#[cfg(feature = "undoredo")]
+impl<
+    P: Point,
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone,
+    VCD: Clone + KeyedCollection,
+    VC: Clone + KeyedCollection + ApplyDelta<VCD>,
+    HECD: Clone + KeyedCollection,
+    HEC: Clone + KeyedCollection + ApplyDelta<HECD>,
+    FCD: Clone + KeyedCollection,
+    FC: Clone + KeyedCollection + ApplyDelta<FCD>,
+    FRD: Clone + KeyedCollection,
+    FR: Clone + KeyedCollection + ApplyDelta<FRD>,
+    ERD: Clone + KeyedCollection,
+    ER: Clone + KeyedCollection + ApplyDelta<ERD>,
+> ApplyDelta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>>
+    for RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
+{
+    fn apply_delta(&mut self, delta: &Delta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>>) {
+        let (removed, inserted) = delta.clone().dissolve();
+
+        let dcel_delta = Delta::with_removed_inserted(removed.dcel, inserted.dcel);
+        self.dcel.apply_delta(&dcel_delta);
+
+        let edges_rtree_delta =
+            Delta::with_removed_inserted(removed.edges_rtree, inserted.edges_rtree);
+        self.edges_rtree.apply_delta(&edges_rtree_delta);
+
+        let faces_rtree_delta =
+            Delta::with_removed_inserted(removed.faces_rtree, inserted.faces_rtree);
+        self.faces_rtree.apply_delta(&faces_rtree_delta);
+    }
+}
+
+#[cfg(feature = "undoredo")]
+impl<
+    P: Point,
+    VW: Clone,
+    HEW: Clone,
+    FW: Clone,
+    VCD: Clone + KeyedCollection,
+    VC: Clone + KeyedCollection + FlushDelta<VCD>,
+    HECD: Clone + KeyedCollection,
+    HEC: Clone + KeyedCollection + FlushDelta<HECD>,
+    FCD: Clone + KeyedCollection,
+    FC: Clone + KeyedCollection + FlushDelta<FCD>,
+    FRD: Clone + KeyedCollection,
+    FR: Clone + KeyedCollection + FlushDelta<FRD>,
+    ERD: Clone + KeyedCollection,
+    ER: Clone + KeyedCollection + FlushDelta<ERD>,
+> FlushDelta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>>
+    for RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
+{
+    fn flush_delta(&mut self) -> Delta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>> {
+        let (removed_dcel, inserted_dcel) = self.dcel.flush_delta().dissolve();
+        let (removed_edges_rtree, inserted_edges_rtree) = self.edges_rtree.flush_delta().dissolve();
+        let (removed_faces_rtree, inserted_faces_rtree) = self.faces_rtree.flush_delta().dissolve();
+
+        Delta::with_removed_inserted(
+            RTreedDcel {
+                dcel: removed_dcel,
+                edges_rtree: removed_edges_rtree,
+                faces_rtree: removed_faces_rtree,
+                point_marker: PhantomData,
+            },
+            RTreedDcel {
+                dcel: inserted_dcel,
+                edges_rtree: inserted_edges_rtree,
+                faces_rtree: inserted_faces_rtree,
+                point_marker: PhantomData,
+            },
+        )
     }
 }
 
