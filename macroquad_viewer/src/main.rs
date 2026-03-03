@@ -277,7 +277,7 @@ async fn main() {
 
                 for face_idx in dcel.faces().indices() {
                     let face = FaceId::new(face_idx);
-                    if face == dcel.unbounded_face() || dcel.incident_half_edge(face).is_none() {
+                    if face == dcel.unbounded_face() || dcel.face_representative(face).is_none() {
                         continue;
                     }
 
@@ -314,7 +314,7 @@ async fn main() {
 
                 for face_idx in dcel.faces().indices() {
                     let face = FaceId::new(face_idx);
-                    if face == dcel.unbounded_face() || dcel.incident_half_edge(face).is_none() {
+                    if face == dcel.unbounded_face() || dcel.face_representative(face).is_none() {
                         continue;
                     }
 
@@ -382,7 +382,7 @@ async fn main() {
 
                     for face_idx in dcel.faces().indices() {
                         let face = FaceId::new(face_idx);
-                        if face == dcel.unbounded_face() || dcel.incident_half_edge(face).is_none()
+                        if face == dcel.unbounded_face() || dcel.face_representative(face).is_none()
                         {
                             continue;
                         }
@@ -505,7 +505,7 @@ async fn main() {
 
         for face_idx in dcel.faces().indices() {
             let face = FaceId::new(face_idx);
-            if face == dcel.unbounded_face() || dcel.incident_half_edge(face).is_none() {
+            if face == dcel.unbounded_face() || dcel.face_representative(face).is_none() {
                 continue;
             }
 
@@ -541,7 +541,7 @@ async fn main() {
 
             let draw_half_edge = |half_edge: HalfEdgeId, shift_sign: f32| {
                 let source_id = dcel.source(half_edge);
-                let dest_id = dcel.source(dcel.next_half_edge(half_edge));
+                let dest_id = dcel.source(dcel.next(half_edge));
                 let &(ox, oy) = dcel.vertex_weight(source_id);
                 let &(dx, dy) = dcel.vertex_weight(dest_id);
                 let p0 = to_world(ox, oy);
@@ -589,8 +589,8 @@ async fn main() {
                 }
                 draw_text(&label, label_pos.x, label_pos.y, font_size, WHITE);
 
-                let prev = dcel.prev_half_edge(half_edge);
-                let next = dcel.next_half_edge(half_edge);
+                let prev = dcel.prev(half_edge);
+                let next = dcel.next(half_edge);
                 let pn_label = format!("p{}, n{}", prev.id(), next.id());
                 let pn_font = 16.0;
                 let pn_dims = measure_text(&pn_label, None, pn_font as u16, 1.0);
@@ -600,8 +600,8 @@ async fn main() {
                 );
                 draw_text(&pn_label, pn_pos.x, pn_pos.y, pn_font, WHITE);
 
-                let cw = dcel.turn_half_edge(half_edge);
-                let ccw = dcel.turn_back_half_edge(half_edge);
+                let cw = dcel.turn(half_edge);
+                let ccw = dcel.turn_back(half_edge);
                 let cw_label = format!("cw{}, ccw{}", cw.id(), ccw.id());
                 let cw_font = 16.0;
                 let cw_dims = measure_text(&cw_label, None, cw_font as u16, 1.0);
