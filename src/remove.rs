@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Clear, Get, Insert, Remove, StableRemove};
+use maplike::{Clear, Get, Insert, Push, Remove, StableRemove};
 
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId};
 
@@ -94,11 +94,19 @@ impl<VW, HEW, FW, VC, HEC, FC: Remove<usize>> Dcel<VW, HEW, FW, VC, HEC, FC> {
     }
 }
 
-impl<VW, HEW, FW, VC: Clear, HEC: Clear, FC: Clear> Dcel<VW, HEW, FW, VC, HEC, FC> {
+impl<VW, HEW, FW: Default, VC: Clear, HEC: Clear, FC: Clear + Push<usize, Value = Face<FW>>>
+    Dcel<VW, HEW, FW, VC, HEC, FC>
+{
     pub fn clear(&mut self) {
         self.vertices.clear();
         self.half_edges.clear();
         self.faces.clear();
+
+        // Push the outermost face back. Having it is an invariant property.
+        self.faces.push(Face {
+            representative: None,
+            weight: FW::default(),
+        });
     }
 }
 

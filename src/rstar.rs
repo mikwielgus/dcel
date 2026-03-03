@@ -458,8 +458,17 @@ impl<
     }
 }
 
-impl<P: Point, VW, HEW, FW, VC: Clear, HEC: Clear, FC: Clear, ER: Clear, FR: Clear>
-    RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
+impl<
+    P: Point,
+    VW,
+    HEW,
+    FW: Default,
+    VC: Clear,
+    HEC: Clear,
+    FC: Clear + Push<usize, Value = Face<FW>>,
+    ER: Clear,
+    FR: Clear,
+> RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
     pub fn clear(&mut self) {
         self.dcel.clear();
