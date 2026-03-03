@@ -5,9 +5,9 @@
 use std::collections::BTreeSet;
 use std::marker::PhantomData;
 
-use maplike::{Get, Insert, KeyedCollection, Push, Remove, StableRemove};
+use maplike::{Clear, Get, Insert, KeyedCollection, Push, Remove, StableRemove};
 use rstar::{
-    AABB, Envelope, Point, RTree,
+    AABB, Envelope, Point,
     primitives::{GeomWithData, Rectangle},
 };
 use rstared::AsRefRTree;
@@ -455,6 +455,16 @@ impl<
         self.add_face_to_rtree(absorbing_face);
 
         absorbing_face
+    }
+}
+
+impl<P: Point, VW, HEW, FW, VC: Clear, HEC: Clear, FC: Clear, ER: Clear, FR: Clear>
+    RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
+{
+    pub fn clear(&mut self) {
+        self.dcel.clear();
+        self.edges_rtree.clear();
+        self.faces_rtree.clear();
     }
 }
 

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Get, Insert, Remove, StableRemove};
+use maplike::{Clear, Get, Insert, Remove, StableRemove};
 
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId};
 
@@ -91,6 +91,14 @@ impl<VW, HEW, FW, VC, HEC, FC: Remove<usize>> Dcel<VW, HEW, FW, VC, HEC, FC> {
 
     pub(crate) fn remove_orphaned_face(&mut self, face: FaceId) {
         self.faces.remove(&face.id());
+    }
+}
+
+impl<VW, HEW, FW, VC: Clear, HEC: Clear, FC: Clear> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    pub fn clear(&mut self) {
+        self.vertices.clear();
+        self.half_edges.clear();
+        self.faces.clear();
     }
 }
 
