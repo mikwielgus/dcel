@@ -448,6 +448,17 @@ impl<VW, HEW, FW, VC, HEC, FC: Push<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, 
             weight,
         }))
     }
+
+    fn add_unwired_face_with_representative(
+        &mut self,
+        weight: FW,
+        representative: HalfEdgeId,
+    ) -> FaceId {
+        FaceId(self.faces.push(Face {
+            representative: Some(representative),
+            weight,
+        }))
+    }
 }
 
 impl<
