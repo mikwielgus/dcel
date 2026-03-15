@@ -4,7 +4,7 @@
 
 [package]
 name = "dcel"
-version = "0.8.6"
+version = "0.8.7"
 authors = ["Mikolaj Wielgus <wielgusmikolaj@gmail.com>"]
 description = "Implementation of doubly-connected edge list."
 repository = "https://codeberg.org/topola/dcel"
