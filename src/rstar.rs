@@ -215,13 +215,6 @@ impl<
 
         face
     }
-
-    pub fn fill_hole(&mut self, representative: HalfEdgeId) -> FaceId {
-        let face = self.dcel.fill_hole(representative);
-        self.add_face_to_rtree(face);
-
-        face
-    }
 }
 
 impl<

@@ -99,25 +99,6 @@ impl<
             FW::default(),
         )
     }
-
-    pub fn fill_hole(&mut self, representative: HalfEdgeId) -> FaceId {
-        let face = self.add_unwired_face_with_representative(FW::default(), representative);
-        let half_edges: Vec<HalfEdgeId> = self
-            .circulate_half_edges_with_excludes(representative, [])
-            .collect();
-
-        for half_edge in half_edges {
-            self.half_edges.insert(
-                half_edge.id(),
-                HalfEdge {
-                    face,
-                    ..self.half_edges.get(&half_edge.id()).unwrap().clone()
-                },
-            )
-        }
-
-        face
-    }
 }
 
 impl<
