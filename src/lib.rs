@@ -53,7 +53,7 @@ pub use crate::walkers::{
 /// disambiguate it from other index types. Use the [id()] method to access the
 /// underlying index.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct VertexId(usize);
 
 impl VertexId {
@@ -76,7 +76,7 @@ impl VertexId {
 /// disambiguate it from other index types. Use the [id()] method to access the
 /// underlying index.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HalfEdgeId(usize);
 
 impl HalfEdgeId {
@@ -100,7 +100,7 @@ impl HalfEdgeId {
 /// by having only one possible representation. Otherwise, for each edge there
 /// would be two possible values, (x, y) and (y, x).
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EdgeId(HalfEdgeId, HalfEdgeId);
 
 impl EdgeId {
@@ -135,7 +135,7 @@ impl EdgeId {
 /// disambiguate it from other index types. Use the [id()] method to access the
 /// underlying index.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FaceId(usize);
 
 impl FaceId {
