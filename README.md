@@ -15,12 +15,16 @@ edges, and faces, while making only minimal assumptions about their shapes. You
 can freely choose wherever the vertices should have two or more dimensions, or
 wheverer the edges are line segments or curved arcs.
 
+DCEL is also known as *half-edge data structure*.
+
 In mathematics, particularly in [topological graph
 theory](https://en.wikipedia.org/wiki/Topological_graph_theory) and [algebraic
 graph theory](https://en.wikipedia.org/wiki/Algebraic_graph_theory), planar
-graph embeddings in the plane are represented using concepts such as cellularly
-embedded graph, [ribbon graph](https://ncatlab.org/nlab/show/ribbon+graph), band
-decomposition, ram graph, arrow presentation, signed rotation system.
+graph embeddings in the plane are instead represented
+using concepts such as cellularly embedded graph, [ribbon
+graph](https://ncatlab.org/nlab/show/ribbon+graph), band decomposition, ram
+graph, arrow presentation, signed rotation system, all of which have many
+similarities to the DCEL.
 
 ## Usage
 

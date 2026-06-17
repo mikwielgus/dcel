@@ -11,10 +11,11 @@ use crate::{
         CirculateEdgesWithExcludesReverseWalker, CirculateEdgesWithExcludesWalker,
         CirculateHalfEdgesWithExcludesIter, CirculateHalfEdgesWithExcludesReverseIter,
         CirculateHalfEdgesWithExcludesReverseWalker, CirculateHalfEdgesWithExcludesWalker,
-        CirculateHalfSpokesIter, CirculateHalfSpokesReverseIter, CirculateVertexesWithExcludesIter,
+        CirculateHalfSpokesReverseIter, CirculateVertexesWithExcludesIter,
         CirculateVertexesWithExcludesReverseIter, CirculateVertexesWithExcludesReverseWalker,
-        CirculateVertexesWithExcludesWalker, CirculationHalfSpokesReverseWalker,
-        CirculationHalfSpokesWalker, CirculationInterspokesIter, CirculationInterspokesReverseIter,
+        CirculateVertexesWithExcludesWalker, CirculationHalfSpokesIter,
+        CirculationHalfSpokesReverseWalker, CirculationHalfSpokesWalker,
+        CirculationInterspokesIter, CirculationInterspokesReverseIter,
         CirculationInterspokesReverseWalker, CirculationInterspokesWalker, CirculationSpokesIter,
         CirculationSpokesReverseIter, CirculationSpokesReverseWalker, CirculationSpokesWalker,
         HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker,
@@ -402,7 +403,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         &self,
         initial_half_edge: HalfEdgeId,
         excluded_half_edges: impl IntoIterator<Item = HalfEdgeId>,
-    ) -> CirculateHalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+    ) -> CirculationHalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         CirculationHalfSpokesWalker {
             circulator: self
                 .circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
@@ -761,7 +762,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
     pub fn face_half_spokes(
         &self,
         face: FaceId,
-    ) -> CirculateHalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
+    ) -> CirculationHalfSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         // Unbounded face has no half-edges. Since the unbounded face is
         // supposed to behave similarly to other faces, it is better to branch
         // out here than to have the code below panic.
