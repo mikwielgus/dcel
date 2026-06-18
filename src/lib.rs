@@ -34,8 +34,8 @@ use undoredo::{ApplyDelta, Delta, FlushDelta, Recorder};
 #[cfg(feature = "stable-vec")]
 pub use stable_vec::StableDcel;
 
-#[cfg(feature = "rstar")]
-mod rstar;
+/*#[cfg(feature = "rstar")]
+mod rstar;*/
 
 #[cfg(feature = "rstar")]
 pub use crate::rstar::{RTreedDcel, RTreedStableDcel};
