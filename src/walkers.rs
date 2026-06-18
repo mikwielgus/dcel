@@ -15,11 +15,11 @@ macro_rules! create_walker_and_iter {
     ) => {
         $(#[$walker_meta])*
         pub struct $walker {
-            $(pub $field: $type,)*
+            $(pub(crate) $field: $type,)*
         }
 
         impl $walker {
-            /// Convert this walker to a `Dcel`-borrowing iterator.
+            /// Convert this walker to a [`Dcel`]-borrowing iterator.
             pub fn iter<'a, VW, HEW, FW, VC, HEC, FC>(
                 self,
                 dcel: &'a Dcel<VW, HEW, FW, VC, HEC, FC>,
@@ -35,6 +35,8 @@ macro_rules! create_walker_and_iter {
         }
 
         impl<'a, VW, HEW, FW, VC, HEC, FC> $iter<'a, VW, HEW, FW, VC, HEC, FC> {
+            /// Detach the walker from iterator, thus allowing traversal without
+            /// borrowing [`Dcel`].
             pub fn walker(self) -> $walker {
                 self.walker
             }
@@ -57,6 +59,8 @@ create_walker_and_iter!(
 );
 
 impl CirculateVertexesWithExcludesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -94,6 +98,8 @@ create_walker_and_iter!(
 );
 
 impl CirculateVertexesWithExcludesReverseWalker {
+    /// Advance the walker , returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -130,6 +136,8 @@ create_walker_and_iter!(
 );
 
 impl HalfSpokesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -169,6 +177,8 @@ create_walker_and_iter!(
 );
 
 impl HalfSpokesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -207,6 +217,8 @@ create_walker_and_iter!(
 );
 
 impl SpokesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -242,6 +254,8 @@ create_walker_and_iter!(
 );
 
 impl SpokesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -278,6 +292,8 @@ create_walker_and_iter!(
 );
 
 impl InterspokesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -319,6 +335,8 @@ create_walker_and_iter!(
 );
 
 impl InterspokesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -363,6 +381,8 @@ create_walker_and_iter!(
 );
 
 impl CirculateHalfEdgesWithExcludesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -411,6 +431,8 @@ create_walker_and_iter!(
 );
 
 impl CirculateHalfEdgesWithExcludesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -458,6 +480,8 @@ create_walker_and_iter!(
 );
 
 impl CirculateEdgesWithExcludesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -495,6 +519,8 @@ create_walker_and_iter!(
 );
 
 impl CirculateEdgesWithExcludesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -534,6 +560,8 @@ create_walker_and_iter!(
 );
 
 impl CirculationHalfSpokesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -590,6 +618,8 @@ create_walker_and_iter!(
 );
 
 impl CirculationHalfSpokesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -644,6 +674,8 @@ create_walker_and_iter!(
 );
 
 impl CirculationSpokesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -681,6 +713,8 @@ create_walker_and_iter!(
 );
 
 impl CirculationSpokesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -718,6 +752,8 @@ create_walker_and_iter!(
 );
 
 impl CirculationInterspokesWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,
@@ -755,6 +791,8 @@ create_walker_and_iter!(
 );
 
 impl CirculationInterspokesReverseWalker {
+    /// Advance the walker, returning the next value, or `None` when walk is
+    /// finished.
     #[inline]
     pub fn next<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>(
         &mut self,

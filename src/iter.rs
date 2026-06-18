@@ -25,6 +25,8 @@ use crate::{
 };
 
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Iterate over half-spokes sticking out from a vertex in forward
+    /// direction.
     #[inline]
     pub fn vertex_half_spokes(
         &self,
@@ -33,6 +35,8 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
         self.half_spokes(self.vertex_representative(vertex))
     }
 
+    /// Iterate over half-spokes sticking out from a vertex in backward
+    /// direction.
     #[inline]
     pub fn vertex_half_spokes_reverse(
         &self,
@@ -45,6 +49,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW,
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Iterate over vertex rim vertices in forward direction.
     #[inline]
     pub fn vertex_rim_vertices(
         &self,
@@ -56,6 +61,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         .iter(self)
     }
 
+    /// Iterate over vertex rim vertices in backward direction.
     #[inline]
     pub fn vertex_rim_vertices_reverse(
         &self,
@@ -71,6 +77,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Iterate over vertex rim half-edges in forward direction.
     #[inline]
     pub fn vertex_rim_half_edges(
         &self,
@@ -96,6 +103,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         self.circulate_half_edges_with_excludes(initial_half_edge, excluded_half_edges)
     }
 
+    /// Iterate over vertex rim half-edges in backward direction.
     #[inline]
     pub fn vertex_rim_half_edges_reverse(
         &self,
@@ -151,11 +159,13 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Iterate over vertex spokes in forward direction.
     #[inline]
     pub fn vertex_spokes(&self, vertex: VertexId) -> SpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         self.spokes(self.vertex_representative(vertex))
     }
 
+    /// Iterate over vertex spokes in backward direction.
     #[inline]
     pub fn vertex_spokes_reverse(
         &self,
@@ -168,6 +178,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Iterate over vertex rim edges in forward direction.
     #[inline]
     pub fn vertex_rim_edges(
         &self,
@@ -179,6 +190,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         .iter(self)
     }
 
+    /// Iterate over vertex rim edges in backward direction.
     #[inline]
     pub fn vertex_rim_edges_reverse(
         &self,
@@ -194,6 +206,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = HalfEdge<HEW>>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Iterate over interspokes sharing a vertex in forward direction.
     #[inline]
     pub fn vertex_interspokes(
         &self,
@@ -202,6 +215,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
         self.interspokes(self.vertex_representative(vertex))
     }
 
+    /// Iterate over interspokes sharing a vertex in backward direction.
     #[inline]
     pub fn vertex_interspokes_reverse(
         &self,
@@ -652,6 +666,7 @@ impl<
     FC: Get<usize, Value = Face<FW>>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Iterate over vertices on the boundary of a face in forward direction.
     #[inline]
     pub fn face_vertices(
         &self,
@@ -663,6 +678,7 @@ impl<
         .iter(self)
     }
 
+    /// Iterate over vertices on the boundary of a face in backward direction.
     #[inline]
     pub fn face_vertices_reverse(
         &self,
@@ -676,6 +692,7 @@ impl<
 }
 
 impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Iterate over half-edges on the boundary of a face in forward direction.
     #[inline]
     pub fn face_half_edges(
         &self,
@@ -704,6 +721,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         .iter(self)
     }
 
+    /// Iterate over half-edges on the boundary of a face in backward direction.
     #[inline]
     pub fn face_half_edges_reverse(
         &self,
@@ -732,6 +750,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         .iter(self)
     }
 
+    /// Iterate over edges on the boundary of a face in forward direction.
     #[inline]
     pub fn face_edges(
         &self,
@@ -743,6 +762,7 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
         .iter(self)
     }
 
+    /// Iterate over edges on the boundary of a face in backward direction.
     #[inline]
     pub fn face_edges_reverse(
         &self,
@@ -758,6 +778,8 @@ impl<VW, HEW, FW, VC, HEC, FC: Get<usize, Value = Face<FW>>> Dcel<VW, HEW, FW, V
 impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Value = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Iterate over half-spokes sticking out from the boundary of a face in
+    /// forward direction.
     #[inline]
     pub fn face_half_spokes(
         &self,
@@ -788,6 +810,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_half_spokes(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over half-spokes sticking out from the boundary of a face in
+    /// backward direction.
     #[inline]
     pub fn face_half_spokes_reverse(
         &self,
@@ -818,6 +842,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_half_spokes_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over spokes sticking out from the boundary of a face in forward
+    /// direction.
     #[inline]
     pub fn face_spokes(&self, face: FaceId) -> CirculationSpokesIter<'_, VW, HEW, FW, VC, HEC, FC> {
         // Unbounded face has no half-edges. Since the unbounded face is
@@ -847,6 +873,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_spokes(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over spokes sticking out from the boundary of a face in backward
+    /// direction.
     #[inline]
     pub fn face_spokes_reverse(
         &self,
@@ -879,6 +907,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_spokes_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over interspokes touching the boundary of a face in forward
+    /// direction.
     #[inline]
     pub fn face_interspokes(
         &self,
@@ -911,6 +941,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_interspokes(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over interspokes touching the boundary of a face in backward
+    /// direction.
     #[inline]
     pub fn face_interspokes_reverse(
         &self,
@@ -943,6 +975,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_interspokes_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over half-edges of the rim of a face in forward direction.
     #[inline]
     pub fn face_rim_half_edges(
         &self,
@@ -966,6 +999,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_rim_half_edges(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over half-edges of the rim of a face in backward direction.
     #[inline]
     pub fn face_rim_half_edges_reverse(
         &self,
@@ -989,6 +1023,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_rim_half_edges_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over vertices of the rim of a face in forward direction.
     #[inline]
     pub fn face_rim_vertices(
         &self,
@@ -1014,6 +1049,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_rim_vertices(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over vertices of the rim of a face in backward direction.
     #[inline]
     pub fn face_rim_vertices_reverse(
         &self,
@@ -1039,6 +1075,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_rim_vertices_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over edges of the rim of a face in forward direction.
     #[inline]
     pub fn face_rim_edges(
         &self,
@@ -1064,6 +1101,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC: Get<usize, Val
         self.circulation_rim_edges(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over edges of the rim of a face in backward direction.
     #[inline]
     pub fn face_rim_edges_reverse(
         &self,
