@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
+#![allow(dead_code, missing_docs, unused)]
+
 pub const HEX_MESH_3X3: [[[(i32, i32); 6]; 3]; 3] = [
     [
         [
