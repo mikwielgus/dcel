@@ -50,7 +50,7 @@ about `dcel`'s usage.
 ## Contributing
 
 We welcome issues and pull requests from anyone to our canonical
-[repository](https://codeberg.org/topola/dcel) on Codeberg.
+[repository](https://github.com/mikwielgus/dcel) on GitHub.
 
 ## Licence
 
