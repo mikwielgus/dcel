@@ -49,8 +49,19 @@ about `dcel`'s usage.
 
 ## Contributing
 
+### Venues
+
 We welcome issues and pull requests from anyone to our canonical
 [repository](https://github.com/mikwielgus/dcel) on GitHub.
+
+### AI policy
+
+We accept contributions created with the help of generative AI tools. Disclosure
+is welcome but not required, unless we ask you.
+
+However, outside of our repository's code, everywhere in our community's spaces
+(including bug tracker), any text or other media that has been synthesized with
+LLMs or any other generative tool should be clearly marked as such.
 
 ## Licence
 
