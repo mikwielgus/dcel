@@ -15,6 +15,9 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Remove a face along with its edges and vertices.
+    ///
+    /// Returns face's edges and interspokes.
     pub fn remove_face(&mut self, face: FaceId) -> (Vec<EdgeId>, Vec<FaceId>) {
         let mut edges: Vec<EdgeId> = self.face_edges(face).collect();
         edges.extend(self.face_spokes(face));
@@ -30,6 +33,12 @@ impl<
         (edges, interspokes)
     }
 
+    /// Remove an edge, merging the faces separated by it.
+    ///
+    /// One of the faces (absorber) absorbs the other (absorbee). The absorbee's
+    /// face id is invalidated.
+    ///
+    /// Returns the id of the resulting single face, the absorber.
     pub fn remove_edge(&mut self, edge: EdgeId) -> FaceId {
         let absorbing_face = self.incident_face(edge.lesser());
         let face_to_absorb = self.opposite_face(edge.lesser());
@@ -39,6 +48,12 @@ impl<
         absorbing_face
     }
 
+    /// Remove a chain of edges that separates two faces.
+    ///
+    /// One of the faces (absorber) absorbs the other (absorbee). The absorbee's
+    /// face id is invalidated.
+    ///
+    /// Returns the id of the resulting single face, the absorber.
     pub fn remove_edge_chain(&mut self, edges: impl IntoIterator<Item = EdgeId>) -> FaceId {
         let edges: Vec<EdgeId> = edges.into_iter().collect();
 
@@ -97,6 +112,10 @@ impl<VW, HEW, FW, VC, HEC, FC: Remove<usize>> Dcel<VW, HEW, FW, VC, HEC, FC> {
 impl<VW, HEW, FW: Default, VC: Clear, HEC: Clear, FC: Clear + Push<usize, Value = Face<FW>>>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Remove all vertices, half-edges, and faces from the DCEL.
+    ///
+    /// The unbounded face is recreated afterward, since its presence is an
+    /// invariant of the structure.
     pub fn clear(&mut self) {
         self.vertices.clear();
         self.half_edges.clear();

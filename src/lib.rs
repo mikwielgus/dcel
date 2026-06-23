@@ -4,7 +4,7 @@
 
 #![doc(html_root_url = "https://docs.rs/dcel")]
 #![doc = include_str!("../README.md")]
-//#![deny(missing_docs)]
+#![deny(missing_docs)]
 #![forbid(unsafe_code)]
 
 mod get;
@@ -230,6 +230,7 @@ impl<VW, HEW, FW: Default, VC: Default, HEC: Default, FC: Default + Push<usize, 
 }
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Create a new DCEL from collections of vertices, half-edges, and faces.
     #[inline]
     pub fn from_collections(vertices: VC, half_edges: HEC, faces: FC) -> Self {
         Self {
@@ -247,6 +248,7 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC>
 where
     for<'a> &'a VC: IntoIterator<Item = &'a usize>,
 {
+    /// Returns an iterator over the ids of all vertices.
     #[inline]
     pub fn vertex_ids(&self) -> impl Iterator<Item = VertexId> {
         self.vertices.into_iter().map(|id| VertexId(*id))
@@ -257,6 +259,7 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC>
 where
     for<'a> &'a HEC: IntoIterator<Item = &'a usize>,
 {
+    /// Returns an iterator over the ids of all half-edges.
     #[inline]
     pub fn half_edge_ids(&self) -> impl Iterator<Item = HalfEdgeId> {
         self.half_edges.into_iter().map(|id| HalfEdgeId(*id))
@@ -267,6 +270,7 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC>
 where
     for<'a> &'a FC: IntoIterator<Item = &'a usize>,
 {
+    /// Returns an iteractor over the ids of all faces.
     #[inline]
     pub fn face_ids(&self) -> impl Iterator<Item = FaceId> {
         self.faces.into_iter().map(|id| FaceId(*id))
@@ -381,7 +385,8 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
     ) -> (HalfEdgeId, HalfEdgeId) {
         let forward_half_edge = HalfEdgeId(self.half_edges.push(HalfEdge {
             source,
-            // Uninitialized as edge 0 before until the twin is created in the next few lines of this method.
+            // Uninitialized as edge 0 before until the twin is created in the next few lines of
+            // this method.
             twin: HalfEdgeId(0),
             // Uninitialized as edge 0. Initializing `.prev` and `.next` to
             // correct value is the responsibility of the caller.
@@ -409,7 +414,8 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
             forward_half_edge.id(),
             HalfEdge {
                 source,
-                // Uninitialized as edge 0 before until the twin is created in the next few lines of this method.
+                // Uninitialized as edge 0 before until the twin is created in the next few lines of
+                // this method.
                 twin: backward_half_edge,
                 // Uninitialized as edge 0. Initializing `.prev` and `.next` to
                 // correct value is the responsibility of the caller.

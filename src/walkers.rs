@@ -35,8 +35,8 @@ macro_rules! create_walker_and_iter {
         }
 
         impl<'a, VW, HEW, FW, VC, HEC, FC> $iter<'a, VW, HEW, FW, VC, HEC, FC> {
-            /// Detach the walker from iterator, thus allowing traversal without
-            /// borrowing [`Dcel`].
+            /// Detach the walker from iterator, thus allowing traversal without borrowing
+            /// [`Dcel`].
             pub fn walker(self) -> $walker {
                 self.walker
             }
@@ -45,16 +45,15 @@ macro_rules! create_walker_and_iter {
 }
 
 create_walker_and_iter!(
-    /// Walker to circulate over vertices in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker to circulate over vertices in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculateVertexesWithExcludesWalker {
         circulator: CirculateHalfEdgesWithExcludesWalker,
     },
-    /// Iterator to circulate over vertices in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator to circulate over vertices in forward direction.
     ///
-    /// This is [`CirculateVertexesWithExcludesWalker`], together with an
-    /// immutably borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculateVertexesWithExcludesIter
 );
 
@@ -84,16 +83,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker to circulate over vertices in backward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker to circulate over vertices in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculateVertexesWithExcludesReverseWalker {
         circulator: CirculateHalfEdgesWithExcludesReverseWalker,
     },
-    /// Iterator to circulate over half-edges in backward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator to circulate over half-edges in backward direction.
     ///
-    /// This is [`CirculateVertexesWithExcludesReverseWalker`], together with an
-    /// immutably borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculateVertexesWithExcludesReverseIter
 );
 
@@ -128,10 +126,9 @@ create_walker_and_iter!(
         initial_half_edge: HalfEdgeId,
         curr_half_edge: Option<HalfEdgeId>,
     },
-    /// Iterator over half-spokes of a vertex in forward direction.
-    ///
-    /// This is [`HalfSpokesWalker`], together with an immutably borrowed
-    /// [`Dcel`], wrapped in an iterator.
+    /// Iterator over half-spokes of a vertex in forward direction. This is
+    /// [`HalfSpokesWalker`], together with an immutably borrowed [`Dcel`],
+    /// wrapped in an iterator.
     HalfSpokesIter
 );
 
@@ -169,10 +166,9 @@ create_walker_and_iter!(
         initial_half_edge: HalfEdgeId,
         curr_half_edge: Option<HalfEdgeId>,
     },
-    /// Iterator over half-spokes of a vertex in backward direction.
-    ///
-    /// This is [`HalfSpokesReverseWalker`], together with an immutably borrowed
-    /// [`Dcel`], wrapped in an iterator.
+    /// Iterator over half-spokes of a vertex in backward direction. This is
+    /// [`HalfSpokesReverseWalker`], together with an immutably borrowed [`Dcel`],
+    /// wrapped in an iterator.
     HalfSpokesReverseIter
 );
 
@@ -209,10 +205,9 @@ create_walker_and_iter!(
     SpokesWalker {
         circulator: HalfSpokesWalker,
     },
-    /// Iterator over spokes of a vertex in forward direction.
-    ///
-    /// This is [`SpokesWalker`], together with an immutably borrowed [`Dcel`],
-    /// wrapped in an iterator.
+    /// Iterator over spokes of a vertex in forward direction. This is
+    /// [`SpokesWalker`], together with an immutably borrowed [`Dcel`], wrapped in
+    /// an iterator.
     SpokesIter
 );
 
@@ -246,10 +241,9 @@ create_walker_and_iter!(
     SpokesReverseWalker {
         circulator: HalfSpokesReverseWalker,
     },
-    /// Iterator over spokes of a vertex in backward direction.
-    ///
-    /// This is [`SpokesReverseWalker`], together with an immutably borrowed
-    /// [`Dcel`], wrapped in an iterator.
+    /// Iterator over spokes of a vertex in backward direction. This is
+    /// [`SpokesReverseWalker`], together with an immutably borrowed [`Dcel`],
+    /// wrapped in an iterator.
     SpokesReverseIter
 );
 
@@ -284,10 +278,9 @@ create_walker_and_iter!(
         initial_half_edge: HalfEdgeId,
         curr_half_edge: Option<HalfEdgeId>,
     },
-    /// Iterator over interspokes of a vertex in forward direction.
-    ///
-    /// This is [`InterspokesWalker`], together with an immutably borrowed
-    /// [`Dcel`], wrapped in an iterator.
+    /// Iterator over interspokes of a vertex in forward direction. This is
+    /// [`InterspokesWalker`], together with an immutably borrowed [`Dcel`],
+    /// wrapped in an iterator.
     InterspokesIter
 );
 
@@ -327,9 +320,8 @@ create_walker_and_iter!(
         initial_half_edge: HalfEdgeId,
         curr_half_edge: Option<HalfEdgeId>,
     },
-    /// Iterator over interspokes of a circulation in backward direction.
-    ///
-    /// This is [`InterspokesReverseWalker`], together with an immutably borrowed
+    /// Iterator over interspokes of a circulation in backward direction. This is
+    /// [`InterspokesReverseWalker`], together with an immutably borrowed
     /// [`Dcel`], wrapped in an iterator.
     InterspokesReverseIter
 );
@@ -365,18 +357,17 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker to circulate over half-edges in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker to circulate over half-edges in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculateHalfEdgesWithExcludesWalker {
         initial_half_edge: HalfEdgeId,
         curr_half_edge: Option<HalfEdgeId>,
         excluded_half_edges: Vec<HalfEdgeId>,
     },
-    /// Iterator to circulate over half-edges in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator to circulate over half-edges in forward direction.
     ///
-    /// This is [`CirculateHalfEdgesWithExcludesWalker`], together with an
-    /// immutably borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculateHalfEdgesWithExcludesIter
 );
 
@@ -415,18 +406,17 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker to circulate over half-edges in backward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker to circulate over half-edges in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculateHalfEdgesWithExcludesReverseWalker {
         initial_half_edge: HalfEdgeId,
         curr_half_edge: Option<HalfEdgeId>,
         excluded_half_edges: Vec<HalfEdgeId>,
     },
-    /// Iterator to circulate over half-edges in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator to circulate over half-edges in forward direction.
     ///
-    /// This is [`CirculateHalfEdgesWithExcludesReverseWalker`], together with an
-    /// immutably borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculateHalfEdgesWithExcludesReverseIter
 );
 
@@ -466,16 +456,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker to circulate over edges in forward direction. Excludes provided
-    /// half-edges from traversal.
+    /// Walker to circulate over edges in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculateEdgesWithExcludesWalker {
         circulator: CirculateHalfEdgesWithExcludesWalker,
     },
-    /// Iterator to circulate over edges in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator to circulate over edges in forward direction.
     ///
-    /// This is [`CirculateEdgesWithExcludesWalker`], together with an
-    /// immutably borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculateEdgesWithExcludesIter
 );
 
@@ -505,16 +494,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker to circulate over edges in backward direction. Excludes provided
-    /// half-edges from traversal.
+    /// Walker to circulate over edges in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculateEdgesWithExcludesReverseWalker {
         circulator: CirculateHalfEdgesWithExcludesReverseWalker,
     },
-    /// Iterator to circulate over edges in backward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator to circulate over edges in backward direction.
     ///
-    /// This is [`CirculateEdgesWithExcludesReverseWalker`], together with an
-    /// immutably borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculateEdgesWithExcludesReverseIter
 );
 
@@ -544,18 +532,17 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker over half-spokes of a circulation in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker over half-spokes of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculationHalfSpokesWalker {
         circulator: CirculateHalfEdgesWithExcludesWalker,
         half_spokes_walker: HalfSpokesWalker,
         prev_half_edge: HalfEdgeId,
     },
     /// Iterator over half-spokes of a circulation in forward direction.
-    /// Excludes provided half-edges from traversal.
     ///
-    /// This is [`CirculationHalfSpokesWalker`], together with an immutably
-    /// borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculationHalfSpokesIter
 );
 
@@ -602,18 +589,17 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker over half-spokes of a circulation in backward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker over half-spokes of a circulation in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculationHalfSpokesReverseWalker {
         circulator: CirculateHalfEdgesWithExcludesReverseWalker,
         half_spokes_walker: HalfSpokesWalker,
         prev_half_edge: HalfEdgeId,
     },
     /// Iterator over half-spokes of a circulation in backward direction.
-    /// Excludes provided half-edges from traversal.
     ///
-    /// This is [`CirculateHalfSpokesReverseWalker`], together with an immutably
-    /// borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculateHalfSpokesReverseIter
 );
 
@@ -660,16 +646,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker over spokes of a circulation in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker over spokes of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculationSpokesWalker {
         circulator: CirculationHalfSpokesWalker,
     },
-    /// Iterator over spokes of a circulation in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator over spokes of a circulation in forward direction.
     ///
-    /// This is [`CirculationSpokesWalker`], together with an immutably
-    /// borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculationSpokesIter
 );
 
@@ -699,16 +684,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker over spokes of a circulation in reverse direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker over spokes of a circulation in reverse direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculationSpokesReverseWalker {
         circulator: CirculationHalfSpokesReverseWalker,
     },
-    /// Iterator over spokes of a circulation in reverse direction. Excludes
-    /// provided half-edges from traversal.
+    /// Iterator over spokes of a circulation in reverse direction.
     ///
-    /// This is [`CirculationSpokesReverseWalker`], together with an immutably
-    /// borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculationSpokesReverseIter
 );
 
@@ -738,16 +722,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker over interspokes of a circulation in forward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker over interspokes of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculationInterspokesWalker {
         circulator: CirculationHalfSpokesWalker,
     },
     /// Iterator over interspokes of a circulation in forward direction.
-    /// Excludes provided half-edges from traversal.
     ///
-    /// This is [`CirculationInterspokesWalker`], together with an immutably
-    /// borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculationInterspokesIter
 );
 
@@ -777,16 +760,15 @@ impl<'a, VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Iterator
 }
 
 create_walker_and_iter!(
-    /// Walker over interspokes of a circulation in backward direction. Excludes
-    /// provided half-edges from traversal.
+    /// Walker over interspokes of a circulation in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     CirculationInterspokesReverseWalker {
         circulator: CirculationHalfSpokesReverseWalker,
     },
     /// Iterator over interspokes of a circulation in backward direction.
-    /// Excludes provided half-edges from traversal.
     ///
-    /// This is [`CirculationInterspokesReverseWalker`], together with an immutably
-    /// borrowed [`Dcel`], wrapped in an iterator.
+    /// Provided half-edges are excluded from traversal.
     CirculationInterspokesReverseIter
 );
 

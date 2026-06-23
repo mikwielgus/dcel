@@ -15,6 +15,10 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Split an edge by inserting a new vertex on it.
+    ///
+    /// Returns the id of the new vertex and the id of the newly created edge
+    /// that connects it to the original edge's source vertex.
     pub fn split_edge_by_vertex(
         &mut self,
         edge_to_split: EdgeId,
@@ -69,6 +73,10 @@ impl<
         (new_vertex, new_edge)
     }
 
+    /// Split a face by inserting an edge between two of its boundary vertices.
+    ///
+    /// Returns the ids of the edge's half-edges and the id of the new face
+    /// created by the split.
     pub fn split_face_by_edge(
         &mut self,
         from: VertexId,
@@ -83,6 +91,11 @@ impl<
         (new_edge, new_face)
     }
 
+    /// Split a face by inserting an edge chain between two of its boundary
+    /// vertices.
+    ///
+    /// Returns the ids of the edges' half-edges and the id of the new face
+    /// created by the split.
     pub fn split_face_by_edge_chain(
         &mut self,
         from: VertexId,
@@ -110,6 +123,11 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Split a face by inserting an edge chain between two of its boundary
+    /// vertices, with all vertex, edge, and new face weights specified.
+    ///
+    /// Returns the ids of the edges' half-edges and the id of the new face
+    /// created by the split.
     pub fn split_face_by_edge_chain_with_all_weights(
         &mut self,
         from: VertexId,

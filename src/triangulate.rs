@@ -39,6 +39,14 @@ impl<
         )
     }
 
+    /// Partition a face into triangles by connecting an existing vertex to all
+    /// of the face's boundary vertices.
+    ///
+    /// The original face is reused for the first triangle. New faces are
+    /// created for all the other triangles.
+    ///
+    /// Returns the ids of all the newly created edges and faces (the reused
+    /// already existing edges and face are not included).
     pub fn fan_triangulate(
         &mut self,
         perimeter_face: FaceId,
@@ -64,6 +72,16 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Partition a face into triangles by inserting a vertex inside and adding
+    /// edges between it and the original face's vertices, with all edge and
+    /// triangle face weights specified.
+    ///
+    /// The original face is reused for the first triangle. New faces are
+    /// created for all the other triangles.
+    ///
+    /// Returns the new vertex id together with the ids of all the newly created
+    /// edges and faces (the reused already existing edges and face are not
+    /// included).
     pub fn triangulate_face_around_point_with_all_weights(
         &mut self,
         perimeter_face: FaceId,
@@ -82,6 +100,15 @@ impl<
         (inner_vertex, new_edges, new_faces)
     }
 
+    /// Partition a face into triangles by connecting an existing vertex to all
+    /// of the face's boundary vertices, with all edge and triangle face weights
+    /// specified.
+    ///
+    /// The original face is reused for the first triangle. New faces are
+    /// created for all the other triangles.
+    ///
+    /// Returns the ids of all the newly created edges and faces (the reused
+    /// already existing edges and face are not included).
     pub fn fan_triangulate_with_all_weights(
         &mut self,
         perimeter_face: FaceId,

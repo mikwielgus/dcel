@@ -18,6 +18,7 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Insert a mesh made of overlapping polygons.
     pub fn insert_mesh(
         &mut self,
         face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
@@ -25,6 +26,7 @@ impl<
         self.insert_mesh_in_face(face_polygons)
     }
 
+    /// Insert a mesh made of overlapping polygons.
     pub fn insert_mesh_in_face(
         &mut self,
         face_polygons: impl IntoIterator<Item = impl IntoIterator<Item = VW>>,
@@ -85,10 +87,12 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Insert a polygon.
     pub fn insert_polygon(&mut self, vertex_weights: impl IntoIterator<Item = VW>) -> FaceId {
         self.insert_polygon_in_face(self.unbounded_face(), vertex_weights)
     }
 
+    /// Insert a polygon in a given face.
     pub fn insert_polygon_in_face(
         &mut self,
         outer_face: FaceId,
@@ -251,6 +255,8 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Insert a polygon with all its vertex and edge weights, and its face
+    /// weight, specified.
     pub fn insert_polygon_with_all_weights(
         &mut self,
         vertex_weights: impl IntoIterator<Item = VW>,
@@ -265,6 +271,8 @@ impl<
         )
     }
 
+    /// Insert a polygon into a given face with all its vertex and edge weights,
+    /// and its face weight, specified.
     pub fn insert_polygon_in_face_with_all_weights(
         &mut self,
         outer_face: FaceId,
@@ -337,6 +345,10 @@ impl<
     FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
+    /// Insert an edge between two vertices, splitting a face in two.
+    ///
+    /// Returns the ids of the edge's half-edges and the id of the new face
+    /// created by the split.
     pub fn insert_edge(
         &mut self,
         from: VertexId,
@@ -345,6 +357,10 @@ impl<
         self.split_face_by_edge(from, to, self.find_vertices_common_face(from, to).unwrap())
     }
 
+    /// Insert an edge chain between two vertices, splitting a face in two.
+    ///
+    /// Returns the ids of the edge's half-edges and the id of the new face
+    /// created by the split.
     pub fn insert_edge_chain(
         &mut self,
         from: VertexId,

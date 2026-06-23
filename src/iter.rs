@@ -131,6 +131,8 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 }
 
 impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Iterate over half-spokes sticking out from a vertex in forward
+    /// direction.
     #[inline]
     pub fn half_spokes(
         &self,
@@ -143,6 +145,8 @@ impl<VW, HEW, FW, VC, HEC, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
         .iter(self)
     }
 
+    /// Iterate over half-spokes sticking out from a vertex in backward
+    /// direction.
     #[inline]
     pub fn half_spokes_reverse(
         &self,
@@ -226,6 +230,7 @@ impl<VW, HEW, FW, VC: Get<usize, Value = Vertex<VW>>, HEC: Get<usize, Value = Ha
 }
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Iterate over vertex spokes in forward direction.
     #[inline]
     pub fn spokes(
         &self,
@@ -240,6 +245,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over vertex spokes in backward direction.
     #[inline]
     pub fn spokes_reverse(
         &self,
@@ -254,6 +260,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over interspokes sharing a vertex in forward direction.
     #[inline]
     pub fn interspokes(
         &self,
@@ -266,6 +273,7 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over interspokes sharing a vertex in backward direction.
     #[inline]
     pub fn interspokes_reverse(
         &self,
@@ -280,6 +288,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
 }
 
 impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, FW, VC, HEC, FC> {
+    /// Iterate over vertices in the circulation around the same incident face
+    /// in forward direction.
     #[inline]
     pub fn circulate_vertices(
         &self,
@@ -288,6 +298,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_vertices_with_excludes(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over vertices in the circulation around the same incident face
+    /// in backward direction.
     #[inline]
     pub fn circulate_vertices_reverse(
         &self,
@@ -296,6 +308,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_vertices_with_excludes_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over vertices in the circulation around the same incident face
+    /// in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulate_vertices_with_excludes(
         &self,
@@ -310,6 +326,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over vertices in the circulation around the same incident face
+    /// in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulate_vertices_with_excludes_reverse(
         &self,
@@ -324,6 +344,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over half-edges in the circulation around the same incident face
+    /// in forward direction.
     #[inline]
     pub fn circulate_half_edges(
         &self,
@@ -332,6 +354,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_half_edges_with_excludes(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over half-edges in the circulation around the same incident face
+    /// in backward direction.
     #[inline]
     pub fn circulate_half_edges_reverse(
         &self,
@@ -340,6 +364,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_half_edges_with_excludes_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over half-edges in the circulation around the same incident face
+    /// in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulate_half_edges_with_excludes(
         &self,
@@ -354,6 +382,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over half-edges in the circulation around the same incident face
+    /// in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulate_half_edges_with_excludes_reverse(
         &self,
@@ -368,6 +400,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over edges in the circulation around the same incident face in
+    /// forward direction.
     #[inline]
     pub fn circulate_edges(
         &self,
@@ -376,6 +410,8 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_edges_with_excludes(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over edges in the circulation around the same incident face in
+    /// backward direction.
     #[inline]
     pub fn circulate_edges_reverse(
         &self,
@@ -384,6 +420,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_edges_with_excludes_reverse(initial_half_edge, std::iter::empty())
     }
 
+    /// Iterate over edges in the circulation around the same incident face in
+    /// forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulate_edges_with_excludes(
         &self,
@@ -398,6 +438,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over edges in the circulation around the same incident face in
+    /// backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulate_edges_with_excludes_reverse(
         &self,
@@ -412,6 +456,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over half-spokes of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_half_spokes(
         &self,
@@ -428,6 +475,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over half-spokes of a circulation in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_half_spokes_reverse(
         &self,
@@ -444,6 +494,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over spokes of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_spokes(
         &self,
@@ -462,6 +515,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over spokes of a circulation in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_spokes_reverse(
         &self,
@@ -483,6 +539,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over interspokes of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_interspokes(
         &self,
@@ -501,6 +560,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over interspokes of a circulation in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_interspokes_reverse(
         &self,
@@ -522,6 +584,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over half-edges of the rim of a circulation in forward
+    /// direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_rim_half_edges(
         &self,
@@ -560,6 +626,10 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_half_edges_with_excludes(initial_half_edge, rim_excluded_half_edges)
     }
 
+    /// Iterate over half-edges of the rim of a circulation in backward
+    /// direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_rim_half_edges_reverse(
         &self,
@@ -600,6 +670,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         self.circulate_half_edges_with_excludes_reverse(initial_half_edge, rim_excluded_half_edges)
     }
 
+    /// Iterate over edges of the rim of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_rim_edges(
         &self,
@@ -614,6 +687,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over edges of the rim of a circulation in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_rim_edges_reverse(
         &self,
@@ -628,6 +704,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over vertices of the rim of a circulation in forward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_rim_vertices(
         &self,
@@ -642,6 +721,9 @@ impl<VW, HEW, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>>, FC> Dcel<VW, HEW, 
         .iter(self)
     }
 
+    /// Iterate over vertices of the rim of a circulation in backward direction.
+    ///
+    /// Provided half-edges are excluded from traversal.
     #[inline]
     pub fn circulation_rim_vertices_reverse(
         &self,
