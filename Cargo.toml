@@ -12,7 +12,7 @@ documentation = "https://docs.rs/dcel"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 keywords = ["no_std"]
-categories = ["data-structures", "no-std", "rust-patterns"]
+categories = ["data-structures", "half-edge", "no-std", "rust-patterns"]
 edition = "2024"
 
 [badges]
