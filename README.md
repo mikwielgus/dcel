@@ -54,14 +54,17 @@ about `dcel`'s usage.
 We welcome issues and pull requests from anyone to our canonical
 [repository](https://github.com/mikwielgus/dcel) on GitHub.
 
-### AI policy
+### Generative AI policy
 
-We accept contributions created with the help of generative AI tools. Disclosure
-is welcome but not required, unless we ask you.
+We accept contributions created with the help of generative artificial
+intelligence (AI) tools as long as they are of good quality. Disclosure is
+welcome but not required, unless we ask you.
 
 However, outside of our repository's code, everywhere in our community's spaces
 (including bug tracker), any text or other media that has been synthesized with
-LLMs or any other generative tool should be clearly marked as such.
+large language models (LLMs) or any other generative tool should be clearly marked as such.
+
+So far, virtually all code in `dcel` was written by hand.
 
 ## Licence
 
