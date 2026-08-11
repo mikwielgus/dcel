@@ -11,7 +11,7 @@ repository = "https://github.com/mikwielgus/dcel"
 documentation = "https://docs.rs/dcel"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-keywords = ["no_std"]
+keywords = ["half-edge", "no_std"]
 categories = ["data-structures", "no-std", "rust-patterns"]
 edition = "2024"
 
