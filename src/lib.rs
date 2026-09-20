@@ -498,6 +498,7 @@ impl<
     }
 }
 
+/// A [Dcel] whose vertex, half-edge, and face collections record undo/redo deltas.
 #[cfg(feature = "undoredo")]
 pub type RecordingDcel<VW, HEW, FW, VC, HEC, FC> =
     Dcel<VW, HEW, FW, Recorder<VC>, Recorder<HEC>, Recorder<FC>>;
