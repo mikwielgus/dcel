@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Get, Insert, Push};
+use maplike::ops::{Get, Push, Set};
 
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId};
 
@@ -10,9 +10,9 @@ impl<
     VW: Clone,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Partition a face into triangles by inserting a vertex inside and adding
@@ -67,9 +67,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Partition a face into triangles by inserting a vertex inside and adding
@@ -140,7 +140,7 @@ impl<
         let mut new_faces = vec![];
 
         let mut face_weights_iter = triangle_face_weights.into_iter();
-        self.faces.insert(
+        self.faces.set(
             first_face.id(),
             Face {
                 representative: self.faces.get(&first_face.id()).unwrap().representative,

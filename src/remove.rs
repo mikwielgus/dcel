@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Clear, Get, Insert, Push, Remove, StableRemove};
+use maplike::ops::{Clear, Get, Push, Remove, Set};
 
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, Vertex, VertexId};
 
@@ -10,9 +10,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Remove<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Remove<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Remove<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Remove a face along with its edges and vertices.

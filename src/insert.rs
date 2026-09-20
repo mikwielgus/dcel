@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Get, Insert, Push};
+use maplike::ops::{Get, Push, Set};
 
 use crate::{
     Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId,
@@ -13,9 +13,9 @@ impl<
     VW: Clone + Eq + Ord,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Insert a mesh made of overlapping polygons.
@@ -82,9 +82,9 @@ impl<
     VW: Clone,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Insert a polygon.
@@ -111,9 +111,9 @@ impl<
     VW: Clone + Eq + Ord,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn insert_adjoined_polygon_with_all_weights(
@@ -216,7 +216,7 @@ impl<
                 let reused_edge = (forward, existing_half_edge);
 
                 // Make the forward half-edge point to the new face.
-                self.half_edges.insert(
+                self.half_edges.set(
                     forward.id(),
                     HalfEdge {
                         face: new_face,
@@ -250,9 +250,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Insert a polygon with all its vertex and edge weights, and its face
@@ -340,9 +340,9 @@ impl<
     VW: Clone,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Insert an edge between two vertices, splitting a face in two.
@@ -380,9 +380,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn insert_edge_chain_with_edge_weights(

@@ -21,13 +21,13 @@ maintenance = { status = "actively-developed" }
 [features]
 default = ["std"]
 std = []
-stable-vec = ["dep:stable-vec", "maplike/stable-vec"]
+stable-vec = ["dep:stable-vec", "maplike/stable-vec", "undoredo?/stable-vec"]
 #rstar = ["dep:rstar", "dep:rstared", "maplike/rstar"]
 
 [dependencies]
-maplike = "0.8"
+maplike = "0.15"
 serde = { version = "1", features = ["derive"], optional = true }
 stable-vec = { version = "0.4", optional = true }
 #rstar = { version = "0.12", optional = true }
 #rstared = { version = "0.8", optional = true }
-undoredo = { version = "0.8", features = ["derive"], optional = true }
+undoredo = { version = "0.15", features = ["derive"], optional = true }

@@ -26,7 +26,7 @@ mod stable_vec;
 use std::marker::PhantomData;
 
 #[cfg(feature = "undoredo")]
-use maplike::KeyedCollection;
+use maplike::abc::Keyed;
 
 #[cfg(feature = "undoredo")]
 use undoredo::{ApplyDelta, Delta, FlushDelta, Recorder};
@@ -40,7 +40,7 @@ mod rstar;*/
 #[cfg(feature = "rstar")]
 pub use crate::rstar::{RTreedDcel, RTreedStableDcel};
 
-use maplike::{Get, Insert, Push};
+use maplike::ops::{Get, Push, Set};
 
 pub use crate::walkers::{
     HalfSpokesIter, HalfSpokesReverseIter, HalfSpokesReverseWalker, HalfSpokesWalker, SpokesIter,
@@ -281,9 +281,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn wire_inner_half_edge_chain(&mut self, face: FaceId, half_edges: &[HalfEdgeId]) {
@@ -357,21 +357,21 @@ impl<VW, HEW, FW, VC: Push<usize, Value = Vertex<VW>>, HEC, FC> Dcel<VW, HEW, FW
     }
 }
 
-impl<VW: Clone, HEW, FW, VC: Get<usize, Value = Vertex<VW>> + Insert<usize>, HEC, FC>
+impl<VW: Clone, HEW, FW, VC: Get<usize, Value = Vertex<VW>> + Set<usize>, HEC, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_vertex_with_half_edge(&mut self, vertex: VertexId, outgoing_half_edge: HalfEdgeId) {
-        self.vertices.insert(
+        self.vertices.set(
             vertex.id(),
             Vertex {
                 representative: outgoing_half_edge,
                 weight: self.vertices.get(&vertex.id()).unwrap().weight.clone(),
             },
-        )
+        );
     }
 }
 
-impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<usize>, FC>
+impl<VW, HEW: Clone, FW, VC, HEC: Set<usize, Value = HalfEdge<HEW>> + Push<usize>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn add_unwired_edge(
@@ -410,7 +410,7 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
         // Now actually initialize `halfedge0`'s twin.
         // PERF: This could actually be optimized away by making it the
         // responsibility of the caller
-        self.half_edges.insert(
+        self.half_edges.set(
             forward_half_edge.id(),
             HalfEdge {
                 source,
@@ -430,18 +430,18 @@ impl<VW, HEW: Clone, FW, VC, HEC: Insert<usize, Value = HalfEdge<HEW>> + Push<us
     }
 }
 
-impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize>, FC>
+impl<VW, HEW: Clone, FW, VC, HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize>, FC>
     Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_subsequent_half_edges(&mut self, half_edge: HalfEdgeId, next_half_edge: HalfEdgeId) {
-        self.half_edges.insert(
+        self.half_edges.set(
             half_edge.id(),
             HalfEdge {
                 next: next_half_edge,
                 ..self.half_edges.get(&half_edge.id()).unwrap().clone()
             },
         );
-        self.half_edges.insert(
+        self.half_edges.set(
             next_half_edge.id(),
             HalfEdge {
                 prev: half_edge,
@@ -476,19 +476,19 @@ impl<
     HEW: Clone,
     FW: Clone,
     VC,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn link_face_with_half_edge(&mut self, face: FaceId, half_edge: HalfEdgeId) {
-        self.half_edges.insert(
+        self.half_edges.set(
             half_edge.id(),
             HalfEdge {
                 face,
                 ..self.half_edges.get(&half_edge.id()).unwrap().clone()
             },
         );
-        self.faces.insert(
+        self.faces.set(
             face.id(),
             Face {
                 representative: Some(half_edge),
@@ -509,26 +509,26 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VCD: Clone + KeyedCollection,
-    VC: Clone + KeyedCollection + ApplyDelta<VCD>,
-    HECD: Clone + KeyedCollection,
-    HEC: Clone + KeyedCollection + ApplyDelta<HECD>,
-    FCD: Clone + KeyedCollection,
-    FC: Clone + KeyedCollection + ApplyDelta<FCD>,
+    VCD: Clone + Keyed,
+    VC: Clone + Keyed + ApplyDelta<VCD>,
+    HECD: Clone + Keyed,
+    HEC: Clone + Keyed + ApplyDelta<HECD>,
+    FCD: Clone + Keyed,
+    FC: Clone + Keyed + ApplyDelta<FCD>,
 > ApplyDelta<Dcel<VW, HEW, FW, VCD, HECD, FCD>> for Dcel<VW, HEW, FW, VC, HEC, FC>
 {
-    fn apply_delta(&mut self, delta: &Delta<Dcel<VW, HEW, FW, VCD, HECD, FCD>>) {
-        let (removed, inserted) = delta.clone().dissolve();
+    fn apply_delta(&mut self, delta: Delta<Dcel<VW, HEW, FW, VCD, HECD, FCD>>) {
+        let (removed, inserted) = delta.dissolve();
 
         let vertices_delta = Delta::with_removed_inserted(removed.vertices, inserted.vertices);
-        self.vertices.apply_delta(&vertices_delta);
+        self.vertices.apply_delta(vertices_delta);
 
         let half_edges_delta =
             Delta::with_removed_inserted(removed.half_edges, inserted.half_edges);
-        self.half_edges.apply_delta(&half_edges_delta);
+        self.half_edges.apply_delta(half_edges_delta);
 
         let faces_delta = Delta::with_removed_inserted(removed.faces, inserted.faces);
-        self.faces.apply_delta(&faces_delta);
+        self.faces.apply_delta(faces_delta);
     }
 }
 
@@ -537,12 +537,12 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VCD: Clone + KeyedCollection,
-    VC: Clone + KeyedCollection + FlushDelta<VCD>,
-    HECD: Clone + KeyedCollection,
-    HEC: Clone + KeyedCollection + FlushDelta<HECD>,
-    FCD: Clone + KeyedCollection,
-    FC: Clone + KeyedCollection + FlushDelta<FCD>,
+    VCD: Clone + Keyed,
+    VC: Clone + Keyed + FlushDelta<VCD>,
+    HECD: Clone + Keyed,
+    HEC: Clone + Keyed + FlushDelta<HECD>,
+    FCD: Clone + Keyed,
+    FC: Clone + Keyed + FlushDelta<FCD>,
 > FlushDelta<Dcel<VW, HEW, FW, VCD, HECD, FCD>> for Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     fn flush_delta(&mut self) -> Delta<Dcel<VW, HEW, FW, VCD, HECD, FCD>> {

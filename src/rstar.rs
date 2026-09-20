@@ -5,7 +5,8 @@
 use std::collections::BTreeSet;
 use std::marker::PhantomData;
 
-use maplike::{Clear, Get, Insert, KeyedCollection, Push, Remove, StableRemove};
+use maplike::abc::Keyed;
+use maplike::ops::{Clear, Get, Insert, Push, Remove, Set};
 use rstar::{
     AABB, Envelope, Point,
     primitives::{GeomWithData, Rectangle},
@@ -123,9 +124,9 @@ impl<
     VW: Clone + Into<P> + Eq + Ord,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -178,9 +179,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -222,9 +223,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -263,9 +264,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -295,9 +296,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -354,9 +355,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Remove<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Remove<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Remove<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -482,9 +483,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + StableRemove<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + StableRemove<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + StableRemove<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Remove<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Remove<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Remove<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -689,9 +690,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -773,9 +774,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -819,9 +820,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -869,9 +870,9 @@ impl<
     VW: Clone + Into<P>,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
     ER: Insert<GeomWithData<Rectangle<P>, EdgeId>, Value = ()>
         + Remove<GeomWithData<Rectangle<P>, EdgeId>>,
     FR: Insert<GeomWithData<Rectangle<P>, FaceId>, Value = ()>
@@ -1044,32 +1045,32 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VCD: Clone + KeyedCollection,
-    VC: Clone + KeyedCollection + ApplyDelta<VCD>,
-    HECD: Clone + KeyedCollection,
-    HEC: Clone + KeyedCollection + ApplyDelta<HECD>,
-    FCD: Clone + KeyedCollection,
-    FC: Clone + KeyedCollection + ApplyDelta<FCD>,
-    FRD: Clone + KeyedCollection,
-    FR: Clone + KeyedCollection + ApplyDelta<FRD>,
-    ERD: Clone + KeyedCollection,
-    ER: Clone + KeyedCollection + ApplyDelta<ERD>,
+    VCD: Clone + Keyed,
+    VC: Clone + Keyed + ApplyDelta<VCD>,
+    HECD: Clone + Keyed,
+    HEC: Clone + Keyed + ApplyDelta<HECD>,
+    FCD: Clone + Keyed,
+    FC: Clone + Keyed + ApplyDelta<FCD>,
+    FRD: Clone + Keyed,
+    FR: Clone + Keyed + ApplyDelta<FRD>,
+    ERD: Clone + Keyed,
+    ER: Clone + Keyed + ApplyDelta<ERD>,
 > ApplyDelta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>>
     for RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {
-    fn apply_delta(&mut self, delta: &Delta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>>) {
-        let (removed, inserted) = delta.clone().dissolve();
+    fn apply_delta(&mut self, delta: Delta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>>) {
+        let (removed, inserted) = delta.dissolve();
 
         let dcel_delta = Delta::with_removed_inserted(removed.dcel, inserted.dcel);
-        self.dcel.apply_delta(&dcel_delta);
+        self.dcel.apply_delta(dcel_delta);
 
         let edges_rtree_delta =
             Delta::with_removed_inserted(removed.edges_rtree, inserted.edges_rtree);
-        self.edges_rtree.apply_delta(&edges_rtree_delta);
+        self.edges_rtree.apply_delta(edges_rtree_delta);
 
         let faces_rtree_delta =
             Delta::with_removed_inserted(removed.faces_rtree, inserted.faces_rtree);
-        self.faces_rtree.apply_delta(&faces_rtree_delta);
+        self.faces_rtree.apply_delta(faces_rtree_delta);
     }
 }
 
@@ -1079,16 +1080,16 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VCD: Clone + KeyedCollection,
-    VC: Clone + KeyedCollection + FlushDelta<VCD>,
-    HECD: Clone + KeyedCollection,
-    HEC: Clone + KeyedCollection + FlushDelta<HECD>,
-    FCD: Clone + KeyedCollection,
-    FC: Clone + KeyedCollection + FlushDelta<FCD>,
-    FRD: Clone + KeyedCollection,
-    FR: Clone + KeyedCollection + FlushDelta<FRD>,
-    ERD: Clone + KeyedCollection,
-    ER: Clone + KeyedCollection + FlushDelta<ERD>,
+    VCD: Clone + Keyed,
+    VC: Clone + Keyed + FlushDelta<VCD>,
+    HECD: Clone + Keyed,
+    HEC: Clone + Keyed + FlushDelta<HECD>,
+    FCD: Clone + Keyed,
+    FC: Clone + Keyed + FlushDelta<FCD>,
+    FRD: Clone + Keyed,
+    FR: Clone + Keyed + FlushDelta<FRD>,
+    ERD: Clone + Keyed,
+    ER: Clone + Keyed + FlushDelta<ERD>,
 > FlushDelta<RTreedDcel<P, VW, HEW, FW, VCD, HECD, FCD, ERD, FRD>>
     for RTreedDcel<P, VW, HEW, FW, VC, HEC, FC, ER, FR>
 {

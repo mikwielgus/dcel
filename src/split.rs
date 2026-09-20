@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
-use maplike::{Get, Insert, Push};
+use maplike::ops::{Get, Push, Set};
 
 use crate::{Dcel, EdgeId, Face, FaceId, HalfEdge, HalfEdgeId, Vertex, VertexId};
 
@@ -10,9 +10,9 @@ impl<
     VW: Clone,
     HEW: Clone + Default,
     FW: Clone + Default,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Split an edge by inserting a new vertex on it.
@@ -44,7 +44,7 @@ impl<
         let new_edge = self.full_edge(new_forward);
 
         // Retarget the original edge to start at the new vertex.
-        self.half_edges.insert(
+        self.half_edges.set(
             forward.id(),
             HalfEdge {
                 source: new_vertex,
@@ -118,9 +118,9 @@ impl<
     VW: Clone,
     HEW: Clone,
     FW: Clone,
-    VC: Get<usize, Value = Vertex<VW>> + Insert<usize> + Push<usize>,
-    HEC: Get<usize, Value = HalfEdge<HEW>> + Insert<usize> + Push<usize>,
-    FC: Get<usize, Value = Face<FW>> + Insert<usize> + Push<usize>,
+    VC: Get<usize, Value = Vertex<VW>> + Set<usize> + Push<usize>,
+    HEC: Get<usize, Value = HalfEdge<HEW>> + Set<usize> + Push<usize>,
+    FC: Get<usize, Value = Face<FW>> + Set<usize> + Push<usize>,
 > Dcel<VW, HEW, FW, VC, HEC, FC>
 {
     /// Split a face by inserting an edge chain between two of its boundary
